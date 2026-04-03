@@ -1,0 +1,116 @@
+package elements
+
+import (
+	"fmt"
+	"strings"
+
+	"adf-converter/adf_types"
+	"adf-converter/converter"
+	"adf-converter/converter/elements/inline"
+)
+
+// HeadingConverter handles conversion of ADF heading nodes to/from markdown
+type HeadingConverter struct{}
+
+func NewHeadingConverter() *HeadingConverter {
+	return &HeadingConverter{}
+}
+
+func (hc *HeadingConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+	// Get heading level (1-6)
+	level := node.GetHeadingLevel()
+	if level < 1 || level > 6 {
+		level = 1 // Default to h1 for invalid levels
+	}
+
+	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+
+	prefix := strings.Repeat("#", level) + " "
+	builder.AppendContent(prefix)
+
+	for _, child := range node.Content {
+		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
+		if childConverter == nil {
+			return converter.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
+		}
+
+		childResult, err := childConverter.ToMarkdown(child, context)
+		if err != nil {
+			return converter.EnhancedConversionResult{}, fmt.Errorf("failed to convert child node: %w", err)
+		}
+
+		// Remove newlines from heading content (headings are single-line in markdown)
+		childContent := strings.ReplaceAll(childResult.Content, "\n", " ")
+		builder.AppendContent(childContent)
+	}
+
+	builder.AppendContent("\n\n")
+
+	return builder.Build(), nil
+}
+
+func (hc *HeadingConverter) FromMarkdown(lines []string, startIndex int, _ converter.ConversionContext) (adf_types.ADFNode, int, error) {
+	if len(lines) == 0 || startIndex >= len(lines) {
+		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
+	}
+
+	line := lines[startIndex]
+
+	level := 0
+	for i := 0; i < len(line) && line[i] == '#'; i++ {
+		level++
+	}
+
+	if level < 1 || level > 6 {
+		return adf_types.ADFNode{}, 0, fmt.Errorf("invalid heading level: %d", level)
+	}
+
+	text := strings.TrimSpace(line[level:])
+
+	if text == "" {
+		node := adf_types.ADFNode{
+			Type: adf_types.NodeTypeHeading,
+			Attrs: map[string]interface{}{
+				"level": level,
+			},
+			Content: []adf_types.ADFNode{},
+		}
+		return node, 1, nil
+	}
+
+	textNodes, err := inline.ParseContent(text)
+	if err != nil {
+		return adf_types.ADFNode{}, 0, fmt.Errorf("failed to parse heading content: %w", err)
+	}
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeHeading,
+		Attrs: map[string]interface{}{
+			"level": level,
+		},
+		Content: textNodes,
+	}
+
+	return node, 1, nil
+}
+
+func (hc *HeadingConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+	return nodeType == converter.ADFNodeType(adf_types.NodeTypeHeading)
+}
+
+func (hc *HeadingConverter) GetStrategy() converter.ConversionStrategy {
+	return converter.StandardMarkdown
+}
+
+func (hc *HeadingConverter) ValidateInput(input interface{}) error {
+	node, ok := input.(adf_types.ADFNode)
+	if !ok {
+		return fmt.Errorf("input must be an ADFNode")
+	}
+
+	if node.Type != adf_types.NodeTypeHeading {
+		return fmt.Errorf("node type must be heading, got: %s", node.Type)
+	}
+
+	return nil
+}

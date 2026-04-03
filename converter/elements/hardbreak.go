@@ -1,0 +1,84 @@
+package elements
+
+import (
+	"errors"
+	"fmt"
+
+	"adf-converter/adf_types"
+	"adf-converter/converter"
+)
+
+// HardBreakConverter handles bidirectional conversion of hard break nodes
+//
+// Hard breaks are atomic inline elements that represent line breaks within
+// block-level elements (paragraphs, headings, list items).
+//
+// In Markdown: represented as "\n" (newline)
+// In ADF: represented as { type: "hardBreak" }
+//
+// Note: Hard breaks are inline and typically processed within container elements.
+// The FromMarkdown direction is primarily handled by container converters that
+// recognize newlines within their content.
+type HardBreakConverter struct{}
+
+// NewHardBreakConverter creates a new hard break converter instance
+func NewHardBreakConverter() *HardBreakConverter {
+	return &HardBreakConverter{}
+}
+
+// ToMarkdown converts an ADF hard break node to a Markdown newline
+func (hc *HardBreakConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+	// Validate input
+	if err := hc.ValidateInput(node); err != nil {
+		return converter.EnhancedConversionResult{}, err
+	}
+
+	// Hard break is simply a newline character
+	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder.AppendContent("\n")
+	builder.IncrementConverted()
+
+	return builder.Build(), nil
+}
+
+// FromMarkdown parses Markdown into an ADF hard break node
+//
+// Hard break nodes are inline elements, so this method returns an error indicating
+// that parsing is handled by container converters (paragraph, heading, etc.).
+// Container converters detect newlines within their content and create hard break nodes.
+func (hc *HardBreakConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+	return adf_types.ADFNode{}, 0, errors.New("hardBreak nodes are inline elements - use paragraph/heading converters for parsing")
+}
+
+// CanHandle returns true if this converter can handle the given node type
+func (hc *HardBreakConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+	return nodeType == adf_types.NodeTypeHardBreak
+}
+
+// GetStrategy returns the conversion strategy for hard break nodes
+func (hc *HardBreakConverter) GetStrategy() converter.ConversionStrategy {
+	return converter.StandardMarkdown
+}
+
+// ValidateInput validates that the input node is a valid hard break node
+func (hc *HardBreakConverter) ValidateInput(input interface{}) error {
+	node, ok := input.(adf_types.ADFNode)
+	if !ok {
+		return fmt.Errorf("invalid input type: expected ADFNode, got %T", input)
+	}
+
+	if node.Type != adf_types.NodeTypeHardBreak {
+		return fmt.Errorf("invalid node type: expected %s, got %s", adf_types.NodeTypeHardBreak, node.Type)
+	}
+
+	// Hard break nodes should not have content or text
+	if len(node.Content) > 0 {
+		return fmt.Errorf("hardBreak node should not have content")
+	}
+
+	if node.Text != "" {
+		return fmt.Errorf("hardBreak node should not have text")
+	}
+
+	return nil
+}
