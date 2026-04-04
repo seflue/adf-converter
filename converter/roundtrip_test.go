@@ -361,6 +361,141 @@ func TestRoundTripConversion_TextColorBoldText(t *testing.T) {
 }
 
 // ============================================================================
+// Subscript / Superscript Round-trip Tests
+// ============================================================================
+
+func TestRoundTripConversion_SubscriptText(t *testing.T) {
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "H",
+					},
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "2",
+						Marks: []adf_types.ADFMark{
+							{
+								Type: adf_types.MarkTypeSubsup,
+								Attrs: map[string]interface{}{
+									"type": "sub",
+								},
+							},
+						},
+					},
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "O",
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	markdown, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	assert.Equal(t, "H<sub>2</sub>O\n\n", markdown)
+	assert.Equal(t, original, restored)
+}
+
+func TestRoundTripConversion_SuperscriptText(t *testing.T) {
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "x",
+					},
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "2",
+						Marks: []adf_types.ADFMark{
+							{
+								Type: adf_types.MarkTypeSubsup,
+								Attrs: map[string]interface{}{
+									"type": "sup",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	markdown, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	assert.Equal(t, "x<sup>2</sup>\n\n", markdown)
+	assert.Equal(t, original, restored)
+}
+
+func TestRoundTripConversion_BoldSubscriptText(t *testing.T) {
+	// Mark order note: [subsup, strong] → applyMarkToText wraps inside-out:
+	// sub first: <sub>text</sub>, then strong: **<sub>text</sub>**
+	// Parser reads outside-in: ** → strong, <sub> → subsup
+	// Result marks: [strong, subsup] — order inverted but both survive.
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "important",
+						Marks: []adf_types.ADFMark{
+							{
+								Type: adf_types.MarkTypeSubsup,
+								Attrs: map[string]interface{}{
+									"type": "sub",
+								},
+							},
+							{Type: adf_types.MarkTypeStrong},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	markdown, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	assert.Equal(t, "**<sub>important</sub>**\n\n", markdown)
+
+	// Verify structure preserved
+	require.Equal(t, 1, len(restored.Content))
+	require.Equal(t, 1, len(restored.Content[0].Content))
+
+	restoredNode := restored.Content[0].Content[0]
+	assert.Equal(t, "important", restoredNode.Text)
+	assert.Equal(t, 2, len(restoredNode.Marks))
+
+	// Both marks must survive (order may differ)
+	markTypes := make(map[string]bool)
+	for _, m := range restoredNode.Marks {
+		markTypes[m.Type] = true
+	}
+	assert.True(t, markTypes[adf_types.MarkTypeStrong], "strong mark must survive roundtrip")
+	assert.True(t, markTypes[adf_types.MarkTypeSubsup], "subsup mark must survive roundtrip")
+}
+
+// ============================================================================
 // Enhanced Link Round-trip Tests
 // ============================================================================
 

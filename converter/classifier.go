@@ -58,6 +58,7 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.MarkTypeLink:      true,
 			adf_types.MarkTypeUnderline: true,
 			adf_types.MarkTypeStrike:    true,
+			adf_types.MarkTypeSubsup:   true,
 		},
 	}
 }

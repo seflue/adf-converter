@@ -410,6 +410,34 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 				}
 			}
 		}
+		if isOpeningHTMLTag(n, source, "sub") {
+			subMark := adf_types.NewMark(adf_types.MarkTypeSubsup, map[string]interface{}{"type": "sub"})
+			collected, nextNode, err := collectNodesUntilClosingTag(node.NextSibling(), source, "sub", subMark, parentMarks)
+			if err == nil {
+				if nextNode != nil {
+					remaining, err := convertInlineAST(nextNode, source, parentMarks)
+					if err != nil {
+						return nil, err
+					}
+					collected = append(collected, remaining...)
+				}
+				return collected, nil
+			}
+		}
+		if isOpeningHTMLTag(n, source, "sup") {
+			supMark := adf_types.NewMark(adf_types.MarkTypeSubsup, map[string]interface{}{"type": "sup"})
+			collected, nextNode, err := collectNodesUntilClosingTag(node.NextSibling(), source, "sup", supMark, parentMarks)
+			if err == nil {
+				if nextNode != nil {
+					remaining, err := convertInlineAST(nextNode, source, parentMarks)
+					if err != nil {
+						return nil, err
+					}
+					collected = append(collected, remaining...)
+				}
+				return collected, nil
+			}
+		}
 		return nil, nil
 
 	default:
@@ -431,7 +459,10 @@ func convertInlineAST(node ast.Node, source []byte, parentMarks []adf_types.ADFM
 
 		// RawHTML with tag-pairing already processed remaining siblings via recursion
 		if rawHTML, ok := current.(*ast.RawHTML); ok {
-			isPairedHTMLTag := isOpeningHTMLTag(rawHTML, source, "u") || isOpeningHTMLTag(rawHTML, source, "span")
+			isPairedHTMLTag := isOpeningHTMLTag(rawHTML, source, "u") ||
+				isOpeningHTMLTag(rawHTML, source, "span") ||
+				isOpeningHTMLTag(rawHTML, source, "sub") ||
+				isOpeningHTMLTag(rawHTML, source, "sup")
 			if isPairedHTMLTag {
 				return nodes, nil
 			}

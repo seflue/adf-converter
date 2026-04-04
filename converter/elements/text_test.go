@@ -387,6 +387,91 @@ func TestTextConverter_ToMarkdown_UnsupportedMark(t *testing.T) {
 	}
 }
 
+func TestTextConverter_ToMarkdown_SubscriptText(t *testing.T) {
+	tc := NewTextConverter()
+	ctx := converter.ConversionContext{
+		Strategy: converter.StandardMarkdown,
+	}
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeText,
+		Text: "2",
+		Marks: []adf_types.ADFMark{
+			{
+				Type: adf_types.MarkTypeSubsup,
+				Attrs: map[string]interface{}{
+					"type": "sub",
+				},
+			},
+		},
+	}
+
+	result, err := tc.ToMarkdown(node, ctx)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "<sub>2</sub>"
+	if result.Content != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result.Content)
+	}
+}
+
+func TestTextConverter_ToMarkdown_SubsupDefaultsToSub(t *testing.T) {
+	tc := NewTextConverter()
+	ctx := converter.ConversionContext{
+		Strategy: converter.StandardMarkdown,
+	}
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeText,
+		Text: "text",
+		Marks: []adf_types.ADFMark{
+			{Type: adf_types.MarkTypeSubsup},
+		},
+	}
+
+	result, err := tc.ToMarkdown(node, ctx)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "<sub>text</sub>"
+	if result.Content != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result.Content)
+	}
+}
+
+func TestTextConverter_ToMarkdown_SuperscriptText(t *testing.T) {
+	tc := NewTextConverter()
+	ctx := converter.ConversionContext{
+		Strategy: converter.StandardMarkdown,
+	}
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeText,
+		Text: "2",
+		Marks: []adf_types.ADFMark{
+			{
+				Type: adf_types.MarkTypeSubsup,
+				Attrs: map[string]interface{}{
+					"type": "sup",
+				},
+			},
+		},
+	}
+
+	result, err := tc.ToMarkdown(node, ctx)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "<sup>2</sup>"
+	if result.Content != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result.Content)
+	}
+}
+
 func TestTextConverter_FromMarkdown_ReturnsError(t *testing.T) {
 	tc := NewTextConverter()
 	ctx := converter.ConversionContext{

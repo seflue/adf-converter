@@ -96,6 +96,11 @@ func (tc *TextConverter) applyMarkToText(text string, mark adf_types.ADFMark) st
 			return fmt.Sprintf(`<span style="color: %s">%s</span>`, color, text)
 		}
 		return text
+	case adf_types.MarkTypeSubsup:
+		if subType, ok := mark.Attrs["type"].(string); ok && subType == "sup" {
+			return fmt.Sprintf("<sup>%s</sup>", text)
+		}
+		return fmt.Sprintf("<sub>%s</sub>", text)
 	default:
 		return text
 	}
