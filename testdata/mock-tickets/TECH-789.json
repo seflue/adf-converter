@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "API Integration Issue"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The user authentication endpoint is returning inconsistent responses. Sometimes it returns a "
+        },
+        {
+          "type": "text",
+          "text": "401 Unauthorized",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " when it should return "
+        },
+        {
+          "type": "text",
+          "text": "200 OK",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " with valid credentials."
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "javascript"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "// Current API call\nconst response = await fetch('/api/auth/login', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    username: 'user@example.com',\n    password: 'securePassword123'\n  })\n});\n\nconsole.log('Response status:', response.status);\n// Sometimes returns 401, sometimes 200"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The issue appears to be related to session management. Here's the problematic server code:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "python"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "def authenticate_user(username, password):\n    # Check if user exists\n    user = User.query.filter_by(username=username).first()\n    \n    if user and check_password_hash(user.password, password):\n        # BUG: Session is not properly initialized here\n        session['user_id'] = user.id\n        return {'status': 'success', 'user_id': user.id}\n    else:\n        return {'status': 'error', 'message': 'Invalid credentials'}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Proposed Solution"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "We need to ensure proper session initialization before setting session variables. The fix should include:"
+        }
+      ]
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Session initialization check"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Proper error handling for session failures"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Consistent response format"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": {
+        "panelType": "warning"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "⚠️ This issue affects user login experience and should be prioritized for the next release."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
