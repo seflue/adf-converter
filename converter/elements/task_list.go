@@ -32,23 +32,9 @@ func (tc *TaskListConverter) ToMarkdown(node adf_types.ADFNode, context Conversi
 			continue
 		}
 
-		state := "TODO"
-		if item.Attrs != nil {
-			if stateValue, exists := item.Attrs["state"]; exists {
-				if stateStr, ok := stateValue.(string); ok {
-					state = stateStr
-				}
-			}
-		}
-
-		var checkbox string
-		switch state {
-		case "DONE":
+		checkbox := "- [ ]"
+		if tc.getTaskState(item) == "DONE" {
 			checkbox = "- [x]"
-		case "TODO":
-			fallthrough
-		default:
-			checkbox = "- [ ]"
 		}
 
 		taskContent := tc.extractTaskContent(item)
@@ -59,15 +45,26 @@ func (tc *TaskListConverter) ToMarkdown(node adf_types.ADFNode, context Conversi
 
 	result := builder.Build()
 
-	if context.PreserveAttrs && node.Attrs != nil && len(node.Attrs) > 0 {
-		wrappedMarkdown, err := tc.wrapTaskListWithXML(result.Content, node.Attrs)
-		if err != nil {
-			return CreateErrorResult(err.Error(), MarkdownTaskList), err
-		}
-		result.Content = wrappedMarkdown
+	if tc.shouldPreserveAttrs(context, node) {
+		result.Content = tc.wrapTaskListWithXML(result.Content, node.Attrs)
 	}
 
 	return result, nil
+}
+
+func (tc *TaskListConverter) getTaskState(item adf_types.ADFNode) string {
+	if item.Attrs == nil {
+		return "TODO"
+	}
+	stateValue, exists := item.Attrs["state"]
+	if !exists {
+		return "TODO"
+	}
+	stateStr, ok := stateValue.(string)
+	if !ok {
+		return "TODO"
+	}
+	return stateStr
 }
 
 func (tc *TaskListConverter) extractTaskContent(taskItem adf_types.ADFNode) string {
@@ -126,29 +123,15 @@ func (tc *TaskListConverter) convertParagraphToMarkdown(paragraph adf_types.ADFN
 func (tc *TaskListConverter) FromMarkdown(markdown string, context ConversionContext) (adf_types.ADFNode, error) {
 	lines := strings.Split(strings.TrimSpace(markdown), "\n")
 
-	// Check if this is an XML-wrapped task list
-	attrs := make(map[string]interface{})
 	var contentLines []string
+	attrs := make(map[string]interface{})
 
-	if len(lines) > 0 && strings.HasPrefix(strings.TrimSpace(lines[0]), "<taskList") {
-		// Extract attributes from XML opening tag
-		openTag := strings.TrimSpace(lines[0])
-		attrs = tc.parseXMLAttributes(openTag)
-
-		// Find content lines between opening and closing tags
-		for i := 1; i < len(lines); i++ {
-			trimmed := strings.TrimSpace(lines[i])
-			if strings.HasPrefix(trimmed, "</taskList>") {
-				break
-			}
-			contentLines = append(contentLines, lines[i])
-		}
+	if tc.hasXMLWrapper(lines) {
+		contentLines, attrs = tc.extractFromXMLWrapper(lines)
 	} else {
-		// Plain markdown task list
 		contentLines = lines
 	}
 
-	// Parse task items from markdown content
 	taskItems := tc.parseTaskItems(contentLines, attrs)
 
 	return adf_types.ADFNode{
@@ -156,6 +139,22 @@ func (tc *TaskListConverter) FromMarkdown(markdown string, context ConversionCon
 		Content: taskItems,
 		Attrs:   attrs,
 	}, nil
+}
+
+func (tc *TaskListConverter) hasXMLWrapper(lines []string) bool {
+	return len(lines) > 0 && strings.HasPrefix(strings.TrimSpace(lines[0]), "<taskList")
+}
+
+func (tc *TaskListConverter) extractFromXMLWrapper(lines []string) ([]string, map[string]interface{}) {
+	attrs := internal.ParseXMLAttributes(strings.TrimSpace(lines[0]))
+	var contentLines []string
+	for i := 1; i < len(lines); i++ {
+		if strings.HasPrefix(strings.TrimSpace(lines[i]), "</taskList>") {
+			break
+		}
+		contentLines = append(contentLines, lines[i])
+	}
+	return contentLines, attrs
 }
 
 // parseTaskItems parses markdown task list lines into ADF taskItem nodes
@@ -205,11 +204,6 @@ func (tc *TaskListConverter) parseTaskItems(lines []string, taskListAttrs map[st
 	return taskItems
 }
 
-// parseXMLAttributes extracts attributes from an XML opening tag
-func (tc *TaskListConverter) parseXMLAttributes(xmlTag string) map[string]interface{} {
-	return internal.ParseXMLAttributes(xmlTag)
-}
-
 func (tc *TaskListConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeTaskList
 }
@@ -239,45 +233,43 @@ func (tc *TaskListConverter) ValidateInput(input interface{}) error {
 	}
 }
 
-//nolint:unparam // error return reserved for future use
-func (tc *TaskListConverter) wrapTaskListWithXML(markdownTaskList string, attrs map[string]interface{}) (string, error) {
+func (tc *TaskListConverter) shouldPreserveAttrs(context ConversionContext, node adf_types.ADFNode) bool {
+	return context.PreserveAttrs && len(node.Attrs) > 0
+}
+
+func (tc *TaskListConverter) wrapTaskListWithXML(markdownTaskList string, attrs map[string]interface{}) string {
 	var xmlBuilder strings.Builder
 
 	xmlBuilder.WriteString("<taskList")
 
-	if attrs != nil {
-		if localId, exists := attrs["localId"]; exists {
-			if localIdStr, ok := localId.(string); ok {
-				xmlBuilder.WriteString(fmt.Sprintf(` localId="%s"`, localIdStr))
-			}
-		}
+	if localId, ok := attrs["localId"].(string); ok {
+		xmlBuilder.WriteString(fmt.Sprintf(` localId="%s"`, localId))
+	}
 
-		lines := strings.Split(strings.TrimSpace(markdownTaskList), "\n")
-		completed := 0
-		total := 0
-		for _, line := range lines {
-			line = strings.TrimSpace(line)
-			if strings.HasPrefix(line, "- [x]") {
-				completed++
-				total++
-			} else if strings.HasPrefix(line, "- [ ]") {
-				total++
-			}
-		}
-
-		if total > 0 {
-			xmlBuilder.WriteString(fmt.Sprintf(` completed="%d" total="%d"`, completed, total))
-		}
+	completed, total := tc.countTaskStats(markdownTaskList)
+	if total > 0 {
+		xmlBuilder.WriteString(fmt.Sprintf(` completed="%d" total="%d"`, completed, total))
 	}
 
 	xmlBuilder.WriteString(">\n")
-
 	xmlBuilder.WriteString(markdownTaskList)
-
 	if !strings.HasSuffix(markdownTaskList, "\n") {
 		xmlBuilder.WriteString("\n")
 	}
 	xmlBuilder.WriteString("</taskList>")
 
-	return xmlBuilder.String(), nil
+	return xmlBuilder.String()
+}
+
+func (tc *TaskListConverter) countTaskStats(markdown string) (completed, total int) {
+	for _, line := range strings.Split(strings.TrimSpace(markdown), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "- [x]") {
+			completed++
+			total++
+		} else if strings.HasPrefix(line, "- [ ]") {
+			total++
+		}
+	}
+	return
 }
