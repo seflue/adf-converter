@@ -34,6 +34,8 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeEmoji: true,
 			// Mention can be edited as [@DisplayName](accountid:id)
 			adf_types.NodeTypeMention: true,
+			// Date can be edited as [date:2025-04-04]
+			adf_types.NodeTypeDate: true,
 			// CodeBlock can be converted to fenced code blocks
 			adf_types.NodeTypeCodeBlock: true,
 			// Rule is a simple block node (no attrs, no children)
@@ -46,7 +48,6 @@ func NewDefaultClassifier() ContentClassifier {
 		preservedTypes: map[string]bool{
 			adf_types.NodeTypeBlockquote: true,
 			adf_types.NodeTypeMediaSingle: true,
-			adf_types.NodeTypeDate: true,
 		},
 		inlineFormatTypes: map[string]bool{
 			adf_types.MarkTypeStrong:    true,

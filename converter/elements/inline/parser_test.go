@@ -1,7 +1,9 @@
 package inline
 
 import (
+	"strconv"
 	"testing"
+	"time"
 
 	"adf-converter/adf_types"
 )
@@ -471,5 +473,69 @@ func TestParseContent_SimpleUnderline(t *testing.T) {
 	}
 	if len(nodes[0].Marks) != 1 || nodes[0].Marks[0].Type != adf_types.MarkTypeUnderline {
 		t.Errorf("expected underline mark, got %v", nodes[0].Marks)
+	}
+}
+
+func TestParseContent_DateNode(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantDate string
+	}{
+		{
+			name:     "basic date",
+			input:    "[date:2025-04-04]",
+			wantDate: "2025-04-04",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			nodes, err := ParseContent(tt.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if len(nodes) != 1 {
+				t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+			}
+
+			node := nodes[0]
+			if node.Type != adf_types.NodeTypeDate {
+				t.Errorf("expected date node, got %s", node.Type)
+			}
+
+			timestamp, ok := node.Attrs["timestamp"].(string)
+			if !ok {
+				t.Fatal("expected timestamp attribute")
+			}
+
+			ms, _ := strconv.ParseInt(timestamp, 10, 64)
+			gotDate := time.Unix(ms/1000, 0).UTC().Format("2006-01-02")
+			if gotDate != tt.wantDate {
+				t.Errorf("expected date %q, got %q (timestamp: %s)", tt.wantDate, gotDate, timestamp)
+			}
+		})
+	}
+}
+
+func TestParseContent_DateMixedWithText(t *testing.T) {
+	nodes, err := ParseContent("Due: [date:2025-04-04] done")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d", len(nodes))
+	}
+
+	if nodes[0].Type != adf_types.NodeTypeText || nodes[0].Text != "Due: " {
+		t.Errorf("expected text 'Due: ', got type=%s text=%q", nodes[0].Type, nodes[0].Text)
+	}
+	if nodes[1].Type != adf_types.NodeTypeDate {
+		t.Errorf("expected date node, got %s", nodes[1].Type)
+	}
+	if nodes[2].Type != adf_types.NodeTypeText || nodes[2].Text != " done" {
+		t.Errorf("expected text ' done', got type=%s text=%q", nodes[2].Type, nodes[2].Text)
 	}
 }

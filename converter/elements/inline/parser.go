@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/forPelevin/gomoji"
 	"github.com/yuin/goldmark"
@@ -17,6 +19,9 @@ import (
 // PlaceholderPattern matches placeholder HTML comments
 // Example: <!-- ADF_PLACEHOLDER_001: Emoji: :white_check_mark: -->
 var PlaceholderPattern = regexp.MustCompile(`<!--\s*(ADF_PLACEHOLDER_\d+):\s*([^>]+?)\s*-->`)
+
+// DatePattern matches inline date syntax: [date:2025-04-04]
+var DatePattern = regexp.MustCompile(`\[date:(\d{4}-\d{2}-\d{2})\]`)
 
 // ParseContent parses inline markdown formatting into ADF text nodes with marks
 // This is the unified inline content parser used by all element converters
@@ -37,7 +42,11 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 	// Goldmark treats HTML comments specially and may drop or mangle them
 	placeholders, cleanedMarkdown := extractPlaceholders(markdown)
 
-	// Step 2: Parse with goldmark (now without HTML comments)
+	// Step 1b: Extract date patterns before goldmark parsing
+	// Goldmark may break [date:...] at bracket boundaries
+	dates, cleanedMarkdown := extractDatePatterns(cleanedMarkdown)
+
+	// Step 2: Parse with goldmark (now without HTML comments or date patterns)
 	source := []byte(cleanedMarkdown)
 	parser := goldmark.New()
 	doc := parser.Parser().Parse(text.NewReader(source))
@@ -57,6 +66,11 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 	// Step 3: Restore placeholder nodes from manager
 	if manager != nil && len(placeholders) > 0 {
 		result = restorePlaceholders(result, placeholders, manager)
+	}
+
+	// Step 3b: Restore date nodes
+	if len(dates) > 0 {
+		result = restoreDateNodes(result, dates)
 	}
 
 	// Merge consecutive text nodes with identical marks
@@ -502,4 +516,89 @@ func parseMentionLink(href, linkText string) (adf_types.ADFNode, bool) {
 		Type:  adf_types.NodeTypeMention,
 		Attrs: attrs,
 	}, true
+}
+
+// extractDatePatterns finds and removes [date:YYYY-MM-DD] patterns from markdown
+// Returns: map of marker → ISO date string, and cleaned markdown
+func extractDatePatterns(markdown string) (map[string]string, string) {
+	dates := make(map[string]string)
+	counter := 0
+
+	cleaned := DatePattern.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := DatePattern.FindStringSubmatch(match)
+		if len(submatches) >= 2 {
+			dateStr := submatches[1]
+			marker := fmt.Sprintf("{{DATE-%d}}", counter)
+			dates[marker] = dateStr
+			counter++
+			return marker
+		}
+		return match
+	})
+
+	return dates, cleaned
+}
+
+// restoreDateNodes replaces date marker text nodes with ADF date nodes
+func restoreDateNodes(nodes []adf_types.ADFNode, dates map[string]string) []adf_types.ADFNode {
+	result := make([]adf_types.ADFNode, 0, len(nodes))
+
+	for _, node := range nodes {
+		if node.Type == adf_types.NodeTypeText {
+			restored := restoreTextWithDates(node, dates)
+			result = append(result, restored...)
+		} else {
+			result = append(result, node)
+		}
+	}
+
+	return result
+}
+
+// restoreTextWithDates splits text node on date markers and creates ADF date nodes
+func restoreTextWithDates(textNode adf_types.ADFNode, dates map[string]string) []adf_types.ADFNode {
+	nodeText := textNode.Text
+	var result []adf_types.ADFNode
+
+	for marker, dateStr := range dates {
+		if strings.Contains(nodeText, marker) {
+			parts := strings.Split(nodeText, marker)
+
+			if len(parts[0]) > 0 {
+				beforeNode := adf_types.NewTextNode(parts[0])
+				beforeNode.Marks = textNode.Marks
+				result = append(result, beforeNode)
+			}
+
+			millis := dateToMillisUnchecked(dateStr)
+			dateNode := adf_types.ADFNode{
+				Type: adf_types.NodeTypeDate,
+				Attrs: map[string]interface{}{
+					"timestamp": millis,
+				},
+			}
+			result = append(result, dateNode)
+
+			if len(parts) > 1 {
+				remaining := strings.Join(parts[1:], marker)
+				if len(remaining) > 0 {
+					afterNode := adf_types.NewTextNode(remaining)
+					afterNode.Marks = textNode.Marks
+					moreRestored := restoreTextWithDates(afterNode, dates)
+					result = append(result, moreRestored...)
+				}
+			}
+
+			return result
+		}
+	}
+
+	return []adf_types.ADFNode{textNode}
+}
+
+// dateToMillisUnchecked converts ISO date to millis string (pattern already validated by regex)
+func dateToMillisUnchecked(dateStr string) string {
+	t, _ := time.Parse("2006-01-02", dateStr)
+	ms := t.UTC().Unix() * 1000
+	return strconv.FormatInt(ms, 10)
 }
