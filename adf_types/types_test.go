@@ -36,6 +36,7 @@ func TestIsInlineNode(t *testing.T) {
 		{NodeTypeText, true},
 		{NodeTypeHardBreak, true},
 		{NodeTypeMention, true},
+		{NodeTypeStatus, true},
 		{NodeTypeParagraph, false},
 		{NodeTypeHeading, false},
 		{"unknown", false},

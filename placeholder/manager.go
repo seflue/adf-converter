@@ -106,6 +106,8 @@ func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
 		return m.generateDatePreview(node)
 	case adf_types.NodeTypeEmoji:
 		return m.generateEmojiPreview(node)
+	case adf_types.NodeTypeStatus:
+		return m.generateStatusPreview(node)
 	default:
 		return fmt.Sprintf("%s (complex content)", strings.Title(node.Type))
 	}
@@ -230,6 +232,16 @@ func (m *DefaultManager) generateDatePreview(node adf_types.ADFNode) string {
 		}
 	}
 	return "Date"
+}
+
+// generateStatusPreview creates a preview for status nodes
+func (m *DefaultManager) generateStatusPreview(node adf_types.ADFNode) string {
+	if node.Attrs != nil {
+		if text, ok := node.Attrs["text"].(string); ok && text != "" {
+			return fmt.Sprintf("Status: %s", text)
+		}
+	}
+	return "Status"
 }
 
 // generateEmojiPreview creates a preview for emoji nodes

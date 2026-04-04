@@ -539,3 +539,99 @@ func TestParseContent_DateMixedWithText(t *testing.T) {
 		t.Errorf("expected text ' done', got type=%s text=%q", nodes[2].Type, nodes[2].Text)
 	}
 }
+
+func TestParseContent_StatusNode(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		wantText  string
+		wantColor string
+	}{
+		{
+			name:      "basic status",
+			input:     "[status:In Progress|blue]",
+			wantText:  "In Progress",
+			wantColor: "blue",
+		},
+		{
+			name:      "status neutral",
+			input:     "[status:TODO|neutral]",
+			wantText:  "TODO",
+			wantColor: "neutral",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			nodes, err := ParseContent(tt.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if len(nodes) != 1 {
+				t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+			}
+
+			node := nodes[0]
+			if node.Type != adf_types.NodeTypeStatus {
+				t.Errorf("expected status node, got %s", node.Type)
+			}
+
+			gotText, _ := node.Attrs["text"].(string)
+			if gotText != tt.wantText {
+				t.Errorf("expected text %q, got %q", tt.wantText, gotText)
+			}
+
+			gotColor, _ := node.Attrs["color"].(string)
+			if gotColor != tt.wantColor {
+				t.Errorf("expected color %q, got %q", tt.wantColor, gotColor)
+			}
+		})
+	}
+}
+
+func TestParseContent_StatusMixedWithText(t *testing.T) {
+	nodes, err := ParseContent("Task [status:In Progress|blue] is active")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Type != adf_types.NodeTypeText || nodes[0].Text != "Task " {
+		t.Errorf("expected text 'Task ', got type=%s text=%q", nodes[0].Type, nodes[0].Text)
+	}
+	if nodes[1].Type != adf_types.NodeTypeStatus {
+		t.Errorf("expected status node, got %s", nodes[1].Type)
+	}
+	if nodes[2].Type != adf_types.NodeTypeText || nodes[2].Text != " is active" {
+		t.Errorf("expected text ' is active', got type=%s text=%q", nodes[2].Type, nodes[2].Text)
+	}
+}
+
+func TestParseContent_StatusNotMatched(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{name: "missing pipe", input: "[status:NoPipe]"},
+		{name: "empty text", input: "[status:|blue]"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			nodes, err := ParseContent(tt.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			for _, node := range nodes {
+				if node.Type == adf_types.NodeTypeStatus {
+					t.Errorf("should not produce status node for input %q", tt.input)
+				}
+			}
+		})
+	}
+}

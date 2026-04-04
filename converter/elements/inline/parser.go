@@ -23,6 +23,16 @@ var PlaceholderPattern = regexp.MustCompile(`<!--\s*(ADF_PLACEHOLDER_\d+):\s*([^
 // DatePattern matches inline date syntax: [date:2025-04-04]
 var DatePattern = regexp.MustCompile(`\[date:(\d{4}-\d{2}-\d{2})\]`)
 
+// StatusPattern matches inline status syntax: [status:Text|color]
+// Lenient on color (any alphabetic word) for forward compatibility
+var StatusPattern = regexp.MustCompile(`\[status:([^|\]]+)\|([a-zA-Z]+)\]`)
+
+// statusInfo holds extracted status text and color for marker restoration
+type statusInfo struct {
+	text  string
+	color string
+}
+
 // ParseContent parses inline markdown formatting into ADF text nodes with marks
 // This is the unified inline content parser used by all element converters
 // Uses goldmark for CommonMark-compliant parsing
@@ -45,6 +55,10 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 	// Step 1b: Extract date patterns before goldmark parsing
 	// Goldmark may break [date:...] at bracket boundaries
 	dates, cleanedMarkdown := extractDatePatterns(cleanedMarkdown)
+
+	// Step 1c: Extract status patterns before goldmark parsing
+	// Goldmark would interpret [status:...] as a link reference
+	statuses, cleanedMarkdown := extractStatusPatterns(cleanedMarkdown)
 
 	// Step 2: Parse with goldmark (now without HTML comments or date patterns)
 	source := []byte(cleanedMarkdown)
@@ -71,6 +85,11 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 	// Step 3b: Restore date nodes
 	if len(dates) > 0 {
 		result = restoreDateNodes(result, dates)
+	}
+
+	// Step 3c: Restore status nodes
+	if len(statuses) > 0 {
+		result = restoreStatusNodes(result, statuses)
 	}
 
 	// Merge consecutive text nodes with identical marks
@@ -601,4 +620,80 @@ func dateToMillisUnchecked(dateStr string) string {
 	t, _ := time.Parse("2006-01-02", dateStr)
 	ms := t.UTC().Unix() * 1000
 	return strconv.FormatInt(ms, 10)
+}
+
+// extractStatusPatterns replaces [status:Text|color] with markers before goldmark parsing
+func extractStatusPatterns(markdown string) (map[string]statusInfo, string) {
+	statuses := make(map[string]statusInfo)
+	counter := 0
+
+	cleaned := StatusPattern.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := StatusPattern.FindStringSubmatch(match)
+		if len(submatches) >= 3 {
+			marker := fmt.Sprintf("{{STATUS-%d}}", counter)
+			statuses[marker] = statusInfo{text: submatches[1], color: submatches[2]}
+			counter++
+			return marker
+		}
+		return match
+	})
+
+	return statuses, cleaned
+}
+
+// restoreStatusNodes replaces status marker text nodes with ADF status nodes
+func restoreStatusNodes(nodes []adf_types.ADFNode, statuses map[string]statusInfo) []adf_types.ADFNode {
+	result := make([]adf_types.ADFNode, 0, len(nodes))
+
+	for _, node := range nodes {
+		if node.Type == adf_types.NodeTypeText {
+			restored := restoreTextWithStatuses(node, statuses)
+			result = append(result, restored...)
+		} else {
+			result = append(result, node)
+		}
+	}
+
+	return result
+}
+
+// restoreTextWithStatuses splits text node on status markers and creates ADF status nodes
+func restoreTextWithStatuses(textNode adf_types.ADFNode, statuses map[string]statusInfo) []adf_types.ADFNode {
+	nodeText := textNode.Text
+	var result []adf_types.ADFNode
+
+	for marker, info := range statuses {
+		if strings.Contains(nodeText, marker) {
+			parts := strings.Split(nodeText, marker)
+
+			if len(parts[0]) > 0 {
+				beforeNode := adf_types.NewTextNode(parts[0])
+				beforeNode.Marks = textNode.Marks
+				result = append(result, beforeNode)
+			}
+
+			statusNode := adf_types.ADFNode{
+				Type: adf_types.NodeTypeStatus,
+				Attrs: map[string]interface{}{
+					"text":  info.text,
+					"color": info.color,
+				},
+			}
+			result = append(result, statusNode)
+
+			if len(parts) > 1 {
+				remaining := strings.Join(parts[1:], marker)
+				if len(remaining) > 0 {
+					afterNode := adf_types.NewTextNode(remaining)
+					afterNode.Marks = textNode.Marks
+					moreRestored := restoreTextWithStatuses(afterNode, statuses)
+					result = append(result, moreRestored...)
+				}
+			}
+
+			return result
+		}
+	}
+
+	return []adf_types.ADFNode{textNode}
 }

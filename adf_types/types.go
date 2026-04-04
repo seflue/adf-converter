@@ -53,6 +53,7 @@ const (
 	NodeTypeMention    = "mention"
 	NodeTypeDate       = "date"
 	NodeTypeEmoji      = "emoji"
+	NodeTypeStatus     = "status"
 
 	// Mark types for text formatting
 	MarkTypeStrong    = "strong"
@@ -95,6 +96,7 @@ func IsInlineNode(nodeType string) bool {
 		NodeTypeMention:   true,
 		NodeTypeDate:      true,
 		NodeTypeEmoji:     true,
+		NodeTypeStatus:    true,
 	}
 	return inlineTypes[nodeType]
 }

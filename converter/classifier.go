@@ -36,6 +36,8 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeMention: true,
 			// Date can be edited as [date:2025-04-04]
 			adf_types.NodeTypeDate: true,
+			// Status can be edited as [status:Text|color]
+			adf_types.NodeTypeStatus: true,
 			// CodeBlock can be converted to fenced code blocks
 			adf_types.NodeTypeCodeBlock: true,
 			// Rule is a simple block node (no attrs, no children)
