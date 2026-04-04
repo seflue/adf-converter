@@ -37,6 +37,7 @@ func TestEmojiInlineSpacing(t *testing.T) {
 		elements.NewInlineCardConverter(),
 		elements.NewEmojiConverter(),
 		elements.NewCodeBlockConverter(),
+		elements.NewMentionConverter(),
 	)
 
 	// Load test ADF document with emojis in various inline contexts
@@ -101,6 +102,7 @@ func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 		elements.NewInlineCardConverter(),
 		elements.NewEmojiConverter(),
 		elements.NewCodeBlockConverter(),
+		elements.NewMentionConverter(),
 	)
 
 	classifier := converter.NewDefaultClassifier()
@@ -190,6 +192,7 @@ func TestEmojiInlineSpacing_RoundTrip(t *testing.T) {
 		elements.NewInlineCardConverter(),
 		elements.NewEmojiConverter(),
 		elements.NewCodeBlockConverter(),
+		elements.NewMentionConverter(),
 	)
 
 	classifier := converter.NewDefaultClassifier()

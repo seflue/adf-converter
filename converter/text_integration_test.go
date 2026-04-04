@@ -24,6 +24,7 @@ func TestMain(m *testing.M) {
 		elements.NewInlineCardConverter(),
 		elements.NewCodeBlockConverter(),
 		elements.NewRuleConverter(),
+		elements.NewMentionConverter(),
 	)
 
 	// Run tests

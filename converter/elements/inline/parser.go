@@ -2,6 +2,7 @@ package inline
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -274,8 +275,11 @@ func convertInlineAST(node ast.Node, source []byte, parentMarks []adf_types.ADFM
 			href := string(n.Destination)
 			linkText := extractLinkText(n.FirstChild(), source)
 
-			// InlineCard: when link text equals href (e.g., [https://example.com](https://example.com))
-			if linkText == href {
+			// Mention: accountid: scheme → ADF mention node
+			if mentionNode, ok := parseMentionLink(href, linkText); ok {
+				nodes = append(nodes, mentionNode)
+			} else if linkText == href {
+				// InlineCard: when link text equals href
 				inlineCardNode := adf_types.ADFNode{
 					Type: adf_types.NodeTypeInlineCard,
 					Attrs: map[string]interface{}{
@@ -385,4 +389,50 @@ func attrsEqual(a, b map[string]interface{}) bool {
 		}
 	}
 	return true
+}
+
+// parseMentionLink checks if a link destination is an accountid: mention
+// and returns the corresponding ADF mention node
+func parseMentionLink(href, linkText string) (adf_types.ADFNode, bool) {
+	const prefix = "accountid:"
+	if !strings.HasPrefix(href, prefix) {
+		return adf_types.ADFNode{}, false
+	}
+
+	remainder := strings.TrimPrefix(href, prefix)
+
+	// Split id from query parameters
+	id := remainder
+	var queryString string
+	if idx := strings.Index(remainder, "?"); idx >= 0 {
+		id = remainder[:idx]
+		queryString = remainder[idx+1:]
+	}
+
+	if id == "" {
+		return adf_types.ADFNode{}, false
+	}
+
+	attrs := map[string]interface{}{
+		"id":   id,
+		"text": linkText,
+	}
+
+	// Parse query parameters for optional attrs
+	if queryString != "" {
+		params, err := url.ParseQuery(queryString)
+		if err == nil {
+			if v := params.Get("accessLevel"); v != "" {
+				attrs["accessLevel"] = v
+			}
+			if v := params.Get("userType"); v != "" {
+				attrs["userType"] = v
+			}
+		}
+	}
+
+	return adf_types.ADFNode{
+		Type:  adf_types.NodeTypeMention,
+		Attrs: attrs,
+	}, true
 }

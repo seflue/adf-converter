@@ -27,7 +27,7 @@ func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	for _, child := range node.Content {
-		// Check if this is a preserved inline node (e.g., emoji, mention, date)
+		// Check if this is a preserved inline node (e.g., date)
 		if context.Classifier != nil && context.Classifier.IsPreserved(child.Type) {
 			// Handle preserved inline nodes
 			placeholderID, preview, err := context.PlaceholderManager.Store(child)

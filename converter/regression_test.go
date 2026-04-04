@@ -25,6 +25,7 @@ func TestTextNodeRegression(t *testing.T) {
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
 		elements.NewCodeBlockConverter(),
+		elements.NewMentionConverter(),
 	)
 
 	classifier := converter.NewDefaultClassifier()

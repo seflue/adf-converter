@@ -280,3 +280,99 @@ func TestParseContent_Goldmark(t *testing.T) {
 		})
 	}
 }
+
+func TestParseContent_Mention(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        string
+		wantType     string
+		wantID       string
+		wantText     string
+		wantAccess   string
+		wantUserType string
+	}{
+		{
+			name:     "basic mention",
+			input:    "[@john.doe](accountid:abc123)",
+			wantType: adf_types.NodeTypeMention,
+			wantID:   "abc123",
+			wantText: "@john.doe",
+		},
+		{
+			name:         "mention with query params",
+			input:        "[@john.doe](accountid:abc123?accessLevel=CONTAINER&userType=DEFAULT)",
+			wantType:     adf_types.NodeTypeMention,
+			wantID:       "abc123",
+			wantText:     "@john.doe",
+			wantAccess:   "CONTAINER",
+			wantUserType: "DEFAULT",
+		},
+		{
+			name:       "mention with only accessLevel",
+			input:      "[@jane](accountid:xyz?accessLevel=APPLICATION)",
+			wantType:   adf_types.NodeTypeMention,
+			wantID:     "xyz",
+			wantText:   "@jane",
+			wantAccess: "APPLICATION",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			nodes, err := ParseContent(tt.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if len(nodes) != 1 {
+				t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+			}
+
+			node := nodes[0]
+			if node.Type != tt.wantType {
+				t.Errorf("expected type %s, got %s", tt.wantType, node.Type)
+			}
+
+			if id, _ := node.Attrs["id"].(string); id != tt.wantID {
+				t.Errorf("expected id %q, got %q", tt.wantID, id)
+			}
+
+			if text, _ := node.Attrs["text"].(string); text != tt.wantText {
+				t.Errorf("expected text %q, got %q", tt.wantText, text)
+			}
+
+			if tt.wantAccess != "" {
+				if al, _ := node.Attrs["accessLevel"].(string); al != tt.wantAccess {
+					t.Errorf("expected accessLevel %q, got %q", tt.wantAccess, al)
+				}
+			}
+
+			if tt.wantUserType != "" {
+				if ut, _ := node.Attrs["userType"].(string); ut != tt.wantUserType {
+					t.Errorf("expected userType %q, got %q", tt.wantUserType, ut)
+				}
+			}
+		})
+	}
+}
+
+func TestParseContent_MentionInText(t *testing.T) {
+	nodes, err := ParseContent("Hello [@john](accountid:abc) world")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d", len(nodes))
+	}
+
+	if nodes[0].Type != adf_types.NodeTypeText || nodes[0].Text != "Hello " {
+		t.Errorf("expected text 'Hello ', got type=%s text=%q", nodes[0].Type, nodes[0].Text)
+	}
+	if nodes[1].Type != adf_types.NodeTypeMention {
+		t.Errorf("expected mention node, got %s", nodes[1].Type)
+	}
+	if nodes[2].Type != adf_types.NodeTypeText || nodes[2].Text != " world" {
+		t.Errorf("expected text ' world', got type=%s text=%q", nodes[2].Type, nodes[2].Text)
+	}
+}

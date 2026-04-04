@@ -72,7 +72,7 @@ func (nc *NodeClassifier) registerDefaultClassifications() {
 
 	// HTML details elements
 	nc.RegisterNodeType(NodeExpand, HTMLDetails, 100)
-	nc.RegisterNodeType(NodeMention, XMLPreserved, 100)
+	nc.RegisterNodeType(NodeMention, StandardMarkdown, 100)
 	nc.RegisterNodeType(NodeHardBreak, XMLPreserved, 50) // Lower priority for optional handling
 
 	// Standard markdown for basic elements
