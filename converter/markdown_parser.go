@@ -99,6 +99,8 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 		return p.parseCodeBlock(lines)
 	case strings.HasPrefix(line, "#"):
 		return p.parseHeading(lines)
+	case isThematicBreak(line):
+		return p.parseRule(lines)
 	case strings.HasPrefix(strings.TrimSpace(line), "- "):
 		return p.parseBulletList(lines)
 	default:
@@ -442,6 +444,31 @@ func (p *MarkdownParser) parseParagraph(lines []string) (*adf_types.ADFNode, int
 	// Fallback to legacy function
 	node, consumed, err := parseParagraph(lines)
 	return &node, consumed, err
+}
+
+func (p *MarkdownParser) parseRule(lines []string) (*adf_types.ADFNode, int, error) {
+	node := &adf_types.ADFNode{Type: adf_types.NodeTypeRule}
+	return node, 1, nil
+}
+
+// isThematicBreak returns true if the line is a Markdown thematic break (---, ***, ___).
+func isThematicBreak(line string) bool {
+	if len(line) < 3 {
+		return false
+	}
+
+	ch := line[0]
+	if ch != '-' && ch != '*' && ch != '_' {
+		return false
+	}
+
+	for i := 1; i < len(line); i++ {
+		if line[i] != ch {
+			return false
+		}
+	}
+
+	return true
 }
 
 // GetStackDepth returns current stack depth for debugging/monitoring

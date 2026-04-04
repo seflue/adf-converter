@@ -23,6 +23,7 @@ func TestMain(m *testing.M) {
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
 		elements.NewCodeBlockConverter(),
+		elements.NewRuleConverter(),
 	)
 
 	// Run tests

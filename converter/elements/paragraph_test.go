@@ -21,6 +21,7 @@ func TestMain(m *testing.M) {
 		NewExpandConverter(),
 		NewInlineCardConverter(),
 		NewCodeBlockConverter(),
+		NewRuleConverter(),
 	)
 
 	// Run tests

@@ -34,14 +34,15 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeEmoji: true,
 			// CodeBlock can be converted to fenced code blocks
 			adf_types.NodeTypeCodeBlock: true,
+			// Rule is a simple block node (no attrs, no children)
+			adf_types.NodeTypeRule: true,
 		},
 		preservedTypes: map[string]bool{
-			adf_types.NodeTypeTable:       true,
-			adf_types.NodeTypeTableRow:    true,
-			adf_types.NodeTypeTableCell:   true,
-			adf_types.NodeTypePanel:       true,
-			adf_types.NodeTypeBlockquote:  true,
-			adf_types.NodeTypeRule:        true,
+			adf_types.NodeTypeTable:      true,
+			adf_types.NodeTypeTableRow:   true,
+			adf_types.NodeTypeTableCell:  true,
+			adf_types.NodeTypePanel:      true,
+			adf_types.NodeTypeBlockquote: true,
 			adf_types.NodeTypeMediaSingle: true,
 			adf_types.NodeTypeMention:     true,
 			adf_types.NodeTypeDate:        true,
