@@ -476,6 +476,98 @@ func TestParseContent_SimpleUnderline(t *testing.T) {
 	}
 }
 
+func TestParseContent_SimpleTextColor(t *testing.T) {
+	nodes, err := ParseContent(`<span style="color: #ff0000">red text</span>`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 1 {
+		t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "red text" {
+		t.Errorf("expected 'red text', got %q", nodes[0].Text)
+	}
+	if len(nodes[0].Marks) != 1 {
+		t.Fatalf("expected 1 mark, got %d", len(nodes[0].Marks))
+	}
+	if nodes[0].Marks[0].Type != adf_types.MarkTypeTextColor {
+		t.Errorf("expected textColor mark, got %s", nodes[0].Marks[0].Type)
+	}
+	color, ok := nodes[0].Marks[0].Attrs["color"].(string)
+	if !ok || color != "#ff0000" {
+		t.Errorf("expected color #ff0000, got %v", nodes[0].Marks[0].Attrs["color"])
+	}
+}
+
+func TestParseContent_TextColorWithSurroundingText(t *testing.T) {
+	nodes, err := ParseContent(`before <span style="color: #00ff00">green</span> after`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "before " {
+		t.Errorf("expected 'before ', got %q", nodes[0].Text)
+	}
+	if nodes[1].Text != "green" || len(nodes[1].Marks) != 1 || nodes[1].Marks[0].Type != adf_types.MarkTypeTextColor {
+		t.Errorf("expected green text with textColor mark, got text=%q marks=%v", nodes[1].Text, nodes[1].Marks)
+	}
+	if nodes[2].Text != " after" {
+		t.Errorf("expected ' after', got %q", nodes[2].Text)
+	}
+}
+
+func TestParseContent_TextColorWithBoldInside(t *testing.T) {
+	nodes, err := ParseContent(`<span style="color: #ff0000">**bold red**</span>`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 1 {
+		t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "bold red" {
+		t.Errorf("expected 'bold red', got %q", nodes[0].Text)
+	}
+
+	markTypes := make(map[string]bool)
+	for _, mark := range nodes[0].Marks {
+		markTypes[mark.Type] = true
+	}
+	if !markTypes[adf_types.MarkTypeTextColor] || !markTypes[adf_types.MarkTypeStrong] {
+		t.Errorf("expected textColor+strong marks, got %v", nodes[0].Marks)
+	}
+}
+
+func TestParseContent_BoldWrappingTextColor(t *testing.T) {
+	nodes, err := ParseContent(`**<span style="color: #ff0000">bold red</span>**`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 1 {
+		t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "bold red" {
+		t.Errorf("expected 'bold red', got %q", nodes[0].Text)
+	}
+
+	markTypes := make(map[string]bool)
+	for _, mark := range nodes[0].Marks {
+		markTypes[mark.Type] = true
+	}
+	if !markTypes[adf_types.MarkTypeTextColor] || !markTypes[adf_types.MarkTypeStrong] {
+		t.Errorf("expected textColor+strong marks, got %v", nodes[0].Marks)
+	}
+}
+
 func TestParseContent_DateNode(t *testing.T) {
 	tests := []struct {
 		name     string

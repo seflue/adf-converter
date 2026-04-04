@@ -268,6 +268,99 @@ func TestRoundTripConversion_UnderlineBoldText(t *testing.T) {
 }
 
 // ============================================================================
+// TextColor Mark Round-trip Tests (ac-0009)
+// ============================================================================
+
+func TestRoundTripConversion_TextColorText(t *testing.T) {
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "This is ",
+					},
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "red text",
+						Marks: []adf_types.ADFMark{
+							adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+								"color": "#ff0000",
+							}),
+						},
+					},
+					{
+						Type: adf_types.NodeTypeText,
+						Text: " here",
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	markdown, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	assert.Equal(t, "This is <span style=\"color: #ff0000\">red text</span> here\n\n", markdown)
+	assert.Equal(t, original, restored)
+}
+
+func TestRoundTripConversion_TextColorBoldText(t *testing.T) {
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "bold red",
+						Marks: []adf_types.ADFMark{
+							adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+								"color": "#ff0000",
+							}),
+							{Type: adf_types.MarkTypeStrong},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	markdown, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	assert.Equal(t, "**<span style=\"color: #ff0000\">bold red</span>**\n\n", markdown)
+
+	require.Equal(t, 1, len(restored.Content))
+	require.Equal(t, 1, len(restored.Content[0].Content))
+
+	restoredNode := restored.Content[0].Content[0]
+	assert.Equal(t, "bold red", restoredNode.Text)
+	assert.Equal(t, 2, len(restoredNode.Marks))
+
+	// Beide Marks muessen ueberleben (Reihenfolge kann abweichen)
+	markTypes := make(map[string]bool)
+	for _, m := range restoredNode.Marks {
+		markTypes[m.Type] = true
+	}
+	assert.True(t, markTypes[adf_types.MarkTypeStrong], "strong mark must survive roundtrip")
+	assert.True(t, markTypes[adf_types.MarkTypeTextColor], "textColor mark must survive roundtrip")
+
+	for _, m := range restoredNode.Marks {
+		if m.Type == adf_types.MarkTypeTextColor {
+			assert.Equal(t, "#ff0000", m.Attrs["color"])
+		}
+	}
+}
+
+// ============================================================================
 // Enhanced Link Round-trip Tests
 // ============================================================================
 

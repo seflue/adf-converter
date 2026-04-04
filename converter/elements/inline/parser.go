@@ -20,6 +20,9 @@ import (
 // Example: <!-- ADF_PLACEHOLDER_001: Emoji: :white_check_mark: -->
 var PlaceholderPattern = regexp.MustCompile(`<!--\s*(ADF_PLACEHOLDER_\d+):\s*([^>]+?)\s*-->`)
 
+// SpanColorPattern extracts color value from span style attribute
+var SpanColorPattern = regexp.MustCompile(`color:\s*([^;"]+)`)
+
 // DatePattern matches inline date syntax: [date:2025-04-04]
 var DatePattern = regexp.MustCompile(`\[date:(\d{4}-\d{2}-\d{2})\]`)
 
@@ -264,6 +267,15 @@ func restoreTextWithPlaceholders(textNode adf_types.ADFNode, placeholders map[st
 	return []adf_types.ADFNode{textNode}
 }
 
+// extractColorFromSpan parses the color value from a <span style="color: ..."> tag
+func extractColorFromSpan(content string) (string, bool) {
+	matches := SpanColorPattern.FindStringSubmatch(content)
+	if len(matches) < 2 {
+		return "", false
+	}
+	return strings.TrimSpace(matches[1]), true
+}
+
 // rawHTMLContent extracts the text content from a RawHTML node
 func rawHTMLContent(n *ast.RawHTML, source []byte) string {
 	var buf strings.Builder
@@ -379,6 +391,25 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 				return collected, nil
 			}
 		}
+		if isOpeningHTMLTag(n, source, "span") {
+			content := rawHTMLContent(n, source)
+			if color, ok := extractColorFromSpan(content); ok {
+				colorMark := adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+					"color": color,
+				})
+				collected, nextNode, err := collectNodesUntilClosingTag(node.NextSibling(), source, "span", colorMark, parentMarks)
+				if err == nil {
+					if nextNode != nil {
+						remaining, err := convertInlineAST(nextNode, source, parentMarks)
+						if err != nil {
+							return nil, err
+						}
+						collected = append(collected, remaining...)
+					}
+					return collected, nil
+				}
+			}
+		}
 		return nil, nil
 
 	default:
@@ -400,7 +431,8 @@ func convertInlineAST(node ast.Node, source []byte, parentMarks []adf_types.ADFM
 
 		// RawHTML with tag-pairing already processed remaining siblings via recursion
 		if rawHTML, ok := current.(*ast.RawHTML); ok {
-			if isOpeningHTMLTag(rawHTML, source, "u") {
+			isPairedHTMLTag := isOpeningHTMLTag(rawHTML, source, "u") || isOpeningHTMLTag(rawHTML, source, "span")
+			if isPairedHTMLTag {
 				return nodes, nil
 			}
 		}

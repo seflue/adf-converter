@@ -189,6 +189,89 @@ func TestTextConverter_ToMarkdown_UnderlineBoldText(t *testing.T) {
 	}
 }
 
+func TestTextConverter_ToMarkdown_TextColor(t *testing.T) {
+	tests := []struct {
+		name     string
+		text     string
+		marks    []adf_types.ADFMark
+		expected string
+	}{
+		{
+			name: "red text",
+			text: "colored text",
+			marks: []adf_types.ADFMark{
+				adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+					"color": "#ff0000",
+				}),
+			},
+			expected: `<span style="color: #ff0000">colored text</span>`,
+		},
+		{
+			name: "blue text",
+			text: "blue words",
+			marks: []adf_types.ADFMark{
+				adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+					"color": "#0000ff",
+				}),
+			},
+			expected: `<span style="color: #0000ff">blue words</span>`,
+		},
+		{
+			name:     "missing color attr falls back to plain text",
+			text:     "no color",
+			marks:    []adf_types.ADFMark{{Type: adf_types.MarkTypeTextColor}},
+			expected: "no color",
+		},
+	}
+
+	tc := NewTextConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node := adf_types.ADFNode{
+				Type:  adf_types.NodeTypeText,
+				Text:  tt.text,
+				Marks: tt.marks,
+			}
+			result, err := tc.ToMarkdown(node, ctx)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if result.Content != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result.Content)
+			}
+		})
+	}
+}
+
+func TestTextConverter_ToMarkdown_TextColorBold(t *testing.T) {
+	tc := NewTextConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeText,
+		Text: "bold red",
+		Marks: []adf_types.ADFMark{
+			adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+				"color": "#ff0000",
+			}),
+			{Type: adf_types.MarkTypeStrong},
+		},
+	}
+
+	result, err := tc.ToMarkdown(node, ctx)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Marks in Reihenfolge: textColor zuerst, dann strong umschließt
+	expected := `**<span style="color: #ff0000">bold red</span>**`
+	if result.Content != expected {
+		t.Errorf("expected %q, got %q", expected, result.Content)
+	}
+}
+
 func TestTextConverter_ToMarkdown_LinkText(t *testing.T) {
 	tc := NewTextConverter()
 	ctx := converter.ConversionContext{

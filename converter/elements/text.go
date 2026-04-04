@@ -91,6 +91,11 @@ func (tc *TextConverter) applyMarkToText(text string, mark adf_types.ADFMark) st
 		return fmt.Sprintf("~~%s~~", text)
 	case adf_types.MarkTypeUnderline:
 		return fmt.Sprintf("<u>%s</u>", text)
+	case adf_types.MarkTypeTextColor:
+		if color, ok := mark.Attrs["color"].(string); ok {
+			return fmt.Sprintf(`<span style="color: %s">%s</span>`, color, text)
+		}
+		return text
 	default:
 		return text
 	}
