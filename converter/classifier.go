@@ -32,9 +32,10 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeInlineCard: true,
 			// Emoji can be edited as unicode characters
 			adf_types.NodeTypeEmoji: true,
+			// CodeBlock can be converted to fenced code blocks
+			adf_types.NodeTypeCodeBlock: true,
 		},
 		preservedTypes: map[string]bool{
-			adf_types.NodeTypeCodeBlock:   true,
 			adf_types.NodeTypeTable:       true,
 			adf_types.NodeTypeTableRow:    true,
 			adf_types.NodeTypeTableCell:   true,

@@ -95,6 +95,8 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 		return p.parseXMLWrapper(lines)
 	case strings.HasPrefix(line, "<!--"):
 		return p.parsePlaceholder(lines)
+	case strings.HasPrefix(line, "```"):
+		return p.parseCodeBlock(lines)
 	case strings.HasPrefix(line, "#"):
 		return p.parseHeading(lines)
 	case strings.HasPrefix(strings.TrimSpace(line), "- "):
@@ -420,6 +422,14 @@ func (p *MarkdownParser) parseOrderedList(lines []string) (*adf_types.ADFNode, i
 
 	// Converter not registered (should not happen in production)
 	return nil, 0, fmt.Errorf("orderedList converter not registered")
+}
+
+func (p *MarkdownParser) parseCodeBlock(lines []string) (*adf_types.ADFNode, int, error) {
+	if converter := globalRegistry.GetConverter("codeBlock"); converter != nil {
+		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
+		return &node, consumed, err
+	}
+	return nil, 1, fmt.Errorf("codeBlock converter not registered")
 }
 
 func (p *MarkdownParser) parseParagraph(lines []string) (*adf_types.ADFNode, int, error) {

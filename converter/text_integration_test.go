@@ -22,6 +22,7 @@ func TestMain(m *testing.M) {
 		elements.NewOrderedListConverter(),
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
+		elements.NewCodeBlockConverter(),
 	)
 
 	// Run tests

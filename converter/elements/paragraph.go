@@ -84,7 +84,8 @@ func (pc *ParagraphConverter) FromMarkdown(lines []string, startIndex int, conte
 
 		if strings.HasPrefix(trimmed, "#") ||
 			strings.HasPrefix(trimmed, "- ") ||
-			strings.HasPrefix(trimmed, "<!--") {
+			strings.HasPrefix(trimmed, "<!--") ||
+			strings.HasPrefix(trimmed, "```") {
 			consumed = i - startIndex
 			break
 		}

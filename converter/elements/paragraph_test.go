@@ -20,6 +20,7 @@ func TestMain(m *testing.M) {
 		NewOrderedListConverter(),
 		NewExpandConverter(),
 		NewInlineCardConverter(),
+		NewCodeBlockConverter(),
 	)
 
 	// Run tests

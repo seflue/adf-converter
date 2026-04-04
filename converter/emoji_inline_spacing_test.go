@@ -36,6 +36,7 @@ func TestEmojiInlineSpacing(t *testing.T) {
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
 		elements.NewEmojiConverter(),
+		elements.NewCodeBlockConverter(),
 	)
 
 	// Load test ADF document with emojis in various inline contexts
@@ -84,7 +85,7 @@ func TestEmojiInlineSpacing(t *testing.T) {
 }
 
 // TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing tests that emojis are rendered inline
-// while block-level preserved nodes (like code blocks) still use placeholders.
+// while block-level nodes (like code blocks) use proper markdown conversion.
 func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 	// Clear registry and register element converters
 	converter.GetGlobalRegistry().Clear()
@@ -99,6 +100,7 @@ func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
 		elements.NewEmojiConverter(),
+		elements.NewCodeBlockConverter(),
 	)
 
 	classifier := converter.NewDefaultClassifier()
@@ -162,27 +164,13 @@ func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 	assert.Contains(t, markdown, "Text before emoji 👍 text after emoji",
 		"Emoji should be inline with surrounding text as unicode")
 
-	// Code block placeholder should have block spacing (double newline before next content)
-	// Should see: "...\n\n<!-- CODE_BLOCK_PLACEHOLDER -->\n\nText after..."
-	lines := strings.Split(markdown, "\n")
-	var foundCodeBlockPlaceholder bool
-	for i, line := range lines {
-		if strings.Contains(line, "ADF_PLACEHOLDER_001") && strings.Contains(line, "Code Block") {
-			foundCodeBlockPlaceholder = true
+	// Code block should be rendered as fenced code block (no longer a placeholder)
+	assert.Contains(t, markdown, "```go\npackage main\n```",
+		"Code block should be rendered as fenced code block")
 
-			// Check there's a blank line before (from previous paragraph's \n\n)
-			if i > 0 {
-				assert.Equal(t, "", lines[i-1], "Should have blank line before code block placeholder")
-			}
-
-			// Check there's a blank line after (from code block's \n\n)
-			if i+1 < len(lines) {
-				assert.Equal(t, "", lines[i+1], "Should have blank line after code block placeholder")
-			}
-		}
-	}
-
-	assert.True(t, foundCodeBlockPlaceholder, "Should have found code block placeholder")
+	// Check block spacing: blank line before and after code block
+	assert.Contains(t, markdown, "\n\n```go\n", "Should have blank line before code block")
+	assert.Contains(t, markdown, "```\n\nText after code block", "Should have blank line after code block")
 }
 
 // TestEmojiInlineSpacing_RoundTrip tests that documents with emoji produce correct markdown
@@ -201,6 +189,7 @@ func TestEmojiInlineSpacing_RoundTrip(t *testing.T) {
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
 		elements.NewEmojiConverter(),
+		elements.NewCodeBlockConverter(),
 	)
 
 	classifier := converter.NewDefaultClassifier()

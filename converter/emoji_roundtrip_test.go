@@ -34,6 +34,7 @@ func TestEmojiRoundTrip(t *testing.T) {
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
 		elements.NewEmojiConverter(),
+		elements.NewCodeBlockConverter(),
 	)
 
 	// Create original ADF document with emoji in list item (matches real Jira structure)
@@ -148,6 +149,7 @@ func TestEmojiRoundTrip_MultipleEmojis(t *testing.T) {
 		elements.NewListItemConverter(),
 		elements.NewBulletListConverter(),
 		elements.NewEmojiConverter(),
+		elements.NewCodeBlockConverter(),
 	)
 
 	originalADF := adf_types.ADFDocument{
