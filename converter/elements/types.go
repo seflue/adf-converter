@@ -16,6 +16,7 @@ const (
 	MarkdownTable      = converter.MarkdownTable
 	MarkdownTaskList   = converter.MarkdownTaskList
 	MarkdownBlockquote = converter.MarkdownBlockquote
+	MarkdownPanel      = converter.MarkdownPanel
 	XMLPreserved       = converter.XMLPreserved
 
 	NodeTable      = converter.NodeTable
@@ -23,6 +24,7 @@ const (
 	NodeBlockquote = converter.NodeBlockquote
 	NodeParagraph  = converter.NodeParagraph
 	NodeHeading    = converter.NodeHeading
+	NodePanel      = converter.ADFNodeType("panel")
 )
 
 // Functions from converter package

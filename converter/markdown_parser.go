@@ -95,6 +95,10 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 		return p.parseXMLWrapper(lines)
 	case strings.HasPrefix(line, "<!--"):
 		return p.parsePlaceholder(lines)
+	case strings.HasPrefix(line, ":::"):
+		return p.parsePanel(lines)
+	case isGitHubAdmonitionLine(line):
+		return p.parsePanel(lines)
 	case strings.HasPrefix(line, "```"):
 		return p.parseCodeBlock(lines)
 	case strings.HasPrefix(line, "#"):
@@ -426,6 +430,22 @@ func (p *MarkdownParser) parseOrderedList(lines []string) (*adf_types.ADFNode, i
 
 	// Converter not registered (should not happen in production)
 	return nil, 0, fmt.Errorf("orderedList converter not registered")
+}
+
+// admonitionDispatchRegex matches GitHub-style admonition headers for panel dispatch
+var admonitionDispatchRegex = regexp.MustCompile(`(?i)^>\s*\[!(INFO|WARNING|ERROR|SUCCESS|NOTE|TIP)\]\s*$`)
+
+// isGitHubAdmonitionLine checks if a line matches > [!TYPE] pattern for supported panel types
+func isGitHubAdmonitionLine(line string) bool {
+	return admonitionDispatchRegex.MatchString(line)
+}
+
+func (p *MarkdownParser) parsePanel(lines []string) (*adf_types.ADFNode, int, error) {
+	if converter := globalRegistry.GetConverter("panel"); converter != nil {
+		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
+		return &node, consumed, err
+	}
+	return nil, 1, fmt.Errorf("panel converter not registered")
 }
 
 func (p *MarkdownParser) parseCodeBlock(lines []string) (*adf_types.ADFNode, int, error) {

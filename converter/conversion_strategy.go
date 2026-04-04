@@ -21,6 +21,8 @@ const (
 
 	// New HTML details strategy for expand elements
 	HTMLDetails // HTML <details> and <summary> tags for native markdown preview
+
+	MarkdownPanel // Fenced-div syntax (:::type content :::)
 )
 
 // String returns a string representation of the ConversionStrategy
@@ -44,6 +46,8 @@ func (cs ConversionStrategy) String() string {
 		return "XMLPreserved"
 	case HTMLDetails:
 		return "HTMLDetails"
+	case MarkdownPanel:
+		return "MarkdownPanel"
 	default:
 		return "Unknown"
 	}

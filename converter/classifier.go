@@ -40,9 +40,10 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeRule: true,
 			// Table can be converted to markdown pipe tables
 			adf_types.NodeTypeTable: true,
+			// Panel can be converted to fenced-div syntax (:::type content :::)
+			adf_types.NodeTypePanel: true,
 		},
 		preservedTypes: map[string]bool{
-			adf_types.NodeTypePanel:      true,
 			adf_types.NodeTypeBlockquote: true,
 			adf_types.NodeTypeMediaSingle: true,
 			adf_types.NodeTypeDate: true,
