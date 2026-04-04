@@ -544,7 +544,7 @@ func TestDefaultClassifier_IsEditable(t *testing.T) {
 		{adf_types.NodeTypeBulletList, true},
 		{adf_types.NodeTypeListItem, true},
 		{adf_types.NodeTypeCodeBlock, true},
-		{adf_types.NodeTypeTable, false},
+		{adf_types.NodeTypeTable, true},
 		{adf_types.NodeTypePanel, false},
 		{"unknown", false},
 	}
@@ -567,9 +567,9 @@ func TestDefaultClassifier_IsPreserved(t *testing.T) {
 		expected bool
 	}{
 		{adf_types.NodeTypeCodeBlock, false},
-		{adf_types.NodeTypeTable, true},
-		{adf_types.NodeTypeTableRow, true},
-		{adf_types.NodeTypeTableCell, true},
+		{adf_types.NodeTypeTable, false},
+		{adf_types.NodeTypeTableRow, false},
+		{adf_types.NodeTypeTableCell, false},
 		{adf_types.NodeTypePanel, true},
 		{adf_types.NodeTypeExpand, false},
 		{adf_types.NodeTypeParagraph, false},

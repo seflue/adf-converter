@@ -23,6 +23,7 @@ func TestMain(m *testing.M) {
 		NewCodeBlockConverter(),
 		NewRuleConverter(),
 		NewMentionConverter(),
+		NewTableConverter(),
 	)
 
 	// Run tests

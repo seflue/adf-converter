@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"adf-converter/adf_types"
+	"adf-converter/converter/elements/inline"
 	"adf-converter/converter/internal"
 )
 
@@ -148,6 +149,10 @@ func (tc *TableConverter) convertParagraphToMarkdown(paragraph adf_types.ADFNode
 					text = "*" + text + "*"
 				case "code":
 					text = "`" + text + "`"
+				case "link":
+					if href, ok := mark.Attrs["href"].(string); ok {
+						text = "[" + text + "](" + href + ")"
+					}
 				}
 			}
 
@@ -174,20 +179,53 @@ func (tc *TableConverter) convertParagraphToMarkdown(paragraph adf_types.ADFNode
 //	|----------|----------|
 //	| Cell 1   | Cell 2   |
 //	</table>
-func (tc *TableConverter) FromMarkdown(markdown string, context ConversionContext) (adf_types.ADFNode, error) {
-	lines := strings.Split(strings.TrimSpace(markdown), "\n")
-	if len(lines) == 0 {
-		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, nil
+func (tc *TableConverter) FromMarkdown(lines []string, startIndex int, context ConversionContext) (adf_types.ADFNode, int, error) {
+	if startIndex >= len(lines) {
+		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, 0, nil
 	}
 
-	// Check if this is an XML-wrapped table
-	firstLine := strings.TrimSpace(lines[0])
+	firstLine := strings.TrimSpace(lines[startIndex])
+
+	// XML-wrapped table: consume from <table> to </table>
 	if strings.HasPrefix(firstLine, "<table") {
-		return tc.parseXMLWrappedTable(lines)
+		consumed := tc.countXMLTableLines(lines, startIndex)
+		node, err := tc.parseXMLWrappedTable(lines[startIndex : startIndex+consumed])
+		return node, consumed, err
 	}
 
-	// Parse as plain markdown table
-	return tc.parseMarkdownTableLines(lines)
+	// Plain markdown table: consume consecutive table lines
+	consumed := tc.countPlainTableLines(lines, startIndex)
+	if consumed == 0 {
+		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, 0, nil
+	}
+
+	node, err := tc.parseMarkdownTableLines(lines[startIndex : startIndex+consumed])
+	return node, consumed, err
+}
+
+// countPlainTableLines counts consecutive lines that belong to a markdown table.
+// A table line starts with | or is a separator row (|---|).
+func (tc *TableConverter) countPlainTableLines(lines []string, startIndex int) int {
+	count := 0
+	for i := startIndex; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		if trimmed == "" || !strings.HasPrefix(trimmed, "|") {
+			break
+		}
+		count++
+	}
+	return count
+}
+
+// countXMLTableLines counts lines from <table...> to </table> inclusive.
+func (tc *TableConverter) countXMLTableLines(lines []string, startIndex int) int {
+	for i := startIndex; i < len(lines); i++ {
+		if strings.Contains(strings.TrimSpace(lines[i]), "</table>") {
+			return i - startIndex + 1
+		}
+	}
+	// No closing tag found — return all remaining lines so parseXMLWrappedTable can report the error
+	return len(lines) - startIndex
 }
 
 // parseXMLWrappedTable parses XML-wrapped markdown table with ADF attributes
@@ -277,14 +315,14 @@ func (tc *TableConverter) parseMarkdownTableLines(lines []string) (adf_types.ADF
 					cellType = "tableHeader"
 				}
 
+				paragraphContent := tc.parseCellContent(cellText)
+
 				cellNodes = append(cellNodes, adf_types.ADFNode{
 					Type: cellType,
 					Content: []adf_types.ADFNode{
 						{
-							Type: "paragraph",
-							Content: []adf_types.ADFNode{
-								{Type: "text", Text: cellText},
-							},
+							Type:    "paragraph",
+							Content: paragraphContent,
 						},
 					},
 				})
@@ -301,6 +339,20 @@ func (tc *TableConverter) parseMarkdownTableLines(lines []string) (adf_types.ADF
 		Type:    "table",
 		Content: tableRows,
 	}, nil
+}
+
+// parseCellContent parses cell text using the inline parser for rich formatting (bold, italic, code, links).
+// Falls back to plain text on parse error.
+func (tc *TableConverter) parseCellContent(cellText string) []adf_types.ADFNode {
+	if cellText == "" {
+		return []adf_types.ADFNode{{Type: "text", Text: ""}}
+	}
+
+	nodes, err := inline.ParseContent(cellText)
+	if err != nil || len(nodes) == 0 {
+		return []adf_types.ADFNode{{Type: "text", Text: cellText}}
+	}
+	return nodes
 }
 
 // CanHandle returns true if this converter can handle the given node type

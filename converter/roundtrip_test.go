@@ -942,3 +942,131 @@ Regular content after all details.`,
 		})
 	}
 }
+
+// ============================================================================
+// Table Round-trip Tests
+// ============================================================================
+
+func TestRoundTrip_Table_PlainTable(t *testing.T) {
+	conv := NewDefaultConverter()
+
+	doc := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: "table",
+				Content: []adf_types.ADFNode{
+					{Type: "tableRow", Content: []adf_types.ADFNode{
+						{Type: "tableHeader", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "Name"},
+							}},
+						}},
+						{Type: "tableHeader", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "Value"},
+							}},
+						}},
+					}},
+					{Type: "tableRow", Content: []adf_types.ADFNode{
+						{Type: "tableCell", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "key"},
+							}},
+						}},
+						{Type: "tableCell", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "val"},
+							}},
+						}},
+					}},
+				},
+			},
+		},
+	}
+
+	md, restored, err := conv.ConvertRoundTrip(doc)
+	require.NoError(t, err)
+
+	// Should render as markdown table, not placeholder
+	assert.NotContains(t, md, "ADF_PLACEHOLDER", "table should be editable, not a placeholder")
+	assert.Contains(t, md, "| Name", "markdown should contain table headers")
+	assert.Contains(t, md, "| key", "markdown should contain table data")
+
+	// Restored document should have table structure
+	require.Len(t, restored.Content, 1)
+	assert.Equal(t, "table", restored.Content[0].Type)
+	assert.Len(t, restored.Content[0].Content, 2, "should have 2 rows")
+
+	// Header row preserved
+	headerRow := restored.Content[0].Content[0]
+	assert.Equal(t, "tableHeader", headerRow.Content[0].Type)
+
+	// Data row preserved
+	dataRow := restored.Content[0].Content[1]
+	assert.Equal(t, "tableCell", dataRow.Content[0].Type)
+}
+
+func TestRoundTrip_Table_WithFormattedContent(t *testing.T) {
+	conv := NewDefaultConverter()
+
+	doc := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: "table",
+				Content: []adf_types.ADFNode{
+					{Type: "tableRow", Content: []adf_types.ADFNode{
+						{Type: "tableHeader", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "Feature", Marks: []adf_types.ADFMark{
+									{Type: "strong"},
+								}},
+							}},
+						}},
+						{Type: "tableHeader", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "Status"},
+							}},
+						}},
+					}},
+					{Type: "tableRow", Content: []adf_types.ADFNode{
+						{Type: "tableCell", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "Tables"},
+							}},
+						}},
+						{Type: "tableCell", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: "Done", Marks: []adf_types.ADFMark{
+									{Type: "em"},
+								}},
+							}},
+						}},
+					}},
+				},
+			},
+		},
+	}
+
+	md, restored, err := conv.ConvertRoundTrip(doc)
+	require.NoError(t, err)
+
+	// Bold header should appear in markdown
+	assert.Contains(t, md, "**Feature**")
+	// Italic cell should appear
+	assert.Contains(t, md, "*Done*")
+
+	// Structure preserved
+	require.Len(t, restored.Content, 1)
+	assert.Equal(t, "table", restored.Content[0].Type)
+
+	// Marks preserved after roundtrip
+	headerCell := restored.Content[0].Content[0].Content[0].Content[0]
+	require.NotEmpty(t, headerCell.Content)
+	assert.Equal(t, "Feature", headerCell.Content[0].Text)
+	require.Len(t, headerCell.Content[0].Marks, 1)
+	assert.Equal(t, "strong", headerCell.Content[0].Marks[0].Type)
+}

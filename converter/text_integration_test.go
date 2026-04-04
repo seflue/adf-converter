@@ -25,6 +25,7 @@ func TestMain(m *testing.M) {
 		elements.NewCodeBlockConverter(),
 		elements.NewRuleConverter(),
 		elements.NewMentionConverter(),
+		elements.NewTableConverter(),
 	)
 
 	// Run tests

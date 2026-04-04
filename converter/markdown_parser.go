@@ -101,6 +101,8 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 		return p.parseHeading(lines)
 	case isThematicBreak(line):
 		return p.parseRule(lines)
+	case strings.HasPrefix(line, "|"):
+		return p.parseMarkdownTable(lines)
 	case strings.HasPrefix(strings.TrimSpace(line), "- "):
 		return p.parseBulletList(lines)
 	default:
@@ -444,6 +446,14 @@ func (p *MarkdownParser) parseParagraph(lines []string) (*adf_types.ADFNode, int
 	// Fallback to legacy function
 	node, consumed, err := parseParagraph(lines)
 	return &node, consumed, err
+}
+
+func (p *MarkdownParser) parseMarkdownTable(lines []string) (*adf_types.ADFNode, int, error) {
+	if converter := globalRegistry.GetConverter("table"); converter != nil {
+		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
+		return &node, consumed, err
+	}
+	return nil, 1, fmt.Errorf("table converter not registered")
 }
 
 func (p *MarkdownParser) parseRule(lines []string) (*adf_types.ADFNode, int, error) {
