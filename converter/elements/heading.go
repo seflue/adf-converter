@@ -28,21 +28,13 @@ func (hc *HeadingConverter) ToMarkdown(node adf_types.ADFNode, context converter
 	prefix := strings.Repeat("#", level) + " "
 	builder.AppendContent(prefix)
 
-	for _, child := range node.Content {
-		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
-		if childConverter == nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
-		}
-
-		childResult, err := childConverter.ToMarkdown(child, context)
-		if err != nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("failed to convert child node: %w", err)
-		}
-
-		// Remove newlines from heading content (headings are single-line in markdown)
-		childContent := strings.ReplaceAll(childResult.Content, "\n", " ")
-		builder.AppendContent(childContent)
+	rendered, err := inline.RenderInlineNodes(node.Content, context)
+	if err != nil {
+		return converter.EnhancedConversionResult{}, fmt.Errorf("rendering heading content: %w", err)
 	}
+	// Remove newlines from heading content (headings are single-line in markdown)
+	rendered = strings.ReplaceAll(rendered, "\n", " ")
+	builder.AppendContent(rendered)
 
 	builder.AppendContent("\n\n")
 

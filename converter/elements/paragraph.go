@@ -26,10 +26,10 @@ func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 
 	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
+	// Separate preserved nodes into placeholders, pass rest to inline renderer
+	var renderableContent []adf_types.ADFNode
 	for _, child := range node.Content {
-		// Check if this is a preserved inline node (e.g., date)
 		if context.Classifier != nil && context.Classifier.IsPreserved(child.Type) {
-			// Handle preserved inline nodes
 			placeholderID, preview, err := context.PlaceholderManager.Store(child)
 			if err != nil {
 				return converter.EnhancedConversionResult{}, fmt.Errorf("failed to store placeholder for %s: %w", child.Type, err)
@@ -37,8 +37,16 @@ func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 
 			comment := fmt.Sprintf("<!-- %s: %s -->", placeholderID, preview)
 
-			// Inline nodes: just the comment, no spacing (surrounding text provides spacing)
-			// Block nodes: add double newline for block separation
+			// Flush accumulated nodes before placeholder
+			if len(renderableContent) > 0 {
+				rendered, err := inline.RenderInlineNodes(renderableContent, context)
+				if err != nil {
+					return converter.EnhancedConversionResult{}, err
+				}
+				builder.AppendContent(rendered)
+				renderableContent = nil
+			}
+
 			if adf_types.IsInlineNode(child.Type) {
 				builder.AppendContent(comment)
 			} else {
@@ -47,17 +55,16 @@ func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 			continue
 		}
 
-		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
-		if childConverter == nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
-		}
+		renderableContent = append(renderableContent, child)
+	}
 
-		childResult, err := childConverter.ToMarkdown(child, context)
+	// Render remaining inline nodes with mark spanning
+	if len(renderableContent) > 0 {
+		rendered, err := inline.RenderInlineNodes(renderableContent, context)
 		if err != nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("failed to convert child node: %w", err)
+			return converter.EnhancedConversionResult{}, err
 		}
-
-		builder.AppendContent(childResult.Content)
+		builder.AppendContent(rendered)
 	}
 
 	builder.AppendContent("\n\n")
