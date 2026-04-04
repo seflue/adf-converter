@@ -376,3 +376,100 @@ func TestParseContent_MentionInText(t *testing.T) {
 		t.Errorf("expected text ' world', got type=%s text=%q", nodes[2].Type, nodes[2].Text)
 	}
 }
+
+func TestParseContent_BoldWrappingUnderline(t *testing.T) {
+	nodes, err := ParseContent("**<u>bold underlined</u>**")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 1 {
+		t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "bold underlined" {
+		t.Errorf("expected 'bold underlined', got '%s'", nodes[0].Text)
+	}
+
+	hasUnderline := false
+	hasStrong := false
+	for _, mark := range nodes[0].Marks {
+		if mark.Type == adf_types.MarkTypeUnderline {
+			hasUnderline = true
+		}
+		if mark.Type == adf_types.MarkTypeStrong {
+			hasStrong = true
+		}
+	}
+	if !hasUnderline || !hasStrong {
+		t.Errorf("expected underline+strong marks, got %v", nodes[0].Marks)
+	}
+}
+
+func TestParseContent_UnderlineWithBoldInside(t *testing.T) {
+	nodes, err := ParseContent("<u>**bold underlined**</u>")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 1 {
+		t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "bold underlined" {
+		t.Errorf("expected 'bold underlined', got '%s'", nodes[0].Text)
+	}
+
+	hasUnderline := false
+	hasStrong := false
+	for _, mark := range nodes[0].Marks {
+		if mark.Type == adf_types.MarkTypeUnderline {
+			hasUnderline = true
+		}
+		if mark.Type == adf_types.MarkTypeStrong {
+			hasStrong = true
+		}
+	}
+	if !hasUnderline || !hasStrong {
+		t.Errorf("expected underline+strong marks, got %v", nodes[0].Marks)
+	}
+}
+
+func TestParseContent_UnderlineWithSurroundingText(t *testing.T) {
+	nodes, err := ParseContent("before <u>underlined</u> after")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "before " {
+		t.Errorf("expected 'before ', got '%s'", nodes[0].Text)
+	}
+	if nodes[1].Text != "underlined" || len(nodes[1].Marks) != 1 || nodes[1].Marks[0].Type != adf_types.MarkTypeUnderline {
+		t.Errorf("expected underlined text with mark, got text=%q marks=%v", nodes[1].Text, nodes[1].Marks)
+	}
+	if nodes[2].Text != " after" {
+		t.Errorf("expected ' after', got '%s'", nodes[2].Text)
+	}
+}
+
+func TestParseContent_SimpleUnderline(t *testing.T) {
+	nodes, err := ParseContent("<u>underlined</u>")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 1 {
+		t.Fatalf("expected 1 node, got %d: %+v", len(nodes), nodes)
+	}
+
+	if nodes[0].Text != "underlined" {
+		t.Errorf("expected 'underlined', got '%s'", nodes[0].Text)
+	}
+	if len(nodes[0].Marks) != 1 || nodes[0].Marks[0].Type != adf_types.MarkTypeUnderline {
+		t.Errorf("expected underline mark, got %v", nodes[0].Marks)
+	}
+}

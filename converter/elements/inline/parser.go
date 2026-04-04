@@ -231,77 +231,144 @@ func restoreTextWithPlaceholders(textNode adf_types.ADFNode, placeholders map[st
 	return []adf_types.ADFNode{textNode}
 }
 
+// rawHTMLContent extracts the text content from a RawHTML node
+func rawHTMLContent(n *ast.RawHTML, source []byte) string {
+	var buf strings.Builder
+	for i := 0; i < n.Segments.Len(); i++ {
+		seg := n.Segments.At(i)
+		buf.Write(source[seg.Start:seg.Stop])
+	}
+	return buf.String()
+}
+
+// isOpeningHTMLTag checks if a RawHTML node contains an opening tag for the given element
+func isOpeningHTMLTag(n *ast.RawHTML, source []byte, tagName string) bool {
+	content := rawHTMLContent(n, source)
+	return content == "<"+tagName+">" || strings.HasPrefix(content, "<"+tagName+" ")
+}
+
+// isClosingHTMLTag checks if a RawHTML node contains a closing tag for the given element
+func isClosingHTMLTag(n *ast.RawHTML, source []byte, tagName string) bool {
+	return rawHTMLContent(n, source) == "</"+tagName+">"
+}
+
+// collectNodesUntilClosingTag walks sibling nodes between opening and closing HTML tags,
+// applies the given mark to all collected content, and returns the node after the closing tag.
+func collectNodesUntilClosingTag(start ast.Node, source []byte, tagName string, mark adf_types.ADFMark, parentMarks []adf_types.ADFMark) ([]adf_types.ADFNode, ast.Node, error) {
+	allMarks := append(parentMarks, mark)
+	var nodes []adf_types.ADFNode
+
+	current := start
+	for current != nil {
+		if rawHTML, ok := current.(*ast.RawHTML); ok && isClosingHTMLTag(rawHTML, source, tagName) {
+			return nodes, current.NextSibling(), nil
+		}
+
+		innerNodes, err := convertSingleInlineNode(current, source, allMarks)
+		if err != nil {
+			return nil, nil, err
+		}
+		nodes = append(nodes, innerNodes...)
+		current = current.NextSibling()
+	}
+
+	return nil, nil, fmt.Errorf("no closing </%s> tag found", tagName)
+}
+
+// convertSingleInlineNode converts a single goldmark inline node to ADF nodes.
+// Unlike convertInlineAST, this does NOT iterate over siblings.
+func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_types.ADFMark) ([]adf_types.ADFNode, error) {
+	switch n := node.(type) {
+	case *ast.Text:
+		segment := n.Segment
+		txt := string(source[segment.Start:segment.Stop])
+		return detectAndConvertEmojis(txt, parentMarks), nil
+
+	case *ast.Emphasis:
+		mark := getEmphasisMark(n)
+		childMarks := append(parentMarks, mark)
+		return convertInlineAST(n.FirstChild(), source, childMarks)
+
+	case *ast.CodeSpan:
+		if n.FirstChild() != nil {
+			if txtNode, ok := n.FirstChild().(*ast.Text); ok {
+				segment := txtNode.Segment
+				txt := string(source[segment.Start:segment.Stop])
+				codeNode := adf_types.NewTextNode(txt)
+				codeMark := adf_types.ADFMark{Type: adf_types.MarkTypeCode}
+				codeNode.Marks = append([]adf_types.ADFMark{codeMark}, parentMarks...)
+				return []adf_types.ADFNode{codeNode}, nil
+			}
+		}
+		return nil, nil
+
+	case *ast.Link:
+		href := string(n.Destination)
+		linkText := extractLinkText(n.FirstChild(), source)
+
+		// Mention: accountid: scheme → ADF mention node
+		if mentionNode, ok := parseMentionLink(href, linkText); ok {
+			return []adf_types.ADFNode{mentionNode}, nil
+		}
+
+		if linkText == href {
+			inlineCardNode := adf_types.ADFNode{
+				Type: adf_types.NodeTypeInlineCard,
+				Attrs: map[string]interface{}{
+					"url": href,
+				},
+			}
+			return []adf_types.ADFNode{inlineCardNode}, nil
+		}
+
+		attrs := map[string]interface{}{
+			"href": href,
+		}
+		if len(n.Title) > 0 {
+			attrs["title"] = string(n.Title)
+		}
+		linkMark := adf_types.NewMark(adf_types.MarkTypeLink, attrs)
+		childMarks := append(parentMarks, linkMark)
+		return convertInlineAST(n.FirstChild(), source, childMarks)
+
+	case *ast.RawHTML:
+		if isOpeningHTMLTag(n, source, "u") {
+			underlineMark := adf_types.ADFMark{Type: adf_types.MarkTypeUnderline}
+			collected, nextNode, err := collectNodesUntilClosingTag(node.NextSibling(), source, "u", underlineMark, parentMarks)
+			if err == nil {
+				if nextNode != nil {
+					remaining, err := convertInlineAST(nextNode, source, parentMarks)
+					if err != nil {
+						return nil, err
+					}
+					collected = append(collected, remaining...)
+				}
+				return collected, nil
+			}
+		}
+		return nil, nil
+
+	default:
+		return nil, nil
+	}
+}
+
 // convertInlineAST walks goldmark inline nodes and converts to ADF
 // marks parameter accumulates marks from parent nodes (for nested formatting)
 func convertInlineAST(node ast.Node, source []byte, parentMarks []adf_types.ADFMark) ([]adf_types.ADFNode, error) {
 	var nodes []adf_types.ADFNode
 
-	for ; node != nil; node = node.NextSibling() {
-		switch n := node.(type) {
-		case *ast.Text:
-			// Plain text node - check for emojis and split if found
-			segment := n.Segment
-			txt := string(source[segment.Start:segment.Stop])
+	for current := node; current != nil; current = current.NextSibling() {
+		result, err := convertSingleInlineNode(current, source, parentMarks)
+		if err != nil {
+			return nil, err
+		}
+		nodes = append(nodes, result...)
 
-			// Detect and convert emojis in text
-			emojiNodes := detectAndConvertEmojis(txt, parentMarks)
-			nodes = append(nodes, emojiNodes...)
-
-		case *ast.Emphasis:
-			// Bold or italic - add mark and recurse to children
-			mark := getEmphasisMark(n)
-			childMarks := append(parentMarks, mark)
-			childNodes, err := convertInlineAST(n.FirstChild(), source, childMarks)
-			if err != nil {
-				return nil, err
-			}
-			nodes = append(nodes, childNodes...)
-
-		case *ast.CodeSpan:
-			// Inline code - extract text and apply code mark
-			if n.FirstChild() != nil {
-				if txtNode, ok := n.FirstChild().(*ast.Text); ok {
-					segment := txtNode.Segment
-					txt := string(source[segment.Start:segment.Stop])
-					codeNode := adf_types.NewTextNode(txt)
-					codeMark := adf_types.ADFMark{Type: adf_types.MarkTypeCode}
-					codeNode.Marks = append([]adf_types.ADFMark{codeMark}, parentMarks...)
-					nodes = append(nodes, codeNode)
-				}
-			}
-
-		case *ast.Link:
-			// Extract link text and href
-			href := string(n.Destination)
-			linkText := extractLinkText(n.FirstChild(), source)
-
-			// Mention: accountid: scheme → ADF mention node
-			if mentionNode, ok := parseMentionLink(href, linkText); ok {
-				nodes = append(nodes, mentionNode)
-			} else if linkText == href {
-				// InlineCard: when link text equals href
-				inlineCardNode := adf_types.ADFNode{
-					Type: adf_types.NodeTypeInlineCard,
-					Attrs: map[string]interface{}{
-						"url": href,
-					},
-				}
-				nodes = append(nodes, inlineCardNode)
-			} else {
-				// Regular link: create link mark with href and recurse to children
-				attrs := map[string]interface{}{
-					"href": href,
-				}
-				if len(n.Title) > 0 {
-					attrs["title"] = string(n.Title)
-				}
-				linkMark := adf_types.NewMark(adf_types.MarkTypeLink, attrs)
-				childMarks := append(parentMarks, linkMark)
-				childNodes, err := convertInlineAST(n.FirstChild(), source, childMarks)
-				if err != nil {
-					return nil, err
-				}
-				nodes = append(nodes, childNodes...)
+		// RawHTML with tag-pairing already processed remaining siblings via recursion
+		if rawHTML, ok := current.(*ast.RawHTML); ok {
+			if isOpeningHTMLTag(rawHTML, source, "u") {
+				return nodes, nil
 			}
 		}
 	}

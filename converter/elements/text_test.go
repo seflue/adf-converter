@@ -137,6 +137,58 @@ func TestTextConverter_ToMarkdown_StrikethroughText(t *testing.T) {
 	}
 }
 
+func TestTextConverter_ToMarkdown_UnderlineText(t *testing.T) {
+	tc := NewTextConverter()
+	ctx := converter.ConversionContext{
+		Strategy: converter.StandardMarkdown,
+	}
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeText,
+		Text: "underlined text",
+		Marks: []adf_types.ADFMark{
+			{Type: adf_types.MarkTypeUnderline},
+		},
+	}
+
+	result, err := tc.ToMarkdown(node, ctx)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "<u>underlined text</u>"
+	if result.Content != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result.Content)
+	}
+}
+
+func TestTextConverter_ToMarkdown_UnderlineBoldText(t *testing.T) {
+	tc := NewTextConverter()
+	ctx := converter.ConversionContext{
+		Strategy: converter.StandardMarkdown,
+	}
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeText,
+		Text: "bold underlined",
+		Marks: []adf_types.ADFMark{
+			{Type: adf_types.MarkTypeUnderline},
+			{Type: adf_types.MarkTypeStrong},
+		},
+	}
+
+	result, err := tc.ToMarkdown(node, ctx)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Marks applied in order: underline wraps first, then strong wraps
+	expected := "**<u>bold underlined</u>**"
+	if result.Content != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result.Content)
+	}
+}
+
 func TestTextConverter_ToMarkdown_LinkText(t *testing.T) {
 	tc := NewTextConverter()
 	ctx := converter.ConversionContext{

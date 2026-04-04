@@ -176,6 +176,98 @@ func TestRoundTripConversion_MultipleHeadings(t *testing.T) {
 }
 
 // ============================================================================
+// Underline Mark Round-trip Tests (ac-0004)
+// ============================================================================
+
+func TestRoundTripConversion_UnderlineText(t *testing.T) {
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "This is ",
+					},
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "underlined",
+						Marks: []adf_types.ADFMark{
+							{Type: adf_types.MarkTypeUnderline},
+						},
+					},
+					{
+						Type: adf_types.NodeTypeText,
+						Text: " text",
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	markdown, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	assert.Equal(t, "This is <u>underlined</u> text\n\n", markdown)
+	assert.Equal(t, original, restored)
+}
+
+func TestRoundTripConversion_UnderlineBoldText(t *testing.T) {
+	// Mark order note: applyMarkToText applies marks left-to-right, so the last
+	// mark becomes the outermost wrapper. [underline, strong] → **<u>text</u>**.
+	// The parser reads outside-in: ** outermost → strong first, <u> inner → underline.
+	// Result is [strong, underline] — inverted from the input. This is a known
+	// asymmetry between mark application (inside-out) and parsing (outside-in).
+	// This test verifies the markdown output and that both marks survive the roundtrip,
+	// without asserting mark order (which does not roundtrip for mixed HTML+MD marks).
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeText,
+						Text: "bold underlined",
+						Marks: []adf_types.ADFMark{
+							{Type: adf_types.MarkTypeUnderline},
+							{Type: adf_types.MarkTypeStrong},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	markdown, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	assert.Equal(t, "**<u>bold underlined</u>**\n\n", markdown)
+
+	// Verify structure is preserved
+	require.Equal(t, 1, len(restored.Content))
+	require.Equal(t, adf_types.NodeTypeParagraph, restored.Content[0].Type)
+	require.Equal(t, 1, len(restored.Content[0].Content))
+
+	restoredNode := restored.Content[0].Content[0]
+	assert.Equal(t, "bold underlined", restoredNode.Text)
+	assert.Equal(t, 2, len(restoredNode.Marks))
+
+	// Both marks must be present after roundtrip (order may differ due to parse direction)
+	markTypes := make(map[string]bool)
+	for _, m := range restoredNode.Marks {
+		markTypes[m.Type] = true
+	}
+	assert.True(t, markTypes[adf_types.MarkTypeStrong], "strong mark must survive roundtrip")
+	assert.True(t, markTypes[adf_types.MarkTypeUnderline], "underline mark must survive roundtrip")
+}
+
+// ============================================================================
 // Enhanced Link Round-trip Tests
 // ============================================================================
 

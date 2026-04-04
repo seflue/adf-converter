@@ -16,6 +16,7 @@ import (
 // - code: `monospace`
 // - link: [text](url)
 // - strike: ~~strikethrough~~
+// - underline: <u>underline</u>
 //
 // Note: Text nodes are inline and typically processed within container elements
 // (paragraphs, headings, list items). The FromMarkdown direction is primarily
@@ -88,6 +89,8 @@ func (tc *TextConverter) applyMarkToText(text string, mark adf_types.ADFMark) st
 		return text
 	case adf_types.MarkTypeStrike:
 		return fmt.Sprintf("~~%s~~", text)
+	case adf_types.MarkTypeUnderline:
+		return fmt.Sprintf("<u>%s</u>", text)
 	default:
 		return text
 	}
