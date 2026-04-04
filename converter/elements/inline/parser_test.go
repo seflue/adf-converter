@@ -703,6 +703,129 @@ func TestParseContent_StatusMixedWithText(t *testing.T) {
 	}
 }
 
+func TestParseContent_Strikethrough(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		wantText  string
+		wantMarks []string
+	}{
+		{
+			name:      "simple strikethrough",
+			input:     "~~deleted~~",
+			wantText:  "deleted",
+			wantMarks: []string{adf_types.MarkTypeStrike},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			nodes, err := ParseContent(tt.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if len(nodes) != 1 {
+				t.Fatalf("expected 1 node, got %d", len(nodes))
+			}
+
+			if nodes[0].Text != tt.wantText {
+				t.Errorf("expected text %q, got %q", tt.wantText, nodes[0].Text)
+			}
+
+			if len(nodes[0].Marks) != len(tt.wantMarks) {
+				t.Fatalf("expected %d marks, got %d: %v", len(tt.wantMarks), len(nodes[0].Marks), nodes[0].Marks)
+			}
+
+			for i, wantMark := range tt.wantMarks {
+				if nodes[0].Marks[i].Type != wantMark {
+					t.Errorf("mark[%d]: expected %q, got %q", i, wantMark, nodes[0].Marks[i].Type)
+				}
+			}
+		})
+	}
+}
+
+func TestParseContent_StrikethroughWithSurroundingText(t *testing.T) {
+	nodes, err := ParseContent("before ~~deleted~~ after")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d", len(nodes))
+	}
+
+	if nodes[0].Type != adf_types.NodeTypeText || nodes[0].Text != "before " {
+		t.Errorf("expected text 'before ', got type=%s text=%q", nodes[0].Type, nodes[0].Text)
+	}
+
+	if nodes[1].Text != "deleted" {
+		t.Errorf("expected 'deleted', got %q", nodes[1].Text)
+	}
+	if len(nodes[1].Marks) != 1 || nodes[1].Marks[0].Type != adf_types.MarkTypeStrike {
+		t.Errorf("expected strike mark, got %v", nodes[1].Marks)
+	}
+
+	if nodes[2].Type != adf_types.NodeTypeText || nodes[2].Text != " after" {
+		t.Errorf("expected text ' after', got type=%s text=%q", nodes[2].Type, nodes[2].Text)
+	}
+}
+
+func TestParseContent_SubScript(t *testing.T) {
+	nodes, err := ParseContent("H<sub>2</sub>O")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 3 {
+		t.Fatalf("expected 3 nodes, got %d", len(nodes))
+	}
+
+	if nodes[0].Text != "H" {
+		t.Errorf("expected 'H', got %q", nodes[0].Text)
+	}
+
+	if nodes[1].Text != "2" {
+		t.Errorf("expected '2', got %q", nodes[1].Text)
+	}
+	if len(nodes[1].Marks) != 1 || nodes[1].Marks[0].Type != adf_types.MarkTypeSubsup {
+		t.Fatalf("expected subsup mark, got %v", nodes[1].Marks)
+	}
+	if nodes[1].Marks[0].Attrs["type"] != "sub" {
+		t.Errorf("expected subsup type 'sub', got %v", nodes[1].Marks[0].Attrs["type"])
+	}
+
+	if nodes[2].Text != "O" {
+		t.Errorf("expected 'O', got %q", nodes[2].Text)
+	}
+}
+
+func TestParseContent_SuperScript(t *testing.T) {
+	nodes, err := ParseContent("x<sup>2</sup>")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(nodes) != 2 {
+		t.Fatalf("expected 2 nodes, got %d", len(nodes))
+	}
+
+	if nodes[0].Text != "x" {
+		t.Errorf("expected 'x', got %q", nodes[0].Text)
+	}
+
+	if nodes[1].Text != "2" {
+		t.Errorf("expected '2', got %q", nodes[1].Text)
+	}
+	if len(nodes[1].Marks) != 1 || nodes[1].Marks[0].Type != adf_types.MarkTypeSubsup {
+		t.Fatalf("expected subsup mark, got %v", nodes[1].Marks)
+	}
+	if nodes[1].Marks[0].Attrs["type"] != "sup" {
+		t.Errorf("expected subsup type 'sup', got %v", nodes[1].Marks[0].Attrs["type"])
+	}
+}
+
 func TestParseContent_StatusNotMatched(t *testing.T) {
 	tests := []struct {
 		name  string

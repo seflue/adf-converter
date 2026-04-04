@@ -11,6 +11,8 @@ import (
 	"github.com/forPelevin/gomoji"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
+	east "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
 	"adf-converter/adf_types"
 	"adf-converter/placeholder"
@@ -65,7 +67,7 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 
 	// Step 2: Parse with goldmark (now without HTML comments or date patterns)
 	source := []byte(cleanedMarkdown)
-	parser := goldmark.New()
+	parser := goldmark.New(goldmark.WithExtensions(extension.Strikethrough))
 	doc := parser.Parser().Parse(text.NewReader(source))
 
 	// Extract inline content from paragraph
@@ -332,6 +334,11 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 	case *ast.Emphasis:
 		mark := getEmphasisMark(n)
 		childMarks := append(parentMarks, mark)
+		return convertInlineAST(n.FirstChild(), source, childMarks)
+
+	case *east.Strikethrough:
+		strikeMark := adf_types.ADFMark{Type: adf_types.MarkTypeStrike}
+		childMarks := append(parentMarks, strikeMark)
 		return convertInlineAST(n.FirstChild(), source, childMarks)
 
 	case *ast.CodeSpan:
