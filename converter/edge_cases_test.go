@@ -335,13 +335,27 @@ func TestEdgeCases_LargeContent(t *testing.T) {
 // Blockquote Edge Cases
 // ============================================================================
 
-func TestEdgeCases_NestedBlockquotes(t *testing.T) {
-	// NOTE: The current markdown parser doesn't support markdown-syntax blockquotes (> prefix).
-	// It only supports XML-wrapped blockquotes (<blockquote>...</blockquote>).
-	// This test will be enabled when we fully migrate to goldmark for block-level parsing.
-	t.Skip("Markdown-syntax blockquotes not supported by current parser - will be fixed with goldmark block-level migration")
+func TestEdgeCases_PlainBlockquote(t *testing.T) {
+	blockquoteMarkdown := "> This is a blockquote"
 
-	// Test nested blockquote conversion
+	manager := placeholder.NewManager()
+	session := manager.GetSession()
+
+	doc, err := FromMarkdown(blockquoteMarkdown, session, manager)
+	require.NoError(t, err)
+
+	assert.Equal(t, "doc", doc.Type)
+	require.Equal(t, 1, len(doc.Content), "Should have exactly one top-level node")
+
+	blockquote := doc.Content[0]
+	assert.Equal(t, "blockquote", blockquote.Type, "Top-level node should be blockquote, not paragraph")
+	require.Equal(t, 1, len(blockquote.Content), "Blockquote should have one paragraph")
+	assert.Equal(t, "paragraph", blockquote.Content[0].Type)
+	require.NotEmpty(t, blockquote.Content[0].Content)
+	assert.Equal(t, "This is a blockquote", blockquote.Content[0].Content[0].Text)
+}
+
+func TestEdgeCases_NestedBlockquotes(t *testing.T) {
 	nestedBlockquoteMarkdown := `> This is a quote
 >
 > > This is a nested quote

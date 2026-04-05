@@ -119,6 +119,8 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 		return p.parseHeading(lines)
 	case isThematicBreak(line):
 		return p.parseRule(lines)
+	case strings.HasPrefix(line, ">"):
+		return p.parseBlockquote(lines)
 	case strings.HasPrefix(line, "|"):
 		return p.parseMarkdownTable(lines)
 	case strings.HasPrefix(strings.TrimSpace(line), "- "):
