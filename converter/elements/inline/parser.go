@@ -260,43 +260,59 @@ func createEmojiNode(emoji gomoji.Emoji) adf_types.ADFNode {
 	}
 }
 
-// restoreTextWithPlaceholders splits text node on markers and restores placeholders
-func restoreTextWithPlaceholders(textNode adf_types.ADFNode, placeholders map[string]string, manager placeholder.Manager) []adf_types.ADFNode {
-	text := textNode.Text
-	var result []adf_types.ADFNode
-
-	// Find the leftmost marker to ensure deterministic processing
+// findLeftmostMarker returns the marker that appears earliest in the text.
+// Returns empty string and -1 if no marker is found.
+func findLeftmostMarker(text string, markers []string) (string, int) {
 	bestMarker := ""
 	bestPos := -1
-	for marker := range placeholders {
+	for _, marker := range markers {
 		pos := strings.Index(text, marker)
 		if pos != -1 && (bestPos == -1 || pos < bestPos) {
 			bestMarker = marker
 			bestPos = pos
 		}
 	}
+	return bestMarker, bestPos
+}
 
-	if bestPos == -1 {
+// splitOnMarker splits a text node at the given position and marker length.
+// Returns before-text nodes (with original marks), the marker position info, and after-text.
+// The caller is responsible for creating the replacement node and recursing on the remainder.
+func splitOnMarker(textNode adf_types.ADFNode, pos, markerLen int) (before []adf_types.ADFNode, after string) {
+	text := textNode.Text
+	if b := text[:pos]; len(b) > 0 {
+		beforeNode := adf_types.NewTextNode(b)
+		beforeNode.Marks = textNode.Marks
+		before = append(before, beforeNode)
+	}
+	after = text[pos+markerLen:]
+	return
+}
+
+// restoreTextWithPlaceholders splits text node on markers and restores placeholders
+func restoreTextWithPlaceholders(textNode adf_types.ADFNode, placeholders map[string]string, manager placeholder.Manager) []adf_types.ADFNode {
+	keys := make([]string, 0, len(placeholders))
+	for k := range placeholders {
+		keys = append(keys, k)
+	}
+
+	marker, pos := findLeftmostMarker(textNode.Text, keys)
+	if pos == -1 {
 		return []adf_types.ADFNode{textNode}
 	}
 
-	before := text[:bestPos]
-	if len(before) > 0 {
-		beforeNode := adf_types.NewTextNode(before)
-		beforeNode.Marks = textNode.Marks
-		result = append(result, beforeNode)
-	}
+	before, after := splitOnMarker(textNode, pos, len(marker))
+	var result []adf_types.ADFNode
+	result = append(result, before...)
 
-	if originalNode, err := manager.Restore(placeholders[bestMarker]); err == nil {
+	if originalNode, err := manager.Restore(placeholders[marker]); err == nil {
 		result = append(result, originalNode)
 	}
 
-	after := text[bestPos+len(bestMarker):]
 	if len(after) > 0 {
 		afterNode := adf_types.NewTextNode(after)
 		afterNode.Marks = textNode.Marks
-		moreRestored := restoreTextWithPlaceholders(afterNode, placeholders, manager)
-		result = append(result, moreRestored...)
+		result = append(result, restoreTextWithPlaceholders(afterNode, placeholders, manager)...)
 	}
 
 	return result
@@ -679,46 +695,30 @@ func restoreDateNodes(nodes []adf_types.ADFNode, dates map[string]string) []adf_
 
 // restoreTextWithDates splits text node on date markers and creates ADF date nodes
 func restoreTextWithDates(textNode adf_types.ADFNode, dates map[string]string) []adf_types.ADFNode {
-	nodeText := textNode.Text
-
-	bestMarker := ""
-	bestPos := -1
-	for marker := range dates {
-		pos := strings.Index(nodeText, marker)
-		if pos != -1 && (bestPos == -1 || pos < bestPos) {
-			bestMarker = marker
-			bestPos = pos
-		}
+	keys := make([]string, 0, len(dates))
+	for k := range dates {
+		keys = append(keys, k)
 	}
 
-	if bestPos == -1 {
+	marker, pos := findLeftmostMarker(textNode.Text, keys)
+	if pos == -1 {
 		return []adf_types.ADFNode{textNode}
 	}
 
+	before, after := splitOnMarker(textNode, pos, len(marker))
 	var result []adf_types.ADFNode
+	result = append(result, before...)
 
-	before := nodeText[:bestPos]
-	if len(before) > 0 {
-		beforeNode := adf_types.NewTextNode(before)
-		beforeNode.Marks = textNode.Marks
-		result = append(result, beforeNode)
-	}
+	millis := dateToMillisUnchecked(dates[marker])
+	result = append(result, adf_types.ADFNode{
+		Type:  adf_types.NodeTypeDate,
+		Attrs: map[string]interface{}{"timestamp": millis},
+	})
 
-	millis := dateToMillisUnchecked(dates[bestMarker])
-	dateNode := adf_types.ADFNode{
-		Type: adf_types.NodeTypeDate,
-		Attrs: map[string]interface{}{
-			"timestamp": millis,
-		},
-	}
-	result = append(result, dateNode)
-
-	after := nodeText[bestPos+len(bestMarker):]
 	if len(after) > 0 {
 		afterNode := adf_types.NewTextNode(after)
 		afterNode.Marks = textNode.Marks
-		moreRestored := restoreTextWithDates(afterNode, dates)
-		result = append(result, moreRestored...)
+		result = append(result, restoreTextWithDates(afterNode, dates)...)
 	}
 
 	return result
@@ -767,50 +767,34 @@ func restoreStatusNodes(nodes []adf_types.ADFNode, statuses map[string]statusInf
 }
 
 // restoreTextWithStatuses splits text node on status markers and creates ADF status nodes.
-// Finds the leftmost marker first to ensure deterministic processing regardless of map iteration order.
 func restoreTextWithStatuses(textNode adf_types.ADFNode, statuses map[string]statusInfo) []adf_types.ADFNode {
-	nodeText := textNode.Text
-
-	// Find the leftmost marker in the text
-	bestMarker := ""
-	bestPos := -1
-	for marker := range statuses {
-		pos := strings.Index(nodeText, marker)
-		if pos != -1 && (bestPos == -1 || pos < bestPos) {
-			bestMarker = marker
-			bestPos = pos
-		}
+	keys := make([]string, 0, len(statuses))
+	for k := range statuses {
+		keys = append(keys, k)
 	}
 
-	if bestPos == -1 {
+	marker, pos := findLeftmostMarker(textNode.Text, keys)
+	if pos == -1 {
 		return []adf_types.ADFNode{textNode}
 	}
 
-	info := statuses[bestMarker]
+	before, after := splitOnMarker(textNode, pos, len(marker))
+	info := statuses[marker]
 	var result []adf_types.ADFNode
+	result = append(result, before...)
 
-	before := nodeText[:bestPos]
-	if len(before) > 0 {
-		beforeNode := adf_types.NewTextNode(before)
-		beforeNode.Marks = textNode.Marks
-		result = append(result, beforeNode)
-	}
-
-	statusNode := adf_types.ADFNode{
+	result = append(result, adf_types.ADFNode{
 		Type: adf_types.NodeTypeStatus,
 		Attrs: map[string]interface{}{
 			"text":  info.text,
 			"color": info.color,
 		},
-	}
-	result = append(result, statusNode)
+	})
 
-	after := nodeText[bestPos+len(bestMarker):]
 	if len(after) > 0 {
 		afterNode := adf_types.NewTextNode(after)
 		afterNode.Marks = textNode.Marks
-		moreRestored := restoreTextWithStatuses(afterNode, statuses)
-		result = append(result, moreRestored...)
+		result = append(result, restoreTextWithStatuses(afterNode, statuses)...)
 	}
 
 	return result
