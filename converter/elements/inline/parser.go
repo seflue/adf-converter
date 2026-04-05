@@ -38,6 +38,29 @@ type statusInfo struct {
 	color string
 }
 
+// inlineGuard is prepended to input to prevent goldmark from interpreting
+// inline content as block structures (e.g., "1. Foo" → ordered list).
+// A zero-width space at the start breaks block-level patterns while
+// preserving the visible text.
+const inlineGuard = "\u200B"
+
+// orderedListStart matches text that goldmark would interpret as an ordered list.
+var orderedListStart = regexp.MustCompile(`^\d+\.\s`)
+
+// stripInlineGuard removes the zero-width space guard from the first text node.
+func stripInlineGuard(nodes []adf_types.ADFNode) []adf_types.ADFNode {
+	if len(nodes) == 0 {
+		return nodes
+	}
+	if nodes[0].Type == adf_types.NodeTypeText {
+		nodes[0].Text = strings.TrimPrefix(nodes[0].Text, inlineGuard)
+		if nodes[0].Text == "" {
+			return nodes[1:]
+		}
+	}
+	return nodes
+}
+
 // ParseContent parses inline markdown formatting into ADF text nodes with marks
 // This is the unified inline content parser used by all element converters
 // Uses goldmark for CommonMark-compliant parsing
@@ -65,7 +88,14 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 	// Goldmark would interpret [status:...] as a link reference
 	statuses, cleanedMarkdown := extractStatusPatterns(cleanedMarkdown)
 
-	// Step 2: Parse with goldmark (now without HTML comments or date patterns)
+	// Step 2: Prepend inline guard only when goldmark would misinterpret
+	// inline content as an ordered list (e.g., "1. Foo").
+	guarded := orderedListStart.MatchString(cleanedMarkdown)
+	if guarded {
+		cleanedMarkdown = inlineGuard + cleanedMarkdown
+	}
+
+	// Step 3: Parse with goldmark (now without HTML comments or date patterns)
 	source := []byte(cleanedMarkdown)
 	parser := goldmark.New(goldmark.WithExtensions(extension.Strikethrough))
 	doc := parser.Parser().Parse(text.NewReader(source))
@@ -95,6 +125,11 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 	// Step 3c: Restore status nodes
 	if len(statuses) > 0 {
 		result = restoreStatusNodes(result, statuses)
+	}
+
+	// Step 4: Strip inline guard from first text node (only if we added one)
+	if guarded {
+		result = stripInlineGuard(result)
 	}
 
 	// Merge consecutive text nodes with identical marks
