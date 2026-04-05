@@ -93,8 +93,12 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 		return p.parseDetailsElement(lines)
 	case strings.HasPrefix(line, `<div data-adf-type="blockCard"`):
 		return p.parseBlockCard(lines)
-	case strings.HasPrefix(line, "<table"), strings.HasPrefix(line, "<taskList"), strings.HasPrefix(line, "<blockquote"):
-		return p.parseXMLWrapper(lines)
+	case strings.HasPrefix(line, "<table"):
+		return p.parseMarkdownTable(lines)
+	case strings.HasPrefix(line, "<taskList"):
+		return p.parseTaskList(lines)
+	case strings.HasPrefix(line, "<blockquote"):
+		return p.parseBlockquote(lines)
 	case strings.HasPrefix(line, "<!--"):
 		return p.parsePlaceholder(lines)
 	case strings.HasPrefix(line, ":::"):
@@ -322,100 +326,38 @@ func (p *MarkdownParser) parsePlaceholder(lines []string) (*adf_types.ADFNode, i
 	return parsePlaceholderNode(lines, p.session, p.manager)
 }
 
-func (p *MarkdownParser) parseXMLWrapper(lines []string) (*adf_types.ADFNode, int, error) {
-	if len(lines) == 0 {
-		return nil, 1, fmt.Errorf("no lines to parse")
-	}
-
-	firstLine := strings.TrimSpace(lines[0])
-
-	// Determine element type and use converter via registry
-	var nodeType ADFNodeType
-	switch {
-	case strings.HasPrefix(firstLine, "<table"):
-		nodeType = "table"
-	case strings.HasPrefix(firstLine, "<taskList"):
-		nodeType = "taskList"
-	case strings.HasPrefix(firstLine, "<blockquote"):
-		nodeType = "blockquote"
-	default:
-		return nil, 1, fmt.Errorf("unsupported XML wrapper: %s", firstLine)
-	}
-
-	// Get converter from registry (same pattern as parseHeading)
-	if converter := globalRegistry.GetConverter(nodeType); converter != nil {
+func (p *MarkdownParser) parseTaskList(lines []string) (*adf_types.ADFNode, int, error) {
+	if converter := globalRegistry.GetConverter("taskList"); converter != nil {
 		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
 		return &node, consumed, err
 	}
+	return nil, 1, fmt.Errorf("taskList converter not registered")
+}
 
-	return nil, 1, fmt.Errorf("converter not registered: %s", nodeType)
+func (p *MarkdownParser) parseBlockquote(lines []string) (*adf_types.ADFNode, int, error) {
+	if converter := globalRegistry.GetConverter("blockquote"); converter != nil {
+		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
+		return &node, consumed, err
+	}
+	return nil, 1, fmt.Errorf("blockquote converter not registered")
 }
 
 func (p *MarkdownParser) parseHeading(lines []string) (*adf_types.ADFNode, int, error) {
-	if len(lines) == 0 {
-		return nil, 1, nil
-	}
-
-	// Create cleaned lines with trimmed first line to handle indented headings
-	cleanedLines := make([]string, len(lines))
-	cleanedLines[0] = strings.TrimSpace(lines[0]) // Remove indentation from heading line
-	copy(cleanedLines[1:], lines[1:])
-
 	if converter := globalRegistry.GetConverter("heading"); converter != nil {
-		node, consumed, err := converter.FromMarkdown(cleanedLines, 0, ConversionContext{})
+		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
 		return &node, consumed, err
 	}
 	return nil, 1, fmt.Errorf("heading converter not registered")
 }
 
 func (p *MarkdownParser) parseBulletList(lines []string) (*adf_types.ADFNode, int, error) {
-	if len(lines) == 0 {
-		return nil, 1, nil
-	}
-
-	// Collect list lines while preserving indentation for nesting
-	// Collect list lines including:
-	// - Lines starting with bullet markers (-, *, +)
-	// - Indented continuation lines (for multiline items and nested lists)
-	cleanedLines := make([]string, 0, len(lines))
-	inList := false
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-
-		// Empty line ends the list
-		if trimmed == "" {
-			break
-		}
-
-		// Check if line starts with bullet marker
-		isBulletLine := strings.HasPrefix(trimmed, "- ") ||
-			strings.HasPrefix(trimmed, "* ") ||
-			strings.HasPrefix(trimmed, "+ ")
-
-		if isBulletLine {
-			// Bullet line - always include
-			inList = true
-			cleanedLines = append(cleanedLines, line)
-		} else if inList && len(line) > 0 && (line[0] == ' ' || line[0] == '\t') {
-			// Indented continuation line - include if we're in a list
-			cleanedLines = append(cleanedLines, line)
-		} else {
-			// Non-indented, non-bullet line - end of list
-			break
-		}
-	}
-
-	// Try to get converter from registry
 	if converter := globalRegistry.GetConverter("bulletList"); converter != nil {
-		// Pass placeholder manager through context for emoji/placeholder restoration
 		ctx := ConversionContext{
 			PlaceholderManager: p.manager,
 		}
-		node, consumed, err := converter.FromMarkdown(cleanedLines, 0, ctx)
+		node, consumed, err := converter.FromMarkdown(lines, 0, ctx)
 		return &node, consumed, err
 	}
-
-	// Converter not registered (should not happen in production)
 	return nil, 0, fmt.Errorf("bulletList converter not registered")
 }
 

@@ -69,10 +69,10 @@ func (blc *BulletListConverter) FromMarkdown(lines []string, startIndex int, con
 			break
 		}
 
-		// Check if line starts with bullet marker
-		isBulletLine := strings.HasPrefix(trimmed, "-") ||
-			strings.HasPrefix(trimmed, "*") ||
-			strings.HasPrefix(trimmed, "+")
+		// Check if line starts with bullet marker (marker + space)
+		isBulletLine := strings.HasPrefix(trimmed, "- ") ||
+			strings.HasPrefix(trimmed, "* ") ||
+			strings.HasPrefix(trimmed, "+ ")
 
 		if isBulletLine {
 			// This is a bullet line - always include

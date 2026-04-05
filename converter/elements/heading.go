@@ -46,7 +46,7 @@ func (hc *HeadingConverter) FromMarkdown(lines []string, startIndex int, _ conve
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
 
-	line := lines[startIndex]
+	line := strings.TrimSpace(lines[startIndex])
 
 	level := 0
 	for i := 0; i < len(line) && line[i] == '#'; i++ {

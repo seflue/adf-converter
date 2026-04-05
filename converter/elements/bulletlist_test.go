@@ -357,6 +357,31 @@ func TestBulletListConverter_FromMarkdown(t *testing.T) {
 			expectedLines: 2,
 			wantErr:       false,
 		},
+		{
+			name: "list stopped by thematic break",
+			lines: []string{
+				"- Item one",
+				"- Item two",
+				"---",
+				"Some paragraph",
+			},
+			startIndex:    0,
+			expectedItems: 2,
+			expectedLines: 2,
+			wantErr:       false,
+		},
+		{
+			name: "list followed by paragraph",
+			lines: []string{
+				"- Item one",
+				"",
+				"A paragraph after the list",
+			},
+			startIndex:    0,
+			expectedItems: 1,
+			expectedLines: 2,
+			wantErr:       false,
+		},
 	}
 
 	for _, tt := range tests {
