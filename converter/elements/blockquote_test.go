@@ -1,6 +1,7 @@
 package elements
 
 import (
+	"strings"
 	"testing"
 
 	"adf-converter/adf_types"
@@ -9,129 +10,193 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBlockquoteConverter_FromMarkdown_Simple(t *testing.T) {
+func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 	converter := NewBlockquoteConverter()
-	ctx := ConversionContext{PreserveAttrs: false}
 
-	markdown := "> This is a simple blockquote"
+	tests := []struct {
+		name             string
+		lines            []string
+		startIndex       int
+		ctx              ConversionContext
+		expectedType     string
+		expectedContent  int // number of content nodes
+		expectedConsumed int
+		expectedText     []string // expected text in each paragraph (optional)
+		expectedAttrs    map[string]interface{}
+	}{
+		{
+			name:             "simple blockquote",
+			lines:            []string{"> This is a simple blockquote"},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  1,
+			expectedConsumed: 1,
+			expectedText:     []string{"This is a simple blockquote"},
+		},
+		{
+			name:             "multi-line same paragraph",
+			lines:            []string{"> This is line one", "> This is line two"},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  1,
+			expectedConsumed: 2,
+			expectedText:     []string{"This is line one This is line two"},
+		},
+		{
+			name:             "multi-paragraph",
+			lines:            []string{"> First paragraph", ">", "> Second paragraph"},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  2,
+			expectedConsumed: 3,
+			expectedText:     []string{"First paragraph", "Second paragraph"},
+		},
+		{
+			name: "XML-wrapped with localId",
+			lines: []string{
+				`<blockquote localId="abc123">`,
+				"> This is a blockquote with attributes",
+				"</blockquote>",
+			},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: true},
+			expectedType:     "blockquote",
+			expectedContent:  1,
+			expectedConsumed: 3,
+			expectedText:     []string{"This is a blockquote with attributes"},
+			expectedAttrs:    map[string]interface{}{"localId": "abc123"},
+		},
+		{
+			name:             "empty lines slice",
+			lines:            []string{},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  0,
+			expectedConsumed: 0,
+		},
+		{
+			name:             "startIndex out of bounds",
+			lines:            []string{"> something"},
+			startIndex:       5,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  0,
+			expectedConsumed: 0,
+		},
+		{
+			name:             "empty blockquote line",
+			lines:            []string{"> "},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  0,
+			expectedConsumed: 1,
+		},
+		{
+			name:             "startIndex skips prefix lines",
+			lines:            []string{"ignored line", "> actual blockquote"},
+			startIndex:       1,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  1,
+			expectedConsumed: 1,
+			expectedText:     []string{"actual blockquote"},
+		},
+		{
+			name:             "boundary: stops at non-blockquote line",
+			lines:            []string{"> line one", "> line two", "not a blockquote"},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  1,
+			expectedConsumed: 2,
+			expectedText:     []string{"line one line two"},
+		},
+		{
+			name:             "boundary: empty line between blockquote paragraphs",
+			lines:            []string{"> first", "", "> second"},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: false},
+			expectedType:     "blockquote",
+			expectedContent:  2,
+			expectedConsumed: 3,
+			expectedText:     []string{"first", "second"},
+		},
+		{
+			name: "XML-wrapped with trailing lines",
+			lines: []string{
+				`<blockquote localId="test">`,
+				"> content",
+				"</blockquote>",
+				"trailing line",
+				"another trailing",
+			},
+			startIndex:       0,
+			ctx:              ConversionContext{PreserveAttrs: true},
+			expectedType:     "blockquote",
+			expectedContent:  1,
+			expectedConsumed: 3,
+			expectedText:     []string{"content"},
+			expectedAttrs:    map[string]interface{}{"localId": "test"},
+		},
+		{
+			name: "XML-wrapped with startIndex",
+			lines: []string{
+				"prefix",
+				`<blockquote localId="skip">`,
+				"> inner",
+				"</blockquote>",
+			},
+			startIndex:       1,
+			ctx:              ConversionContext{PreserveAttrs: true},
+			expectedType:     "blockquote",
+			expectedContent:  1,
+			expectedConsumed: 3,
+			expectedText:     []string{"inner"},
+			expectedAttrs:    map[string]interface{}{"localId": "skip"},
+		},
+	}
 
-	node, err := converter.FromMarkdown(markdown, ctx)
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, tt.ctx)
+			require.NoError(t, err)
 
-	assert.Equal(t, "blockquote", node.Type)
-	require.Len(t, node.Content, 1)
+			assert.Equal(t, tt.expectedType, node.Type)
+			assert.Len(t, node.Content, tt.expectedContent)
+			assert.Equal(t, tt.expectedConsumed, consumed)
 
-	paragraph := node.Content[0]
-	assert.Equal(t, "paragraph", paragraph.Type)
-	require.Len(t, paragraph.Content, 1)
-	assert.Equal(t, "text", paragraph.Content[0].Type)
-	assert.Equal(t, "This is a simple blockquote", paragraph.Content[0].Text)
-}
+			for i, expected := range tt.expectedText {
+				paragraph := node.Content[i]
+				assert.Equal(t, "paragraph", paragraph.Type)
+				require.NotEmpty(t, paragraph.Content)
+				assert.Equal(t, expected, paragraph.Content[0].Text)
+			}
 
-func TestBlockquoteConverter_FromMarkdown_MultiLine(t *testing.T) {
-	converter := NewBlockquoteConverter()
-	ctx := ConversionContext{PreserveAttrs: false}
-
-	markdown := `> This is line one
-> This is line two`
-
-	node, err := converter.FromMarkdown(markdown, ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, "blockquote", node.Type)
-	require.Len(t, node.Content, 1)
-
-	paragraph := node.Content[0]
-	assert.Equal(t, "paragraph", paragraph.Type)
-	require.Len(t, paragraph.Content, 1)
-	assert.Equal(t, "text", paragraph.Content[0].Type)
-	assert.Equal(t, "This is line one This is line two", paragraph.Content[0].Text)
-}
-
-func TestBlockquoteConverter_FromMarkdown_MultiParagraph(t *testing.T) {
-	converter := NewBlockquoteConverter()
-	ctx := ConversionContext{PreserveAttrs: false}
-
-	markdown := `> First paragraph
->
-> Second paragraph`
-
-	node, err := converter.FromMarkdown(markdown, ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, "blockquote", node.Type)
-	require.Len(t, node.Content, 2)
-
-	// First paragraph
-	paragraph1 := node.Content[0]
-	assert.Equal(t, "paragraph", paragraph1.Type)
-	require.Len(t, paragraph1.Content, 1)
-	assert.Equal(t, "First paragraph", paragraph1.Content[0].Text)
-
-	// Second paragraph
-	paragraph2 := node.Content[1]
-	assert.Equal(t, "paragraph", paragraph2.Type)
-	require.Len(t, paragraph2.Content, 1)
-	assert.Equal(t, "Second paragraph", paragraph2.Content[0].Text)
-}
-
-func TestBlockquoteConverter_FromMarkdown_XMLWrapped(t *testing.T) {
-	converter := NewBlockquoteConverter()
-	ctx := ConversionContext{PreserveAttrs: true}
-
-	markdown := `<blockquote localId="abc123">
-> This is a blockquote with attributes
-</blockquote>`
-
-	node, err := converter.FromMarkdown(markdown, ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, "blockquote", node.Type)
-	require.NotNil(t, node.Attrs)
-	assert.Equal(t, "abc123", node.Attrs["localId"])
-
-	require.Len(t, node.Content, 1)
-	paragraph := node.Content[0]
-	assert.Equal(t, "paragraph", paragraph.Type)
-	require.Len(t, paragraph.Content, 1)
-	assert.Equal(t, "This is a blockquote with attributes", paragraph.Content[0].Text)
-}
-
-func TestBlockquoteConverter_FromMarkdown_Empty(t *testing.T) {
-	converter := NewBlockquoteConverter()
-	ctx := ConversionContext{PreserveAttrs: false}
-
-	markdown := ""
-
-	node, err := converter.FromMarkdown(markdown, ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, "blockquote", node.Type)
-	assert.Len(t, node.Content, 0)
-}
-
-func TestBlockquoteConverter_FromMarkdown_EmptyBlockquote(t *testing.T) {
-	converter := NewBlockquoteConverter()
-	ctx := ConversionContext{PreserveAttrs: false}
-
-	markdown := "> "
-
-	node, err := converter.FromMarkdown(markdown, ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, "blockquote", node.Type)
-	assert.Len(t, node.Content, 0)
+			if tt.expectedAttrs != nil {
+				require.NotNil(t, node.Attrs)
+				for key, val := range tt.expectedAttrs {
+					assert.Equal(t, val, node.Attrs[key])
+				}
+			}
+		})
+	}
 }
 
 func TestBlockquoteConverter_RoundTrip_Simple(t *testing.T) {
 	converter := NewBlockquoteConverter()
 	ctx := ConversionContext{PreserveAttrs: false}
 
-	originalMarkdown := "> This is a simple blockquote"
+	lines := []string{"> This is a simple blockquote"}
 
 	// Markdown -> ADF
-	node, err := converter.FromMarkdown(originalMarkdown, ctx)
+	node, consumed, err := converter.FromMarkdown(lines, 0, ctx)
 	require.NoError(t, err)
+	assert.Equal(t, 1, consumed)
 
 	// ADF -> Markdown
 	result, err := converter.ToMarkdown(node, ctx)
@@ -144,13 +209,16 @@ func TestBlockquoteConverter_RoundTrip_WithAttributes(t *testing.T) {
 	converter := NewBlockquoteConverter()
 	ctx := ConversionContext{PreserveAttrs: true}
 
-	originalMarkdown := `<blockquote localId="test123">
-> This is a blockquote with attributes
-</blockquote>`
+	lines := []string{
+		`<blockquote localId="test123">`,
+		"> This is a blockquote with attributes",
+		"</blockquote>",
+	}
 
 	// Markdown -> ADF
-	node, err := converter.FromMarkdown(originalMarkdown, ctx)
+	node, consumed, err := converter.FromMarkdown(lines, 0, ctx)
 	require.NoError(t, err)
+	assert.Equal(t, 3, consumed)
 	require.NotNil(t, node.Attrs)
 	assert.Equal(t, "test123", node.Attrs["localId"])
 
@@ -158,8 +226,7 @@ func TestBlockquoteConverter_RoundTrip_WithAttributes(t *testing.T) {
 	result, err := converter.ToMarkdown(node, ctx)
 	require.NoError(t, err)
 
-	// Should preserve attributes
-	assert.Contains(t, result.Content, "<blockquote localId=\"test123\">")
+	assert.Contains(t, result.Content, `<blockquote localId="test123">`)
 	assert.Contains(t, result.Content, "> This is a blockquote with attributes")
 	assert.Contains(t, result.Content, "</blockquote>")
 }
@@ -350,7 +417,7 @@ func TestParseXMLBlockquote(t *testing.T) {
 			},
 			expectAttrs: map[string]interface{}{
 				"localId": "abc123",
-				"level":   1, // ParseXMLAttributes converts numeric strings to integers
+				"level":   1,
 			},
 			expectErr: false,
 		},
@@ -394,3 +461,6 @@ func TestParseXMLBlockquote(t *testing.T) {
 		})
 	}
 }
+
+// Suppress unused import warning
+var _ = strings.Split

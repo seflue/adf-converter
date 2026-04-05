@@ -120,25 +120,67 @@ func (tc *TaskListConverter) convertParagraphToMarkdown(paragraph adf_types.ADFN
 //	- [ ] Task text
 //	- [x] Completed task
 //	</taskList>
-func (tc *TaskListConverter) FromMarkdown(markdown string, context ConversionContext) (adf_types.ADFNode, error) {
-	lines := strings.Split(strings.TrimSpace(markdown), "\n")
+func (tc *TaskListConverter) FromMarkdown(lines []string, startIndex int, context ConversionContext) (adf_types.ADFNode, int, error) {
+	emptyNode := adf_types.ADFNode{Type: "taskList", Attrs: map[string]interface{}{}, Content: nil}
 
-	var contentLines []string
-	attrs := make(map[string]interface{})
-
-	if tc.hasXMLWrapper(lines) {
-		contentLines, attrs = tc.extractFromXMLWrapper(lines)
-	} else {
-		contentLines = lines
+	if startIndex >= len(lines) {
+		return emptyNode, 0, nil
 	}
 
-	taskItems := tc.parseTaskItems(contentLines, attrs)
+	firstLine := strings.TrimSpace(lines[startIndex])
+	attrs := make(map[string]interface{})
 
-	return adf_types.ADFNode{
-		Type:    "taskList",
-		Content: taskItems,
-		Attrs:   attrs,
-	}, nil
+	// XML-wrapped taskList
+	if strings.HasPrefix(firstLine, "<taskList") {
+		consumed := tc.countXMLTaskListLines(lines, startIndex)
+		contentLines, xmlAttrs := tc.extractFromXMLWrapper(lines[startIndex : startIndex+consumed])
+		attrs = xmlAttrs
+		taskItems := tc.parseTaskItems(contentLines, attrs)
+		return adf_types.ADFNode{Type: "taskList", Content: taskItems, Attrs: attrs}, consumed, nil
+	}
+
+	// Plain markdown taskList
+	consumed := tc.countTaskListLines(lines, startIndex)
+	if consumed == 0 {
+		return emptyNode, 0, nil
+	}
+
+	contentLines := lines[startIndex : startIndex+consumed]
+	taskItems := tc.parseTaskItems(contentLines, attrs)
+	return adf_types.ADFNode{Type: "taskList", Content: taskItems, Attrs: attrs}, consumed, nil
+}
+
+// countXMLTaskListLines counts lines from startIndex to the closing </taskList> tag (inclusive).
+func (tc *TaskListConverter) countXMLTaskListLines(lines []string, startIndex int) int {
+	for i := startIndex + 1; i < len(lines); i++ {
+		if strings.HasPrefix(strings.TrimSpace(lines[i]), "</taskList>") {
+			return i - startIndex + 1
+		}
+	}
+	return len(lines) - startIndex // unclosed: consume all remaining
+}
+
+// countTaskListLines counts consecutive task-list lines (- [ ]/- [x] and empty lines between them).
+func (tc *TaskListConverter) countTaskListLines(lines []string, startIndex int) int {
+	lastTaskLine := -1
+	for i := startIndex; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		isTask := strings.HasPrefix(trimmed, "- [ ]") ||
+			strings.HasPrefix(trimmed, "- [x]") ||
+			strings.HasPrefix(trimmed, "- [X]")
+		if isTask {
+			lastTaskLine = i - startIndex + 1
+		} else if trimmed == "" && lastTaskLine > 0 {
+			// Empty line between tasks — keep scanning
+			continue
+		} else {
+			break
+		}
+	}
+	if lastTaskLine < 0 {
+		return 0
+	}
+	return lastTaskLine
 }
 
 func (tc *TaskListConverter) hasXMLWrapper(lines []string) bool {

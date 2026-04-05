@@ -39,6 +39,7 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 		"listItem", "bulletList", "orderedList",
 		"expand", "nestedExpand", "inlineCard", "blockCard", "emoji",
 		"codeBlock", "rule", "mention", "table", "panel", "date", "status",
+		"blockquote", "taskList",
 	}
 
 	for _, converter := range elementConverters {

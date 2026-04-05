@@ -1,6 +1,7 @@
 package elements
 
 import (
+	"strings"
 	"testing"
 
 	"adf-converter/adf_types"
@@ -9,18 +10,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTaskListConverter_FromMarkdown_PlainTaskList(t *testing.T) {
+func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 	converter := NewTaskListConverter()
 	ctx := ConversionContext{}
 
 	tests := []struct {
-		name     string
-		markdown string
-		want     adf_types.ADFNode
+		name             string
+		lines            []string
+		startIndex       int
+		expectedConsumed int
+		want             adf_types.ADFNode
 	}{
 		{
-			name:     "single unchecked task",
-			markdown: `- [ ] Task 1`,
+			name:             "single unchecked task",
+			lines:            []string{"- [ ] Task 1"},
+			startIndex:       0,
+			expectedConsumed: 1,
 			want: adf_types.ADFNode{
 				Type:  "taskList",
 				Attrs: map[string]interface{}{},
@@ -38,8 +43,10 @@ func TestTaskListConverter_FromMarkdown_PlainTaskList(t *testing.T) {
 			},
 		},
 		{
-			name:     "single checked task",
-			markdown: `- [x] Task 1`,
+			name:             "single checked task",
+			lines:            []string{"- [x] Task 1"},
+			startIndex:       0,
+			expectedConsumed: 1,
 			want: adf_types.ADFNode{
 				Type:  "taskList",
 				Attrs: map[string]interface{}{},
@@ -57,8 +64,10 @@ func TestTaskListConverter_FromMarkdown_PlainTaskList(t *testing.T) {
 			},
 		},
 		{
-			name:     "uppercase X in checkbox",
-			markdown: `- [X] Task 1`,
+			name:             "uppercase X in checkbox",
+			lines:            []string{"- [X] Task 1"},
+			startIndex:       0,
+			expectedConsumed: 1,
 			want: adf_types.ADFNode{
 				Type:  "taskList",
 				Attrs: map[string]interface{}{},
@@ -76,81 +85,55 @@ func TestTaskListConverter_FromMarkdown_PlainTaskList(t *testing.T) {
 			},
 		},
 		{
-			name: "mixed checked and unchecked tasks",
-			markdown: `- [ ] Task 1
-- [x] Task 2
-- [ ] Task 3`,
+			name:             "mixed checked and unchecked tasks",
+			lines:            []string{"- [ ] Task 1", "- [x] Task 2", "- [ ] Task 3"},
+			startIndex:       0,
+			expectedConsumed: 3,
 			want: adf_types.ADFNode{
 				Type:  "taskList",
 				Attrs: map[string]interface{}{},
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "TODO",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 1"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "DONE",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 2"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 2"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "TODO",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 3"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 3"}},
 					},
 				},
 			},
 		},
 		{
-			name: "task list with empty lines",
-			markdown: `- [ ] Task 1
-
-- [x] Task 2
-
-- [ ] Task 3`,
+			name:             "task list with empty lines",
+			lines:            []string{"- [ ] Task 1", "", "- [x] Task 2", "", "- [ ] Task 3"},
+			startIndex:       0,
+			expectedConsumed: 5,
 			want: adf_types.ADFNode{
 				Type:  "taskList",
 				Attrs: map[string]interface{}{},
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "TODO",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 1"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "DONE",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 2"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 2"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "TODO",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 3"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 3"}},
 					},
 				},
 			},
@@ -159,8 +142,9 @@ func TestTaskListConverter_FromMarkdown_PlainTaskList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := converter.FromMarkdown(tt.markdown, ctx)
+			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
+			assert.Equal(t, tt.expectedConsumed, consumed)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -171,16 +155,22 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 	ctx := ConversionContext{}
 
 	tests := []struct {
-		name     string
-		markdown string
-		want     adf_types.ADFNode
+		name             string
+		lines            []string
+		startIndex       int
+		expectedConsumed int
+		want             adf_types.ADFNode
 	}{
 		{
 			name: "XML wrapped with localId",
-			markdown: `<taskList localId="abc123">
-- [ ] Task 1
-- [x] Task 2
-</taskList>`,
+			lines: []string{
+				`<taskList localId="abc123">`,
+				"- [ ] Task 1",
+				"- [x] Task 2",
+				"</taskList>",
+			},
+			startIndex:       0,
+			expectedConsumed: 4,
 			want: adf_types.ADFNode{
 				Type: "taskList",
 				Attrs: map[string]interface{}{
@@ -188,35 +178,29 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 				},
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "TODO",
-							"localId": "abc123-item-0",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 1"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO", "localId": "abc123-item-0"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "DONE",
-							"localId": "abc123-item-1",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 2"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE", "localId": "abc123-item-1"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 2"}},
 					},
 				},
 			},
 		},
 		{
 			name: "XML wrapped with multiple attributes",
-			markdown: `<taskList localId="xyz789" completed="2" total="3">
-- [ ] Task 1
-- [x] Task 2
-- [x] Task 3
-</taskList>`,
+			lines: []string{
+				`<taskList localId="xyz789" completed="2" total="3">`,
+				"- [ ] Task 1",
+				"- [x] Task 2",
+				"- [x] Task 3",
+				"</taskList>",
+			},
+			startIndex:       0,
+			expectedConsumed: 5,
 			want: adf_types.ADFNode{
 				Type: "taskList",
 				Attrs: map[string]interface{}{
@@ -226,45 +210,34 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 				},
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "TODO",
-							"localId": "xyz789-item-0",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 1"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO", "localId": "xyz789-item-0"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "DONE",
-							"localId": "xyz789-item-1",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 2"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE", "localId": "xyz789-item-1"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 2"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "DONE",
-							"localId": "xyz789-item-2",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 3"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE", "localId": "xyz789-item-2"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 3"}},
 					},
 				},
 			},
 		},
 		{
 			name: "XML wrapped with empty lines inside",
-			markdown: `<taskList localId="test">
-- [ ] Task 1
-
-- [x] Task 2
-</taskList>`,
+			lines: []string{
+				`<taskList localId="test">`,
+				"- [ ] Task 1",
+				"",
+				"- [x] Task 2",
+				"</taskList>",
+			},
+			startIndex:       0,
+			expectedConsumed: 5,
 			want: adf_types.ADFNode{
 				Type: "taskList",
 				Attrs: map[string]interface{}{
@@ -272,24 +245,62 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 				},
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "TODO",
-							"localId": "test-item-0",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 1"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO", "localId": "test-item-0"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "DONE",
-							"localId": "test-item-1",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 2"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE", "localId": "test-item-1"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 2"}},
+					},
+				},
+			},
+		},
+		{
+			name: "XML wrapped with trailing lines",
+			lines: []string{
+				`<taskList localId="abc">`,
+				"- [ ] Task",
+				"</taskList>",
+				"trailing content",
+			},
+			startIndex:       0,
+			expectedConsumed: 3,
+			want: adf_types.ADFNode{
+				Type: "taskList",
+				Attrs: map[string]interface{}{
+					"localId": "abc",
+				},
+				Content: []adf_types.ADFNode{
+					{
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO", "localId": "abc-item-0"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task"}},
+					},
+				},
+			},
+		},
+		{
+			name: "XML wrapped with startIndex",
+			lines: []string{
+				"prefix line",
+				`<taskList localId="skip">`,
+				"- [x] Done",
+				"</taskList>",
+			},
+			startIndex:       1,
+			expectedConsumed: 3,
+			want: adf_types.ADFNode{
+				Type: "taskList",
+				Attrs: map[string]interface{}{
+					"localId": "skip",
+				},
+				Content: []adf_types.ADFNode{
+					{
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE", "localId": "skip-item-0"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Done"}},
 					},
 				},
 			},
@@ -298,8 +309,9 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := converter.FromMarkdown(tt.markdown, ctx)
+			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
+			assert.Equal(t, tt.expectedConsumed, consumed)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -310,13 +322,17 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 	ctx := ConversionContext{}
 
 	tests := []struct {
-		name     string
-		markdown string
-		want     adf_types.ADFNode
+		name             string
+		lines            []string
+		startIndex       int
+		expectedConsumed int
+		want             adf_types.ADFNode
 	}{
 		{
-			name:     "empty markdown",
-			markdown: ``,
+			name:             "empty lines slice",
+			lines:            []string{},
+			startIndex:       0,
+			expectedConsumed: 0,
 			want: adf_types.ADFNode{
 				Type:    "taskList",
 				Attrs:   map[string]interface{}{},
@@ -324,8 +340,10 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 			},
 		},
 		{
-			name:     "whitespace only",
-			markdown: `   `,
+			name:             "startIndex out of bounds",
+			lines:            []string{"- [ ] Task"},
+			startIndex:       5,
+			expectedConsumed: 0,
 			want: adf_types.ADFNode{
 				Type:    "taskList",
 				Attrs:   map[string]interface{}{},
@@ -333,41 +351,34 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid checkbox syntax",
-			markdown: `- [?] Invalid task
-- [ ] Valid task`,
+			name:             "invalid checkbox syntax stops boundary",
+			lines:            []string{"- [?] Invalid task", "- [ ] Valid task"},
+			startIndex:       0,
+			expectedConsumed: 0,
+			want: adf_types.ADFNode{
+				Type:    "taskList",
+				Attrs:   map[string]interface{}{},
+				Content: nil,
+			},
+		},
+		{
+			name:             "boundary: stops at non-task line",
+			lines:            []string{"- [ ] Task 1", "- [x] Task 2", "Regular text"},
+			startIndex:       0,
+			expectedConsumed: 2,
 			want: adf_types.ADFNode{
 				Type:  "taskList",
 				Attrs: map[string]interface{}{},
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "TODO",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Valid task"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
-				},
-			},
-		},
-		{
-			name: "non-task list items",
-			markdown: `- Regular list item
-- [ ] Task item`,
-			want: adf_types.ADFNode{
-				Type:  "taskList",
-				Attrs: map[string]interface{}{},
-				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "TODO",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task item"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 2"}},
 					},
 				},
 			},
@@ -376,8 +387,9 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := converter.FromMarkdown(tt.markdown, ctx)
+			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
+			assert.Equal(t, tt.expectedConsumed, consumed)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -397,22 +409,14 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 				Type: "taskList",
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "TODO",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 1"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state": "DONE",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 2"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "DONE"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 2"}},
 					},
 				},
 			},
@@ -426,14 +430,9 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 				},
 				Content: []adf_types.ADFNode{
 					{
-						Type: "taskItem",
-						Attrs: map[string]interface{}{
-							"state":   "TODO",
-							"localId": "test123-item-0",
-						},
-						Content: []adf_types.ADFNode{
-							{Type: "text", Text: "Task 1"},
-						},
+						Type:    "taskItem",
+						Attrs:   map[string]interface{}{"state": "TODO", "localId": "test123-item-0"},
+						Content: []adf_types.ADFNode{{Type: "text", Text: "Task 1"}},
 					},
 				},
 			},
@@ -447,8 +446,10 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 			require.NoError(t, err)
 
 			// Convert Markdown -> ADF
-			roundtrip, err := converter.FromMarkdown(mdResult.Content, ctx)
+			lines := strings.Split(mdResult.Content, "\n")
+			roundtrip, consumed, err := converter.FromMarkdown(lines, 0, ctx)
 			require.NoError(t, err)
+			assert.Greater(t, consumed, 0)
 
 			// Verify structure matches
 			assert.Equal(t, tt.original.Type, roundtrip.Type)
@@ -463,3 +464,6 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 		})
 	}
 }
+
+// Suppress unused import warning
+var _ = strings.Split

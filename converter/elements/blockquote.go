@@ -156,36 +156,59 @@ func (bc *BlockquoteConverter) createQuotePrefix(nestedLevel int) string {
 	return prefix.String()
 }
 
-func (bc *BlockquoteConverter) FromMarkdown(markdown string, context ConversionContext) (adf_types.ADFNode, error) {
-	if strings.TrimSpace(markdown) == "" {
-		return adf_types.ADFNode{
-			Type:    "blockquote",
-			Content: []adf_types.ADFNode{},
-		}, nil
+func (bc *BlockquoteConverter) FromMarkdown(lines []string, startIndex int, context ConversionContext) (adf_types.ADFNode, int, error) {
+	emptyNode := adf_types.ADFNode{Type: "blockquote", Content: []adf_types.ADFNode{}}
+
+	if startIndex >= len(lines) {
+		return emptyNode, 0, nil
 	}
 
-	lines := strings.Split(markdown, "\n")
+	firstLine := strings.TrimSpace(lines[startIndex])
 
-	if len(lines) > 0 && strings.HasPrefix(strings.TrimSpace(lines[0]), "<blockquote") {
-		node, _, err := parseXMLBlockquote(lines)
+	// XML-wrapped blockquote
+	if strings.HasPrefix(firstLine, "<blockquote") {
+		node, consumed, err := parseXMLBlockquote(lines[startIndex:])
 		if err != nil {
-			return adf_types.ADFNode{}, fmt.Errorf("failed to parse XML-wrapped blockquote: %w", err)
+			return adf_types.ADFNode{}, 0, fmt.Errorf("parsing XML-wrapped blockquote: %w", err)
 		}
 		if node == nil {
-			return adf_types.ADFNode{
-				Type:    "blockquote",
-				Content: []adf_types.ADFNode{},
-			}, nil
+			return emptyNode, consumed, nil
 		}
-		return *node, nil
+		return *node, consumed, nil
 	}
 
-	blockquoteNode, err := parseMarkdownBlockquote(lines)
+	// Plain markdown blockquote
+	consumed := countBlockquoteLines(lines, startIndex)
+	if consumed == 0 {
+		return emptyNode, 0, nil
+	}
+
+	node, err := parseMarkdownBlockquote(lines[startIndex : startIndex+consumed])
 	if err != nil {
-		return adf_types.ADFNode{}, fmt.Errorf("failed to parse markdown blockquote: %w", err)
+		return adf_types.ADFNode{}, 0, fmt.Errorf("parsing markdown blockquote: %w", err)
 	}
+	return node, consumed, nil
+}
 
-	return blockquoteNode, nil
+// countBlockquoteLines counts consecutive blockquote lines starting from startIndex.
+// Empty lines between > lines are included; trailing empty lines are not.
+func countBlockquoteLines(lines []string, startIndex int) int {
+	lastQuoteLine := -1
+	for i := startIndex; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(trimmed, ">") {
+			lastQuoteLine = i - startIndex + 1
+		} else if trimmed == "" && lastQuoteLine > 0 {
+			// Empty line — might be between blockquote paragraphs, keep scanning
+			continue
+		} else {
+			break
+		}
+	}
+	if lastQuoteLine < 0 {
+		return 0
+	}
+	return lastQuoteLine
 }
 
 func (bc *BlockquoteConverter) CanHandle(nodeType ADFNodeType) bool {
