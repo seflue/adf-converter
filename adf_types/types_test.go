@@ -37,6 +37,7 @@ func TestIsInlineNode(t *testing.T) {
 		{NodeTypeHardBreak, true},
 		{NodeTypeMention, true},
 		{NodeTypeStatus, true},
+		{NodeTypeMediaInline, true},
 		{NodeTypeParagraph, false},
 		{NodeTypeHeading, false},
 		{"unknown", false},

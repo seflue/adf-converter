@@ -456,7 +456,10 @@ func (p *MarkdownParser) parseCodeBlock(lines []string) (*adf_types.ADFNode, int
 
 func (p *MarkdownParser) parseParagraph(lines []string) (*adf_types.ADFNode, int, error) {
 	if converter := globalRegistry.GetConverter("paragraph"); converter != nil {
-		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
+		ctx := ConversionContext{
+			PlaceholderManager: p.manager,
+		}
+		node, consumed, err := converter.FromMarkdown(lines, 0, ctx)
 		return &node, consumed, err
 	}
 	return nil, 1, fmt.Errorf("paragraph converter not registered")

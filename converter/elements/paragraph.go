@@ -120,7 +120,7 @@ func (pc *ParagraphConverter) FromMarkdown(lines []string, startIndex int, conte
 		return adf_types.ADFNode{}, consumed, nil
 	}
 
-	textNodes, err := inline.ParseContent(text)
+	textNodes, err := inline.ParseContentWithPlaceholders(text, context.PlaceholderManager)
 	if err != nil {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("failed to parse inline content: %w", err)
 	}

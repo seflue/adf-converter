@@ -1339,3 +1339,118 @@ func TestRoundTripConversion_InlineCardDataOnly(t *testing.T) {
 	assert.NotNil(t, card.Attrs["data"])
 	assert.Nil(t, card.Attrs["url"])
 }
+
+// ============================================================================
+// mediaInline Placeholder Preservation Tests
+// ============================================================================
+
+func TestRoundTrip_MediaInline_InParagraph(t *testing.T) {
+	// mediaInline node with typical attrs (id, collection, type)
+	mediaInlineNode := adf_types.ADFNode{
+		Type: adf_types.NodeTypeMediaInline,
+		Attrs: map[string]interface{}{
+			"id":         "abc-123",
+			"collection": "contentId-456",
+			"type":       "file",
+			"width":      float64(200),
+			"height":     float64(150),
+		},
+	}
+
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					adf_types.NewTextNode("See attachment: "),
+					mediaInlineNode,
+					adf_types.NewTextNode(" for details."),
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	md, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	// Markdown should contain placeholder comment (inline, no double newline)
+	assert.Contains(t, md, "ADF_PLACEHOLDER_")
+	assert.Contains(t, md, "See attachment:")
+	assert.Contains(t, md, "for details.")
+
+	// Roundtrip: mediaInline node must survive identically
+	require.Len(t, restored.Content, 1)
+	para := restored.Content[0]
+	assert.Equal(t, adf_types.NodeTypeParagraph, para.Type)
+	require.Len(t, para.Content, 3)
+
+	assert.Equal(t, adf_types.NodeTypeText, para.Content[0].Type)
+	assert.Equal(t, "See attachment: ", para.Content[0].Text)
+
+	assert.Equal(t, adf_types.NodeTypeMediaInline, para.Content[1].Type)
+	assert.Equal(t, "abc-123", para.Content[1].Attrs["id"])
+	assert.Equal(t, "contentId-456", para.Content[1].Attrs["collection"])
+	assert.Equal(t, "file", para.Content[1].Attrs["type"])
+	assert.Equal(t, float64(200), para.Content[1].Attrs["width"])
+	assert.Equal(t, float64(150), para.Content[1].Attrs["height"])
+
+	assert.Equal(t, adf_types.NodeTypeText, para.Content[2].Type)
+	assert.Equal(t, " for details.", para.Content[2].Text)
+}
+
+func TestRoundTrip_MediaInline_StandaloneInParagraph(t *testing.T) {
+	// Paragraph containing only a mediaInline (no surrounding text).
+	// The parser restores standalone placeholder comments as top-level nodes
+	// (paragraph wrapper is lost), but the mediaInline node itself survives.
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeMediaInline,
+						Attrs: map[string]interface{}{
+							"id":         "media-solo",
+							"collection": "col-1",
+							"type":       "image",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	conv := NewDefaultConverter()
+	_, restored, err := conv.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	// Paragraph wrapper preserved, mediaInline restored inside
+	require.Len(t, restored.Content, 1)
+	para := restored.Content[0]
+	assert.Equal(t, adf_types.NodeTypeParagraph, para.Type)
+	require.Len(t, para.Content, 1)
+	assert.Equal(t, adf_types.NodeTypeMediaInline, para.Content[0].Type)
+	assert.Equal(t, "media-solo", para.Content[0].Attrs["id"])
+	assert.Equal(t, "col-1", para.Content[0].Attrs["collection"])
+}
+
+func TestMediaInline_PlaceholderPreview(t *testing.T) {
+	manager := placeholder.NewManager()
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeMediaInline,
+		Attrs: map[string]interface{}{
+			"id":   "img-42",
+			"type": "image",
+		},
+	}
+
+	_, preview, err := manager.Store(node)
+	require.NoError(t, err)
+	assert.Contains(t, preview, "Inline Media")
+}

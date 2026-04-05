@@ -50,8 +50,10 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeBlockCard: true,
 		},
 		preservedTypes: map[string]bool{
-			adf_types.NodeTypeBlockquote: true,
+			adf_types.NodeTypeBlockquote:  true,
 			adf_types.NodeTypeMediaSingle: true,
+			// mediaInline is preserved as placeholder (no editable representation)
+			adf_types.NodeTypeMediaInline: true,
 		},
 		inlineFormatTypes: map[string]bool{
 			adf_types.MarkTypeStrong:    true,

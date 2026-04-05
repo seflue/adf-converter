@@ -572,6 +572,7 @@ func TestDefaultClassifier_IsPreserved(t *testing.T) {
 		{adf_types.NodeTypeTableCell, false},
 		{adf_types.NodeTypePanel, false},
 		{adf_types.NodeTypeExpand, false},
+		{adf_types.NodeTypeMediaInline, true},
 		{adf_types.NodeTypeParagraph, false},
 		{adf_types.NodeTypeText, false},
 		{"unknown", false},

@@ -100,6 +100,8 @@ func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
 		return "Horizontal Rule"
 	case adf_types.NodeTypeMediaSingle:
 		return m.generateMediaPreview(node)
+	case adf_types.NodeTypeMediaInline:
+		return "Inline Media"
 	case adf_types.NodeTypeMention:
 		return m.generateMentionPreview(node)
 	case adf_types.NodeTypeDate:
