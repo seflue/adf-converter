@@ -361,15 +361,11 @@ func (p *MarkdownParser) parseHeading(lines []string) (*adf_types.ADFNode, int, 
 	cleanedLines[0] = strings.TrimSpace(lines[0]) // Remove indentation from heading line
 	copy(cleanedLines[1:], lines[1:])
 
-	// Try to get converter from registry, fallback to legacy function
 	if converter := globalRegistry.GetConverter("heading"); converter != nil {
 		node, consumed, err := converter.FromMarkdown(cleanedLines, 0, ConversionContext{})
 		return &node, consumed, err
 	}
-
-	// Fallback to legacy function
-	node, consumed, err := parseHeading(cleanedLines)
-	return &node, consumed, err
+	return nil, 1, fmt.Errorf("heading converter not registered")
 }
 
 func (p *MarkdownParser) parseBulletList(lines []string) (*adf_types.ADFNode, int, error) {
@@ -459,15 +455,11 @@ func (p *MarkdownParser) parseCodeBlock(lines []string) (*adf_types.ADFNode, int
 }
 
 func (p *MarkdownParser) parseParagraph(lines []string) (*adf_types.ADFNode, int, error) {
-	// Try to get converter from registry, fallback to legacy function
 	if converter := globalRegistry.GetConverter("paragraph"); converter != nil {
 		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
 		return &node, consumed, err
 	}
-
-	// Fallback to legacy function
-	node, consumed, err := parseParagraph(lines)
-	return &node, consumed, err
+	return nil, 1, fmt.Errorf("paragraph converter not registered")
 }
 
 func (p *MarkdownParser) parseMarkdownTable(lines []string) (*adf_types.ADFNode, int, error) {
@@ -479,8 +471,11 @@ func (p *MarkdownParser) parseMarkdownTable(lines []string) (*adf_types.ADFNode,
 }
 
 func (p *MarkdownParser) parseRule(lines []string) (*adf_types.ADFNode, int, error) {
-	node := &adf_types.ADFNode{Type: adf_types.NodeTypeRule}
-	return node, 1, nil
+	if converter := globalRegistry.GetConverter("rule"); converter != nil {
+		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
+		return &node, consumed, err
+	}
+	return nil, 1, fmt.Errorf("rule converter not registered")
 }
 
 func (p *MarkdownParser) parseBlockCard(lines []string) (*adf_types.ADFNode, int, error) {
