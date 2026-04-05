@@ -188,6 +188,7 @@ type ConversionContext struct {
 	ListDepth      int // Current nesting depth for lists (1 = top level)
 
 	// Classifier and Manager for handling preserved nodes in element converters
-	Classifier         ContentClassifier
-	PlaceholderManager placeholder.Manager
+	Classifier           ContentClassifier
+	PlaceholderManager   placeholder.Manager
+	PlaceholderSession   *placeholder.EditSession
 }

@@ -9,6 +9,12 @@ import (
 	"adf-converter/converter"
 )
 
+var (
+	detailsOpenRegex = regexp.MustCompile(`^<details(\s+[^>]*)?>`)
+	idAttrRegex      = regexp.MustCompile(`\sid\s*=\s*["|']([^"']*)["|']`)
+	adfTypeAttrRegex = regexp.MustCompile(`data-adf-type="([^"]+)"`)
+)
+
 // ExpandConverter handles conversion of ADF expand and nestedExpand nodes to/from markdown
 //
 // This converter handles BOTH "expand" AND "nestedExpand" node types with a single implementation.
@@ -103,96 +109,65 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 	return builder.Build(), nil
 }
 
+const maxExpandNestingDepth = 100
+
 func (ec *ExpandConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, nil
 	}
 
+	if context.NestedLevel > maxExpandNestingDepth {
+		return adf_types.ADFNode{}, 0, fmt.Errorf("maximum nesting depth exceeded (%d levels)", maxExpandNestingDepth)
+	}
+
 	firstLine := strings.TrimSpace(lines[startIndex])
 
-	detailsRegex := regexp.MustCompile(`^<details(\s+[^>]*)?>`)
-	if !detailsRegex.MatchString(firstLine) {
+	if !detailsOpenRegex.MatchString(firstLine) {
 		return adf_types.ADFNode{}, 0, nil
 	}
 
+	// Parse attributes from opening tag
 	attributes := make(map[string]interface{})
 
 	if strings.Contains(firstLine, " open") || strings.Contains(firstLine, " open>") {
 		attributes["expanded"] = true
 	}
 
-	idRegex := regexp.MustCompile(`\sid\s*=\s*["|']([^"']*)["|']`)
-	if idMatch := idRegex.FindStringSubmatch(firstLine); len(idMatch) > 1 {
+	if idMatch := idAttrRegex.FindStringSubmatch(firstLine); len(idMatch) > 1 {
 		attributes["localId"] = idMatch[1]
 	}
 
 	nodeType := adf_types.NodeTypeExpand
-	adfTypeRegex := regexp.MustCompile(`data-adf-type="([^"]+)"`)
-	if matches := adfTypeRegex.FindStringSubmatch(firstLine); len(matches) > 1 {
+	if matches := adfTypeAttrRegex.FindStringSubmatch(firstLine); len(matches) > 1 {
 		if matches[1] == "nestedExpand" {
 			nodeType = adf_types.NodeTypeNestedExpand
 		}
 	}
 
-	summaryIdx := -1
-	summaryEndIdx := -1
-	detailsEndIdx := -1
-
-	for i := startIndex; i < len(lines); i++ {
-		line := strings.TrimSpace(lines[i])
-
-		if summaryIdx == -1 && strings.Contains(line, "<summary>") {
-			summaryIdx = i
-		}
-
-		if summaryIdx != -1 && summaryEndIdx == -1 && strings.Contains(line, "</summary>") {
-			summaryEndIdx = i
-		}
-
-		if strings.Contains(line, "</details>") {
-			detailsEndIdx = i
-			break
-		}
+	// Find summary and closing tag with nesting-aware scan
+	summaryEndIdx, title, err := ec.findSummary(lines, startIndex)
+	if err != nil {
+		return adf_types.ADFNode{}, 0, err
 	}
 
-	if summaryIdx == -1 || summaryEndIdx == -1 || detailsEndIdx == -1 {
-		return adf_types.ADFNode{}, 0, fmt.Errorf("malformed details element: missing required tags")
-	}
-
-	title := ""
-	summaryLine := lines[summaryIdx]
-	summaryStart := strings.Index(summaryLine, "<summary>")
-	summaryEnd := strings.Index(summaryLine, "</summary>")
-	if summaryStart != -1 && summaryEnd != -1 {
-		title = strings.TrimSpace(summaryLine[summaryStart+9 : summaryEnd])
-	}
-
-	if title == "" {
-		return adf_types.ADFNode{}, 0, fmt.Errorf("expand element missing required title")
+	detailsEndIdx, err := ec.findClosingTag(lines, summaryEndIdx+1)
+	if err != nil {
+		return adf_types.ADFNode{}, 0, err
 	}
 
 	attributes["title"] = title
 
+	// Parse inner content recursively with incremented nesting depth
 	var contentNodes []adf_types.ADFNode
 	if detailsEndIdx > summaryEndIdx+1 {
 		contentLines := lines[summaryEndIdx+1 : detailsEndIdx]
-
-		// Strip minimum common indentation to preserve relative indentation (for nested lists, etc.)
 		cleanedLines := DedentLines(contentLines)
 
-		if len(cleanedLines) > 0 {
-			contentText := strings.TrimSpace(strings.Join(cleanedLines, "\n"))
-			if contentText != "" {
-				textNode := adf_types.ADFNode{
-					Type: adf_types.NodeTypeText,
-					Text: contentText,
-				}
-				paragraphNode := adf_types.ADFNode{
-					Type:    adf_types.NodeTypeParagraph,
-					Content: []adf_types.ADFNode{textNode},
-				}
-				contentNodes = append(contentNodes, paragraphNode)
-			}
+		innerContext := context
+		innerContext.NestedLevel++
+		contentNodes, err = parseInnerContentWithContext(cleanedLines, innerContext)
+		if err != nil {
+			return adf_types.ADFNode{}, 0, fmt.Errorf("parsing expand content: %w", err)
 		}
 	}
 
@@ -204,6 +179,64 @@ func (ec *ExpandConverter) FromMarkdown(lines []string, startIndex int, context 
 
 	linesConsumed := detailsEndIdx - startIndex + 1
 	return node, linesConsumed, nil
+}
+
+// findSummary scans for <summary>...</summary> near the opening tag.
+// Returns the line index of the summary end and the extracted title.
+func (ec *ExpandConverter) findSummary(lines []string, startIndex int) (summaryEndIdx int, title string, err error) {
+	for i := startIndex; i < len(lines) && i <= startIndex+5; i++ {
+		line := lines[i]
+		summaryStart := strings.Index(line, "<summary>")
+		summaryEnd := strings.Index(line, "</summary>")
+
+		if summaryStart != -1 && summaryEnd != -1 {
+			title = strings.TrimSpace(line[summaryStart+9 : summaryEnd])
+			if title == "" {
+				return 0, "", fmt.Errorf("expand element missing required title")
+			}
+			return i, title, nil
+		}
+	}
+	return 0, "", fmt.Errorf("details element missing required summary tag")
+}
+
+// findClosingTag finds the matching </details> considering nested <details> elements.
+func (ec *ExpandConverter) findClosingTag(lines []string, searchStart int) (int, error) {
+	nestingLevel := 0
+	for i := searchStart; i < len(lines); i++ {
+		line := lines[i]
+
+		if strings.Contains(line, "<details") {
+			nestingLevel++
+		}
+
+		if strings.Contains(line, "</details>") {
+			if nestingLevel > 0 {
+				nestingLevel--
+			} else {
+				return i, nil
+			}
+		}
+	}
+	return 0, fmt.Errorf("unclosed details element")
+}
+
+// parseInnerContentWithContext parses markdown content using a MarkdownParser
+// that inherits placeholder support and nesting level from the parent context.
+func parseInnerContentWithContext(lines []string, context converter.ConversionContext) ([]adf_types.ADFNode, error) {
+	hasContent := false
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			hasContent = true
+			break
+		}
+	}
+	if !hasContent {
+		return nil, nil
+	}
+
+	parser := converter.NewMarkdownParserWithNesting(context.PlaceholderSession, context.PlaceholderManager, context.NestedLevel)
+	return parser.ParseMarkdownToADFNodes(lines)
 }
 
 func (ec *ExpandConverter) CanHandle(nodeType converter.ADFNodeType) bool {

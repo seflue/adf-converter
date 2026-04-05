@@ -68,18 +68,18 @@ func (pc *PanelConverter) FromMarkdown(lines []string, startIndex int, context c
 	firstLine := strings.TrimSpace(lines[startIndex])
 
 	if strings.HasPrefix(firstLine, ":::") {
-		return pc.parseFencedDiv(lines, startIndex)
+		return pc.parseFencedDiv(lines, startIndex, context)
 	}
 
 	if isGitHubAdmonition(firstLine) {
-		return pc.parseGitHubAdmonition(lines, startIndex)
+		return pc.parseGitHubAdmonition(lines, startIndex, context)
 	}
 
 	return adf_types.ADFNode{}, 0, fmt.Errorf("unrecognized panel syntax: %s", firstLine)
 }
 
 // parseFencedDiv parses :::type ... ::: syntax
-func (pc *PanelConverter) parseFencedDiv(lines []string, startIndex int) (adf_types.ADFNode, int, error) {
+func (pc *PanelConverter) parseFencedDiv(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	firstLine := strings.TrimSpace(lines[startIndex])
 	panelType := strings.ToLower(strings.TrimSpace(firstLine[3:]))
 	if panelType == "" {
@@ -101,7 +101,7 @@ func (pc *PanelConverter) parseFencedDiv(lines []string, startIndex int) (adf_ty
 
 	// Parse inner content
 	contentLines := lines[startIndex+1 : closingIdx]
-	contentNodes, err := pc.parseInnerContent(contentLines)
+	contentNodes, err := parseInnerContentWithContext(contentLines, context)
 	if err != nil {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("parsing panel content: %w", err)
 	}
@@ -114,24 +114,6 @@ func (pc *PanelConverter) parseFencedDiv(lines []string, startIndex int) (adf_ty
 
 	consumed := closingIdx - startIndex + 1
 	return node, consumed, nil
-}
-
-// parseInnerContent parses markdown content inside a panel into ADF nodes
-func (pc *PanelConverter) parseInnerContent(lines []string) ([]adf_types.ADFNode, error) {
-	// Filter out empty-only content
-	hasContent := false
-	for _, line := range lines {
-		if strings.TrimSpace(line) != "" {
-			hasContent = true
-			break
-		}
-	}
-	if !hasContent {
-		return nil, nil
-	}
-
-	parser := converter.NewMarkdownParser(nil, nil)
-	return parser.ParseMarkdownToADFNodes(lines)
 }
 
 func (pc *PanelConverter) CanHandle(nodeType converter.ADFNodeType) bool {
@@ -169,7 +151,7 @@ func isGitHubAdmonition(line string) bool {
 }
 
 // parseGitHubAdmonition parses > [!TYPE] ... syntax
-func (pc *PanelConverter) parseGitHubAdmonition(lines []string, startIndex int) (adf_types.ADFNode, int, error) {
+func (pc *PanelConverter) parseGitHubAdmonition(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	firstLine := strings.TrimSpace(lines[startIndex])
 
 	// Extract type from [!TYPE]
@@ -210,7 +192,7 @@ func (pc *PanelConverter) parseGitHubAdmonition(lines []string, startIndex int) 
 	consumed := i - startIndex
 
 	// Parse inner content
-	contentNodes, err := pc.parseInnerContent(contentLines)
+	contentNodes, err := parseInnerContentWithContext(contentLines, context)
 	if err != nil {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("parsing admonition content: %w", err)
 	}

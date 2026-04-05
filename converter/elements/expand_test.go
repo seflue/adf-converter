@@ -6,6 +6,7 @@ import (
 
 	"adf-converter/adf_types"
 	"adf-converter/converter"
+	"adf-converter/placeholder"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -545,4 +546,90 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	assert.Equal(t, original.Attrs["title"], restored.Attrs["title"])
 	assert.Equal(t, original.Attrs["expanded"], restored.Attrs["expanded"])
 	assert.Equal(t, original.Attrs["localId"], restored.Attrs["localId"])
+}
+
+func TestExpandConverter_FromMarkdown_NestedDetailsElements(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	markdown := []string{
+		`<details data-adf-type="expand">`,
+		`  <summary>Outer</summary>`,
+		`  <details data-adf-type="nestedExpand">`,
+		`    <summary>Inner</summary>`,
+		`    Inner content`,
+		`  </details>`,
+		`</details>`,
+	}
+
+	node, consumed, err := ec.FromMarkdown(markdown, 0, ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 7, consumed)
+	assert.Equal(t, adf_types.NodeTypeExpand, node.Type)
+	assert.Equal(t, "Outer", node.Attrs["title"])
+
+	// Inner expand should be parsed as a child node
+	require.Len(t, node.Content, 1)
+	inner := node.Content[0]
+	assert.Equal(t, adf_types.NodeTypeNestedExpand, inner.Type)
+	assert.Equal(t, "Inner", inner.Attrs["title"])
+}
+
+func TestExpandConverter_FromMarkdown_WithPlaceholderContent(t *testing.T) {
+	manager := placeholder.NewManager()
+	session := manager.GetSession()
+
+	// Store a placeholder via the manager
+	placeholderID, _, err := manager.Store(adf_types.ADFNode{
+		Type: "mediaInline",
+		Attrs: map[string]interface{}{
+			"id":         "abc-123",
+			"collection": "test-collection",
+			"type":       "file",
+		},
+	})
+	require.NoError(t, err)
+
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{
+		Strategy:           converter.StandardMarkdown,
+		PlaceholderSession: session,
+		PlaceholderManager: manager,
+	}
+
+	placeholderComment := placeholder.GeneratePlaceholderComment(placeholderID, "mediaInline")
+
+	markdown := []string{
+		`<details data-adf-type="expand">`,
+		`  <summary>With Media</summary>`,
+		`  ` + placeholderComment,
+		`</details>`,
+	}
+
+	node, consumed, err := ec.FromMarkdown(markdown, 0, ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 4, consumed)
+	assert.Equal(t, "With Media", node.Attrs["title"])
+
+	// The placeholder should have been resolved into content
+	require.NotEmpty(t, node.Content)
+}
+
+func TestExpandConverter_FromMarkdown_NestingDepthLimit(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{
+		Strategy:    converter.StandardMarkdown,
+		NestedLevel: 101, // Already past limit
+	}
+
+	markdown := []string{
+		`<details data-adf-type="expand">`,
+		`  <summary>Too Deep</summary>`,
+		`  content`,
+		`</details>`,
+	}
+
+	_, _, err := ec.FromMarkdown(markdown, 0, ctx)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "maximum nesting depth")
 }
