@@ -11,29 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupPanelTestRegistry() {
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		NewTextConverter(),
-		NewHardBreakConverter(),
-		NewParagraphConverter(),
-		NewHeadingConverter(),
-		NewListItemConverter(),
-		NewBulletListConverter(),
-		NewOrderedListConverter(),
-		NewExpandConverter(),
-		NewInlineCardConverter(),
-		NewCodeBlockConverter(),
-		NewRuleConverter(),
-		NewMentionConverter(),
-		NewPanelConverter(),
-	)
-}
-
 // --- ToMarkdown Tests ---
 
 func TestPanelConverter_ToMarkdown(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 
 	tests := []struct {
@@ -198,7 +179,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestPanelConverter_ToMarkdown_UnknownTypeWarning(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 
 	node := adf_types.ADFNode{
@@ -222,7 +203,7 @@ func TestPanelConverter_ToMarkdown_UnknownTypeWarning(t *testing.T) {
 // --- FromMarkdown Fenced-Div Tests ---
 
 func TestPanelConverter_FromMarkdown_FencedDiv(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 
 	tests := []struct {
@@ -322,7 +303,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv(t *testing.T) {
 // --- FromMarkdown GitHub Admonition Tests ---
 
 func TestPanelConverter_FromMarkdown_Admonition(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 
 	tests := []struct {
@@ -417,7 +398,7 @@ func TestPanelConverter_FromMarkdown_Admonition(t *testing.T) {
 // --- Roundtrip Tests ---
 
 func TestPanelConverter_Roundtrip_FencedDiv(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 	ctx := converter.ConversionContext{}
 
@@ -452,7 +433,7 @@ func TestPanelConverter_Roundtrip_FencedDiv(t *testing.T) {
 }
 
 func TestPanelConverter_Roundtrip_AdmonitionNormalization(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 	ctx := converter.ConversionContext{}
 
@@ -469,7 +450,7 @@ func TestPanelConverter_Roundtrip_AdmonitionNormalization(t *testing.T) {
 }
 
 func TestPanelConverter_Integration_MixedDocument(t *testing.T) {
-	setupPanelTestRegistry()
+
 	conv := converter.NewDefaultConverter()
 
 	doc := adf_types.ADFDocument{
@@ -508,7 +489,7 @@ func TestPanelConverter_Integration_MixedDocument(t *testing.T) {
 // --- Edge Cases ---
 
 func TestPanelConverter_FromMarkdown_FencedDiv_WithBulletList(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 
 	lines := []string{":::info", "- Item 1", "- Item 2", ":::"}
@@ -524,7 +505,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv_WithBulletList(t *testing.T) {
 }
 
 func TestPanelConverter_FromMarkdown_FencedDiv_WithCodeBlock(t *testing.T) {
-	setupPanelTestRegistry()
+
 	pc := NewPanelConverter()
 
 	lines := []string{":::info", "```go", "fmt.Println(\"hello\")", "```", ":::"}

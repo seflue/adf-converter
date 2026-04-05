@@ -5,29 +5,12 @@ import (
 
 	"adf-converter/adf_types"
 	"adf-converter/converter"
-	"adf-converter/converter/elements"
 	"adf-converter/placeholder"
 )
 
 // TestTextNodeRegression tests that text nodes are properly converted, not placeholdered
 // This test uses the exact ADF structure from a real Confluence page that was failing
 func TestTextNodeRegression(t *testing.T) {
-	// Clear registry and register converters (simulating what CLI does)
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewHardBreakConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewHeadingConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewOrderedListConverter(),
-		elements.NewExpandConverter(),
-		elements.NewInlineCardConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewMentionConverter(),
-	)
-
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 

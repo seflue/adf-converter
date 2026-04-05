@@ -159,7 +159,6 @@ func TestRuleConverter_FromMarkdown_Invalid(t *testing.T) {
 }
 
 func TestRuleConverter_ADFToMarkdown_Integration(t *testing.T) {
-	setupPanelTestRegistry()
 	conv := converter.NewDefaultConverter()
 
 	doc := adf_types.ADFDocument{
@@ -191,7 +190,6 @@ func TestRuleConverter_ADFToMarkdown_Integration(t *testing.T) {
 }
 
 func TestRuleConverter_Roundtrip(t *testing.T) {
-	setupPanelTestRegistry()
 	conv := converter.NewDefaultConverter()
 
 	doc := adf_types.ADFDocument{
@@ -238,7 +236,6 @@ func TestRuleConverter_GetStrategy(t *testing.T) {
 }
 
 func TestRuleConverter_EdgeCases(t *testing.T) {
-	setupPanelTestRegistry()
 	conv := converter.NewDefaultConverter()
 
 	tests := []struct {

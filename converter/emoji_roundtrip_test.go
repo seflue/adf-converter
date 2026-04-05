@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"adf-converter/adf_types"
 	"adf-converter/converter"
-	"adf-converter/converter/elements"
 	"adf-converter/placeholder"
 )
 
@@ -21,23 +20,6 @@ import (
 //   Expected: Emoji node recreated from unicode with gomoji metadata
 //   Result: Full round-trip fidelity with editable emojis
 func TestEmojiRoundTrip(t *testing.T) {
-	// Clear registry and register element converters
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewHardBreakConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewHeadingConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewOrderedListConverter(),
-		elements.NewExpandConverter(),
-		elements.NewInlineCardConverter(),
-		elements.NewEmojiConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewMentionConverter(),
-	)
-
 	// Create original ADF document with emoji in list item (matches real Jira structure)
 	originalADF := adf_types.ADFDocument{
 		Version: 1,
@@ -143,17 +125,6 @@ func TestEmojiRoundTrip(t *testing.T) {
 
 // TestEmojiRoundTrip_MultipleEmojis tests round-trip with multiple emoji nodes
 func TestEmojiRoundTrip_MultipleEmojis(t *testing.T) {
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewEmojiConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewMentionConverter(),
-	)
-
 	originalADF := adf_types.ADFDocument{
 		Version: 1,
 		Type:    "doc",

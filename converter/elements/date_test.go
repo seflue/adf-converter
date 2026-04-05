@@ -99,23 +99,6 @@ func TestDateConverter_GetStrategy(t *testing.T) {
 }
 
 func TestDateConverter_Roundtrip(t *testing.T) {
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		NewTextConverter(),
-		NewHardBreakConverter(),
-		NewParagraphConverter(),
-		NewHeadingConverter(),
-		NewListItemConverter(),
-		NewBulletListConverter(),
-		NewOrderedListConverter(),
-		NewExpandConverter(),
-		NewInlineCardConverter(),
-		NewCodeBlockConverter(),
-		NewEmojiConverter(),
-		NewRuleConverter(),
-		NewMentionConverter(),
-		NewDateConverter(),
-	)
 
 	original := adf_types.ADFDocument{
 		Version: 1,

@@ -8,35 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"adf-converter/adf_types"
 	"adf-converter/converter"
-	"adf-converter/converter/elements"
 	"adf-converter/placeholder"
 )
 
-func setupStatusTestRegistry() {
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewHardBreakConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewHeadingConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewOrderedListConverter(),
-		elements.NewExpandConverter(),
-		elements.NewInlineCardConverter(),
-		elements.NewEmojiConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewRuleConverter(),
-		elements.NewMentionConverter(),
-		elements.NewTableConverter(),
-		elements.NewPanelConverter(),
-		elements.NewDateConverter(),
-		elements.NewStatusConverter(),
-	)
-}
-
 func TestStatusRoundTrip(t *testing.T) {
-	setupStatusTestRegistry()
 	classifier := converter.NewDefaultClassifier()
 	mgr := placeholder.NewManager()
 
@@ -165,7 +140,6 @@ func TestStatusRoundTrip(t *testing.T) {
 }
 
 func TestStatusRoundTrip_MixedParagraph(t *testing.T) {
-	setupStatusTestRegistry()
 	classifier := converter.NewDefaultClassifier()
 	mgr := placeholder.NewManager()
 
@@ -199,7 +173,6 @@ func TestStatusRoundTrip_MixedParagraph(t *testing.T) {
 }
 
 func TestStatusRoundTrip_MultipleStatuses(t *testing.T) {
-	setupStatusTestRegistry()
 	classifier := converter.NewDefaultClassifier()
 	mgr := placeholder.NewManager()
 
@@ -234,7 +207,6 @@ func TestStatusRoundTrip_MultipleStatuses(t *testing.T) {
 }
 
 func TestStatusRoundTrip_SpecialChars(t *testing.T) {
-	setupStatusTestRegistry()
 	classifier := converter.NewDefaultClassifier()
 	mgr := placeholder.NewManager()
 

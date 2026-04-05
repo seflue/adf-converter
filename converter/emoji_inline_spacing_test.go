@@ -8,7 +8,6 @@ import (
 
 	"adf-converter/adf_types"
 	"adf-converter/converter"
-	"adf-converter/converter/elements"
 	"adf-converter/placeholder"
 
 	"github.com/stretchr/testify/assert"
@@ -23,22 +22,6 @@ import (
 //   - Users can edit emojis directly in markdown
 //   - Unicode emojis detected and converted back to ADF emoji nodes on round-trip
 func TestEmojiInlineSpacing(t *testing.T) {
-	// Clear registry and register element converters
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewHardBreakConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewHeadingConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewOrderedListConverter(),
-		elements.NewExpandConverter(),
-		elements.NewInlineCardConverter(),
-		elements.NewEmojiConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewMentionConverter(),
-	)
 
 	// Load test ADF document with emojis in various inline contexts
 	adfBytes, err := os.ReadFile("../testdata/adf_samples/emoji_inline_spacing_test.json")
@@ -88,22 +71,6 @@ func TestEmojiInlineSpacing(t *testing.T) {
 // TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing tests that emojis are rendered inline
 // while block-level nodes (like code blocks) use proper markdown conversion.
 func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
-	// Clear registry and register element converters
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewHardBreakConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewHeadingConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewOrderedListConverter(),
-		elements.NewExpandConverter(),
-		elements.NewInlineCardConverter(),
-		elements.NewEmojiConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewMentionConverter(),
-	)
 
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
@@ -178,22 +145,6 @@ func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 // TestEmojiInlineSpacing_RoundTrip tests that documents with emoji produce correct markdown
 // with unicode inline spacing (no placeholders, emojis are editable by users).
 func TestEmojiInlineSpacing_RoundTrip(t *testing.T) {
-	// Clear registry and register element converters
-	converter.GetGlobalRegistry().Clear()
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewHardBreakConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewHeadingConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewOrderedListConverter(),
-		elements.NewExpandConverter(),
-		elements.NewInlineCardConverter(),
-		elements.NewEmojiConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewMentionConverter(),
-	)
 
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()

@@ -9,9 +9,9 @@ import (
 	"adf-converter/placeholder"
 )
 
-// TestMain sets up the converter registry before running tests
+// TestMain sets up the converter registry before running tests.
+// Registers ALL converters once — individual tests must NOT call Clear() or RegisterDefaultConverters().
 func TestMain(m *testing.M) {
-	// Register all element converters for testing
 	converter.RegisterDefaultConverters(
 		elements.NewTextConverter(),
 		elements.NewHardBreakConverter(),
@@ -22,13 +22,19 @@ func TestMain(m *testing.M) {
 		elements.NewOrderedListConverter(),
 		elements.NewExpandConverter(),
 		elements.NewInlineCardConverter(),
+		elements.NewBlockCardConverter(),
+		elements.NewEmojiConverter(),
 		elements.NewCodeBlockConverter(),
 		elements.NewRuleConverter(),
 		elements.NewMentionConverter(),
 		elements.NewTableConverter(),
+		elements.NewPanelConverter(),
+		elements.NewDateConverter(),
+		elements.NewStatusConverter(),
+		elements.NewBlockquoteConverter(),
+		elements.NewTaskListConverter(),
 	)
 
-	// Run tests
 	m.Run()
 }
 
