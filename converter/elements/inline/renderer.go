@@ -157,6 +157,9 @@ func applyWrappingMark(text string, mark adf_types.ADFMark) string {
 		return fmt.Sprintf("`%s`", text)
 	case adf_types.MarkTypeLink:
 		if href, ok := mark.Attrs["href"].(string); ok {
+			if title, ok := mark.Attrs["title"].(string); ok && title != "" {
+				return fmt.Sprintf(`[%s](%s "%s")`, text, href, title)
+			}
 			return fmt.Sprintf("[%s](%s)", text, href)
 		}
 		return text
