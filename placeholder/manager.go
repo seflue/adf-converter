@@ -108,6 +108,8 @@ func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
 		return m.generateEmojiPreview(node)
 	case adf_types.NodeTypeStatus:
 		return m.generateStatusPreview(node)
+	case adf_types.NodeTypeInlineCard:
+		return "InlineCard (data object)"
 	default:
 		return fmt.Sprintf("%s (complex content)", strings.Title(node.Type))
 	}

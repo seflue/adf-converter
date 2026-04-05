@@ -209,11 +209,13 @@ func (v *JiraADFValidator) validateInlineCardNode(node adf_types.ADFNode, path s
 		issues = append(issues, fmt.Sprintf("%s: InlineCard uses forbidden 'href' attribute (must use 'url')", path))
 	}
 
-	// PHASE 5 CRITICAL: Validate required 'url' attribute
+	// InlineCard requires either 'url' or 'data' attribute
 	urlVal, hasURL := node.Attrs["url"]
-	if !hasURL {
-		issues = append(issues, fmt.Sprintf("%s: InlineCard missing required 'url' attribute", path))
-	} else {
+	_, hasData := node.Attrs["data"]
+
+	if !hasURL && !hasData {
+		issues = append(issues, fmt.Sprintf("%s: InlineCard missing required 'url' or 'data' attribute", path))
+	} else if hasURL {
 		urlStr, ok := urlVal.(string)
 		if !ok || urlStr == "" {
 			issues = append(issues, fmt.Sprintf("%s: InlineCard 'url' must be non-empty string", path))
@@ -226,6 +228,7 @@ func (v *JiraADFValidator) validateInlineCardNode(node adf_types.ADFNode, path s
 		"title": true,
 		"id":    true,
 		"space": true,
+		"data":  true,
 	}
 
 	for key := range node.Attrs {

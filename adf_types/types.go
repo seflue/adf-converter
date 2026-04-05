@@ -92,12 +92,13 @@ func IsBlockNode(nodeType string) bool {
 // IsInlineNode returns true if the node type is an inline node
 func IsInlineNode(nodeType string) bool {
 	inlineTypes := map[string]bool{
-		NodeTypeText:      true,
-		NodeTypeHardBreak: true,
-		NodeTypeMention:   true,
-		NodeTypeDate:      true,
-		NodeTypeEmoji:     true,
-		NodeTypeStatus:    true,
+		NodeTypeText:       true,
+		NodeTypeHardBreak:  true,
+		NodeTypeMention:    true,
+		NodeTypeDate:       true,
+		NodeTypeEmoji:      true,
+		NodeTypeStatus:     true,
+		NodeTypeInlineCard: true,
 	}
 	return inlineTypes[nodeType]
 }

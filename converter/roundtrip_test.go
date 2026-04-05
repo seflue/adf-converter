@@ -1298,3 +1298,44 @@ func TestRoundTrip_Table_WithFormattedContent(t *testing.T) {
 	require.Len(t, headerCell.Content[0].Marks, 1)
 	assert.Equal(t, "strong", headerCell.Content[0].Marks[0].Type)
 }
+
+func TestRoundTripConversion_InlineCardDataOnly(t *testing.T) {
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeInlineCard,
+						Attrs: map[string]interface{}{
+							"data": map[string]interface{}{
+								"@type": "Document",
+								"name":  "My Document",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	converter := NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(original)
+	require.NoError(t, err)
+
+	// Markdown must contain placeholder comment
+	assert.Contains(t, markdown, "ADF_PLACEHOLDER_")
+	assert.Contains(t, markdown, "InlineCard")
+
+	// The inlineCard node must come back identical
+	require.Len(t, restored.Content, 1)
+	para := restored.Content[0]
+	require.Equal(t, adf_types.NodeTypeParagraph, para.Type)
+	require.Len(t, para.Content, 1)
+	card := para.Content[0]
+	assert.Equal(t, adf_types.NodeTypeInlineCard, card.Type)
+	assert.NotNil(t, card.Attrs["data"])
+	assert.Nil(t, card.Attrs["url"])
+}

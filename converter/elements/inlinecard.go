@@ -6,6 +6,7 @@ import (
 
 	"adf-converter/adf_types"
 	"adf-converter/converter"
+	"adf-converter/placeholder"
 )
 
 // InlineCardConverter handles conversion of ADF inlineCard nodes to/from markdown
@@ -27,6 +28,13 @@ func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 		linkURL = url
 	} else {
 		linkURL = ""
+	}
+
+	// data-only inlineCards can't be edited as markdown — preserve as placeholder
+	if linkURL == "" {
+		if _, hasData := node.Attrs["data"]; hasData {
+			return ic.dataOnlyToMarkdown(node, context)
+		}
 	}
 
 	hasComplexMetadata := false
@@ -71,6 +79,23 @@ func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 		}
 	}
 
+	return builder.Build(), nil
+}
+
+func (ic *InlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+	if context.PlaceholderManager != nil {
+		placeholderID, preview, err := context.PlaceholderManager.Store(node)
+		if err != nil {
+			return converter.EnhancedConversionResult{}, fmt.Errorf("storing inlineCard placeholder: %w", err)
+		}
+		builder := converter.NewEnhancedConversionResultBuilder(converter.Placeholder)
+		builder.AppendContent(placeholder.GeneratePlaceholderComment(placeholderID, preview))
+		return builder.Build(), nil
+	}
+
+	// No PlaceholderManager available — lossy fallback
+	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder.AppendContent("[InlineCard]")
 	return builder.Build(), nil
 }
 

@@ -104,9 +104,9 @@ func validateADFComplianceRecursive(nodes []adf_types.ADFNode, violations *[]str
 			}
 
 		case adf_types.NodeTypeInlineCard:
-			// InlineCard nodes should have url attribute
-			if node.Attrs == nil || node.Attrs["url"] == nil {
-				*violations = append(*violations, currentPath+" missing required url attribute")
+			// InlineCard requires either url or data attribute
+			if node.Attrs == nil || (node.Attrs["url"] == nil && node.Attrs["data"] == nil) {
+				*violations = append(*violations, currentPath+" missing required url or data attribute")
 			}
 		}
 

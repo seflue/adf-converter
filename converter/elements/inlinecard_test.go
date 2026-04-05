@@ -4,8 +4,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"adf-converter/adf_types"
 	"adf-converter/converter"
+	"adf-converter/placeholder"
 )
 
 func TestInlineCardConverter_ToMarkdown(t *testing.T) {
@@ -384,4 +388,53 @@ func TestInlineCardConverter_ToMarkdown_ComplexAttributePreservation(t *testing.
 	if !strings.Contains(result.Content, "[https://confluence.example.com/pages/123](https://confluence.example.com/pages/123)") {
 		t.Error("Complex metadata should contain markdown link")
 	}
+}
+
+func TestInlineCardConverter_ToMarkdown_DataOnlyPlaceholder(t *testing.T) {
+	ic := NewInlineCardConverter()
+	mgr := placeholder.NewManager()
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeInlineCard,
+		Attrs: map[string]interface{}{
+			"data": map[string]interface{}{
+				"@type": "Document",
+				"name":  "My Document",
+			},
+		},
+	}
+
+	ctx := converter.ConversionContext{
+		PlaceholderManager: mgr,
+	}
+
+	result, err := ic.ToMarkdown(node, ctx)
+	require.NoError(t, err)
+
+	// Must contain placeholder comment, not lossy [InlineCard]
+	assert.Contains(t, result.Content, "ADF_PLACEHOLDER_")
+	assert.Contains(t, result.Content, "InlineCard")
+	assert.NotContains(t, result.Content, "[InlineCard]")
+
+	// Verify the node was stored and can be restored
+	session := mgr.GetSession()
+	assert.Len(t, session.Preserved, 1)
+}
+
+func TestInlineCardConverter_ToMarkdown_DataOnlyFallback(t *testing.T) {
+	ic := NewInlineCardConverter()
+
+	node := adf_types.ADFNode{
+		Type: adf_types.NodeTypeInlineCard,
+		Attrs: map[string]interface{}{
+			"data": map[string]interface{}{
+				"@type": "Document",
+			},
+		},
+	}
+
+	// No PlaceholderManager in context
+	result, err := ic.ToMarkdown(node, converter.ConversionContext{})
+	require.NoError(t, err)
+	assert.Equal(t, "[InlineCard]", result.Content)
 }

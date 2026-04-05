@@ -186,6 +186,15 @@ func parsePlaceholderNode(lines []string, session *placeholder.EditSession, mana
 		return nil, 1, nil
 	}
 
+	// Inline nodes live inside paragraphs; wrap them to restore the original structure
+	if adf_types.IsInlineNode(node.Type) {
+		para := adf_types.ADFNode{
+			Type:    adf_types.NodeTypeParagraph,
+			Content: []adf_types.ADFNode{node},
+		}
+		return &para, 1, nil
+	}
+
 	return &node, 1, nil
 }
 
@@ -214,6 +223,15 @@ func parsePlaceholderNodeWithTracking(lines []string, session *placeholder.EditS
 
 	// Record that this placeholder was successfully restored
 	tracker.RecordPlaceholderRestored(placeholderID)
+
+	// Inline nodes live inside paragraphs; wrap them to restore the original structure
+	if adf_types.IsInlineNode(node.Type) {
+		para := adf_types.ADFNode{
+			Type:    adf_types.NodeTypeParagraph,
+			Content: []adf_types.ADFNode{node},
+		}
+		return &para, 1, nil
+	}
 
 	return &node, 1, nil
 }

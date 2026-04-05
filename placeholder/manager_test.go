@@ -241,6 +241,19 @@ func TestManager_GeneratePreview(t *testing.T) {
 			},
 			contains: "Horizontal Rule",
 		},
+		{
+			name: "inlineCard_with_data",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeInlineCard,
+				Attrs: map[string]interface{}{
+					"data": map[string]interface{}{
+						"@type": "Document",
+						"name":  "My Document",
+					},
+				},
+			},
+			contains: "InlineCard (data object)",
+		},
 	}
 
 	for _, tt := range tests {
