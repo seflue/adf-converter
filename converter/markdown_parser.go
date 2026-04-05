@@ -91,6 +91,8 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 	switch {
 	case strings.HasPrefix(line, "<details"):
 		return p.parseDetailsElement(lines)
+	case strings.HasPrefix(line, `<div data-adf-type="blockCard"`):
+		return p.parseBlockCard(lines)
 	case strings.HasPrefix(line, "<table"), strings.HasPrefix(line, "<taskList"), strings.HasPrefix(line, "<blockquote"):
 		return p.parseXMLWrapper(lines)
 	case strings.HasPrefix(line, "<!--"):
@@ -479,6 +481,14 @@ func (p *MarkdownParser) parseMarkdownTable(lines []string) (*adf_types.ADFNode,
 func (p *MarkdownParser) parseRule(lines []string) (*adf_types.ADFNode, int, error) {
 	node := &adf_types.ADFNode{Type: adf_types.NodeTypeRule}
 	return node, 1, nil
+}
+
+func (p *MarkdownParser) parseBlockCard(lines []string) (*adf_types.ADFNode, int, error) {
+	if converter := globalRegistry.GetConverter("blockCard"); converter != nil {
+		node, consumed, err := converter.FromMarkdown(lines, 0, ConversionContext{})
+		return &node, consumed, err
+	}
+	return nil, 1, fmt.Errorf("blockCard converter not registered")
 }
 
 // isThematicBreak returns true if the line is a Markdown thematic break (---, ***, ___).

@@ -46,6 +46,8 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeTable: true,
 			// Panel can be converted to fenced-div syntax (:::type content :::)
 			adf_types.NodeTypePanel: true,
+			// BlockCard is a block-level smart link
+			adf_types.NodeTypeBlockCard: true,
 		},
 		preservedTypes: map[string]bool{
 			adf_types.NodeTypeBlockquote: true,

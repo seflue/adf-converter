@@ -37,7 +37,7 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 	nodeTypes := []ADFNodeType{
 		"text", "hardBreak", "paragraph", "heading",
 		"listItem", "bulletList", "orderedList",
-		"expand", "nestedExpand", "inlineCard", "emoji",
+		"expand", "nestedExpand", "inlineCard", "blockCard", "emoji",
 		"codeBlock", "rule", "mention", "table", "panel", "date", "status",
 	}
 

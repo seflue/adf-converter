@@ -45,6 +45,7 @@ const (
 	NodeTypeListItem     = "listItem"
 	NodeTypeExpand       = "expand"
 	NodeTypeNestedExpand = "nestedExpand"
+	NodeTypeBlockCard    = "blockCard"
 
 	// Inline nodes
 	NodeTypeText       = "text"
