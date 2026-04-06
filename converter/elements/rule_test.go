@@ -116,6 +116,33 @@ func TestRuleConverter_FromMarkdown(t *testing.T) {
 			expectedType: adf_types.NodeTypeRule,
 			consumed:     1,
 		},
+		// CommonMark: spaces between chars are valid thematic breaks
+		{
+			name:         "dashes with spaces",
+			lines:        []string{"- - -"},
+			expectedType: adf_types.NodeTypeRule,
+			consumed:     1,
+		},
+		{
+			name:         "asterisks with spaces",
+			lines:        []string{"* * *"},
+			expectedType: adf_types.NodeTypeRule,
+			consumed:     1,
+		},
+		{
+			name:         "underscores with spaces",
+			lines:        []string{"_ _ _"},
+			expectedType: adf_types.NodeTypeRule,
+			consumed:     1,
+		},
+		// consumed=1: lines after the rule must not be consumed
+		{
+			name:         "rule with trailing lines",
+			lines:        []string{"---", "paragraph text", "more text"},
+			startIndex:   0,
+			expectedType: adf_types.NodeTypeRule,
+			consumed:     1,
+		},
 	}
 
 	for _, tt := range tests {
@@ -124,6 +151,35 @@ func TestRuleConverter_FromMarkdown(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedType, node.Type)
 			assert.Equal(t, tt.consumed, consumed)
+		})
+	}
+}
+
+func TestRuleConverter_FromMarkdown_OutOfBounds(t *testing.T) {
+	rc := NewRuleConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	tests := []struct {
+		name       string
+		lines      []string
+		startIndex int
+	}{
+		{
+			name:       "empty lines",
+			lines:      []string{},
+			startIndex: 0,
+		},
+		{
+			name:       "startIndex past end",
+			lines:      []string{"---"},
+			startIndex: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := rc.FromMarkdown(tt.lines, tt.startIndex, ctx)
+			assert.Error(t, err)
 		})
 	}
 }

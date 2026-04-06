@@ -189,6 +189,10 @@ func TestCanParseLine_Rule(t *testing.T) {
 		{"--", false},
 		// Not a rule (mixed chars)
 		{"-*-", false},
+		// CommonMark: spaces between chars are valid thematic breaks
+		{"- - -", true},
+		{"* * *", true},
+		{"_ _ _", true},
 		// Negatives
 		{"- list item", false},
 		{"some text", false},

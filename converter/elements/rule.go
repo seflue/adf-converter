@@ -2,7 +2,10 @@ package elements
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/text"
 
 	"adf-converter/adf_types"
 	"adf-converter/converter"
@@ -35,49 +38,44 @@ func (rc *RuleConverter) FromMarkdown(lines []string, startIndex int, context co
 		return adf_types.ADFNode{}, 0, fmt.Errorf("startIndex %d out of range", startIndex)
 	}
 
-	line := strings.TrimSpace(lines[startIndex])
-	if !IsThematicBreak(line) {
-		return adf_types.ADFNode{}, 0, fmt.Errorf("not a thematic break: %q", line)
-	}
+	// Parse only the single line so Goldmark cannot reinterpret context
+	// (e.g. "text\n---" would be a Setext heading, not a thematic break).
+	source := []byte(lines[startIndex])
+	doc := goldmark.New().Parser().Parse(text.NewReader(source))
 
-	return adf_types.ADFNode{Type: adf_types.NodeTypeRule}, 1, nil
-}
-
-// IsThematicBreak returns true if the line is a Markdown thematic break (---, ***, ___).
-// Requires at least 3 identical characters from the set {-, *, _}.
-func IsThematicBreak(line string) bool {
-	if len(line) < 3 {
-		return false
-	}
-
-	ch := line[0]
-	if ch != '-' && ch != '*' && ch != '_' {
-		return false
-	}
-
-	for i := 1; i < len(line); i++ {
-		if line[i] != ch {
-			return false
+	for n := doc.FirstChild(); n != nil; n = n.NextSibling() {
+		if n.Kind() == ast.KindThematicBreak {
+			return adf_types.ADFNode{Type: adf_types.NodeTypeRule}, 1, nil
 		}
 	}
 
-	return true
+	return adf_types.ADFNode{}, 0, fmt.Errorf("not a thematic break: %q", lines[startIndex])
 }
 
+// CanParseLine returns true if the line is a CommonMark thematic break.
+// Accepts sequences of -, *, or _ (all the same char) with optional spaces
+// between them, as long as at least 3 of the char appear.
 func (rc *RuleConverter) CanParseLine(line string) bool {
 	if len(line) < 3 {
 		return false
 	}
+
 	ch := line[0]
 	if ch != '-' && ch != '*' && ch != '_' {
 		return false
 	}
-	for i := 1; i < len(line); i++ {
-		if line[i] != ch {
+
+	count := 0
+	for i := 0; i < len(line); i++ {
+		c := line[i]
+		if c == ch {
+			count++
+		} else if c != ' ' && c != '\t' {
 			return false
 		}
 	}
-	return true
+
+	return count >= 3
 }
 
 func (rc *RuleConverter) CanHandle(nodeType converter.ADFNodeType) bool {
