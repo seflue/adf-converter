@@ -28,7 +28,7 @@ func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context Conver
 
 	builder := NewEnhancedConversionResultBuilder(MarkdownBlockquote)
 
-	if context.PreserveAttrs && node.Attrs != nil {
+	if bc.shouldPreserveAttrs(context, node) {
 		builder.PreserveAttributes(node.Attrs)
 	}
 
@@ -109,12 +109,8 @@ func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context Conver
 
 	result := builder.Build()
 
-	if context.PreserveAttrs && node.Attrs != nil && len(node.Attrs) > 0 {
-		wrappedMarkdown, err := bc.wrapBlockquoteWithXML(result.Content, node.Attrs, context.NestedLevel)
-		if err != nil {
-			return CreateErrorResult(err.Error(), MarkdownBlockquote), err
-		}
-		result.Content = wrappedMarkdown
+	if bc.shouldPreserveAttrs(context, node) {
+		result.Content = bc.wrapBlockquoteWithXML(result.Content, node.Attrs, context.NestedLevel)
 	} else {
 		// Trim trailing newline, then add block-level spacing
 		result.Content = strings.TrimSuffix(result.Content, "\n") + "\n\n"
@@ -286,7 +282,11 @@ func (bc *BlockquoteConverter) ValidateInput(input interface{}) error {
 	}
 }
 
-func (bc *BlockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]interface{}, nestedLevel int) (string, error) {
+func (bc *BlockquoteConverter) shouldPreserveAttrs(context ConversionContext, node adf_types.ADFNode) bool {
+	return context.PreserveAttrs && len(node.Attrs) > 0
+}
+
+func (bc *BlockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]interface{}, nestedLevel int) string {
 	var xmlBuilder strings.Builder
 
 	xmlBuilder.WriteString("<blockquote")
@@ -313,7 +313,7 @@ func (bc *BlockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, 
 	}
 	xmlBuilder.WriteString("</blockquote>")
 
-	return xmlBuilder.String(), nil
+	return xmlBuilder.String()
 }
 
 // parseXMLBlockquote parses XML-formatted blockquote from markdown lines

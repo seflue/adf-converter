@@ -663,5 +663,48 @@ func TestBlockquoteConverter_Roundtrip_BulletList(t *testing.T) {
 	assert.Contains(t, result.Content, "> - item2")
 }
 
+func TestBlockquoteConverter_shouldPreserveAttrs(t *testing.T) {
+	bc := NewBlockquoteConverter()
+
+	tests := []struct {
+		name string
+		ctx  ConversionContext
+		node adf_types.ADFNode
+		want bool
+	}{
+		{
+			name: "preserve true, attrs with content",
+			ctx:  ConversionContext{PreserveAttrs: true},
+			node: adf_types.ADFNode{Attrs: map[string]interface{}{"localId": "x"}},
+			want: true,
+		},
+		{
+			name: "preserve true, attrs nil",
+			ctx:  ConversionContext{PreserveAttrs: true},
+			node: adf_types.ADFNode{},
+			want: false,
+		},
+		{
+			name: "preserve true, attrs empty map",
+			ctx:  ConversionContext{PreserveAttrs: true},
+			node: adf_types.ADFNode{Attrs: map[string]interface{}{}},
+			want: false,
+		},
+		{
+			name: "preserve false, attrs with content",
+			ctx:  ConversionContext{PreserveAttrs: false},
+			node: adf_types.ADFNode{Attrs: map[string]interface{}{"localId": "x"}},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := bc.shouldPreserveAttrs(tt.ctx, tt.node)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 // Suppress unused import warning
 var _ = strings.Split
