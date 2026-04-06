@@ -16,6 +16,41 @@ func NewInlineCardConverter() *InlineCardConverter {
 	return &InlineCardConverter{}
 }
 
+var complexMetadataAttrs = []string{"id", "space", "type", "version", "status", "localId", "key"}
+
+func hasComplexMetadata(attrs map[string]interface{}) bool {
+	for _, attr := range complexMetadataAttrs {
+		if _, exists := attrs[attr]; exists {
+			return true
+		}
+	}
+	return false
+}
+
+func buildComplexMetadataHTML(attrs map[string]interface{}, linkURL string) string {
+	var b strings.Builder
+	b.WriteString("<a")
+	for _, attr := range complexMetadataAttrs {
+		value, exists := attrs[attr]
+		if !exists {
+			continue
+		}
+		if strValue, ok := value.(string); ok {
+			fmt.Fprintf(&b, ` %s="%s"`, attr, strValue)
+		} else if intValue, ok := value.(int); ok {
+			fmt.Fprintf(&b, ` %s="%d"`, attr, intValue)
+		}
+	}
+	b.WriteString(">")
+	if linkURL != "" {
+		fmt.Fprintf(&b, "[%s](%s)", linkURL, linkURL)
+	} else {
+		b.WriteString("[InlineCard]")
+	}
+	b.WriteString("</a>")
+	return b.String()
+}
+
 func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
 		builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
@@ -23,12 +58,7 @@ func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 		return builder.Build(), nil
 	}
 
-	var linkURL string
-	if url, ok := node.Attrs["url"].(string); ok {
-		linkURL = url
-	} else {
-		linkURL = ""
-	}
+	linkURL, _ := node.Attrs["url"].(string)
 
 	// data-only inlineCards can't be edited as markdown — preserve as placeholder
 	if linkURL == "" {
@@ -37,48 +67,18 @@ func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 		}
 	}
 
-	hasComplexMetadata := false
-	complexAttrs := []string{"id", "space", "type", "version", "status", "localId", "key"}
-	for _, attr := range complexAttrs {
-		if _, exists := node.Attrs[attr]; exists {
-			hasComplexMetadata = true
-			break
-		}
-	}
-
 	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
-	if hasComplexMetadata {
-		var htmlBuilder strings.Builder
-		htmlBuilder.WriteString("<a")
-
-		for _, attr := range complexAttrs {
-			if value, exists := node.Attrs[attr]; exists {
-				if strValue, ok := value.(string); ok {
-					fmt.Fprintf(&htmlBuilder, ` %s="%s"`, attr, strValue)
-				} else if intValue, ok := value.(int); ok {
-					fmt.Fprintf(&htmlBuilder, ` %s="%d"`, attr, intValue)
-				}
-			}
-		}
-
-		htmlBuilder.WriteString(">")
-		if linkURL != "" {
-			fmt.Fprintf(&htmlBuilder, "[%s](%s)", linkURL, linkURL)
-		} else {
-			htmlBuilder.WriteString("[InlineCard]")
-		}
-		htmlBuilder.WriteString("</a>")
-
-		builder.AppendContent(htmlBuilder.String())
-	} else {
-		if linkURL != "" {
-			builder.AppendContent(fmt.Sprintf("[%s](%s)", linkURL, linkURL))
-		} else {
-			builder.AppendContent("[InlineCard]")
-		}
+	if hasComplexMetadata(node.Attrs) {
+		builder.AppendContent(buildComplexMetadataHTML(node.Attrs, linkURL))
+		return builder.Build(), nil
 	}
 
+	if linkURL != "" {
+		builder.AppendContent(fmt.Sprintf("[%s](%s)", linkURL, linkURL))
+	} else {
+		builder.AppendContent("[InlineCard]")
+	}
 	return builder.Build(), nil
 }
 
