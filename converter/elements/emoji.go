@@ -2,9 +2,7 @@ package elements
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/forPelevin/gomoji"
 	"adf-converter/adf_types"
 	"adf-converter/converter"
 )
@@ -17,43 +15,25 @@ func NewEmojiConverter() *EmojiConverter {
 	return &EmojiConverter{}
 }
 
-// ToMarkdown converts an ADF emoji node to unicode character
-// Example: {"type": "emoji", "attrs": {"text": "✅"}} -> "✅"
+// ToMarkdown converts an ADF emoji node to its text representation.
+// Uses text (unicode char) if present, falls back to shortName (e.g. ":white_check_mark:").
 func (c *EmojiConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Type != adf_types.NodeTypeEmoji {
 		return converter.EnhancedConversionResult{}, fmt.Errorf("expected emoji node, got %s", node.Type)
 	}
 
-	// Extract unicode character from attrs
+	// Extract emoji character from attrs: text (unicode) takes priority, shortName as fallback
 	var emojiChar string
 	if node.Attrs != nil {
-		// Try "text" attribute first (contains the actual unicode character)
 		if text, ok := node.Attrs["text"].(string); ok && text != "" {
 			emojiChar = text
+		} else if shortName, ok := node.Attrs["shortName"].(string); ok && shortName != "" {
+			emojiChar = shortName
 		}
 	}
 
 	if emojiChar == "" {
-		// Fallback: try to reconstruct from ID if text is missing
-		if node.Attrs != nil {
-			if id, ok := node.Attrs["id"].(string); ok && id != "" {
-				// Try to find emoji by searching gomoji's database
-				// This is a fallback case for incomplete ADF nodes
-				allEmojis := gomoji.AllEmojis()
-				for _, emoji := range allEmojis {
-					// Compare code point (remove "U+" prefix and compare)
-					codePoint := strings.TrimPrefix(emoji.CodePoint, "U+")
-					if strings.EqualFold(codePoint, id) {
-						emojiChar = emoji.Character
-						break
-					}
-				}
-			}
-		}
-	}
-
-	if emojiChar == "" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("emoji node missing text attribute")
+		return converter.EnhancedConversionResult{}, fmt.Errorf("emoji node missing shortName attribute")
 	}
 
 	// Return the unicode character directly (no placeholder needed)
@@ -95,9 +75,9 @@ func (c *EmojiConverter) ValidateInput(input interface{}) error {
 		return fmt.Errorf("emoji node missing attrs")
 	}
 
-	// Must have at least text attribute
-	if text, ok := node.Attrs["text"].(string); !ok || text == "" {
-		return fmt.Errorf("emoji node missing or empty text attribute")
+	// shortName is required per ADF spec
+	if shortName, ok := node.Attrs["shortName"].(string); !ok || shortName == "" {
+		return fmt.Errorf("emoji node missing or empty shortName attribute")
 	}
 
 	return nil
