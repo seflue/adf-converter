@@ -546,5 +546,210 @@ func TestOrderedListConverter_ValidateInput(t *testing.T) {
 	}
 }
 
+func TestOrderedListConverter_StartNumber(t *testing.T) {
+	olc := NewOrderedListConverter()
+
+	t.Run("ToMarkdown", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			attrs    map[string]interface{}
+			expected string
+		}{
+			{
+				name:     "start at 5",
+				attrs:    map[string]interface{}{"order": float64(5)},
+				expected: "5. First\n6. Second\n\n",
+			},
+			{
+				name:     "start at 0",
+				attrs:    map[string]interface{}{"order": float64(0)},
+				expected: "0. First\n1. Second\n\n",
+			},
+			{
+				name:     "default start (no attrs)",
+				attrs:    nil,
+				expected: "1. First\n2. Second\n\n",
+			},
+			{
+				name:     "explicit start at 1 (default)",
+				attrs:    map[string]interface{}{"order": float64(1)},
+				expected: "1. First\n2. Second\n\n",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				node := adf_types.ADFNode{
+					Type:  adf_types.NodeTypeOrderedList,
+					Attrs: tt.attrs,
+					Content: []adf_types.ADFNode{
+						{
+							Type: adf_types.NodeTypeListItem,
+							Content: []adf_types.ADFNode{
+								{
+									Type:    adf_types.NodeTypeParagraph,
+									Content: []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: "First"}},
+								},
+							},
+						},
+						{
+							Type: adf_types.NodeTypeListItem,
+							Content: []adf_types.ADFNode{
+								{
+									Type:    adf_types.NodeTypeParagraph,
+									Content: []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: "Second"}},
+								},
+							},
+						},
+					},
+				}
+
+				ctx := converter.ConversionContext{}
+				result, err := olc.ToMarkdown(node, ctx)
+				if err != nil {
+					t.Fatalf("ToMarkdown() error = %v", err)
+				}
+				if result.Content != tt.expected {
+					t.Errorf("ToMarkdown() = %q, want %q", result.Content, tt.expected)
+				}
+			})
+		}
+	})
+
+	t.Run("FromMarkdown", func(t *testing.T) {
+		tests := []struct {
+			name          string
+			lines         []string
+			expectedAttrs map[string]interface{}
+		}{
+			{
+				name:          "start at 5",
+				lines:         []string{"5. First", "6. Second", ""},
+				expectedAttrs: map[string]interface{}{"order": float64(5)},
+			},
+			{
+				name:          "start at 0",
+				lines:         []string{"0. First", "1. Second", ""},
+				expectedAttrs: map[string]interface{}{"order": float64(0)},
+			},
+			{
+				name:          "start at 1 (default, no attrs)",
+				lines:         []string{"1. First", "2. Second", ""},
+				expectedAttrs: nil,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				ctx := converter.ConversionContext{}
+				node, _, err := olc.FromMarkdown(tt.lines, 0, ctx)
+				if err != nil {
+					t.Fatalf("FromMarkdown() error = %v", err)
+				}
+
+				if tt.expectedAttrs == nil {
+					if node.Attrs != nil {
+						t.Errorf("FromMarkdown() attrs = %v, want nil", node.Attrs)
+					}
+				} else {
+					if node.Attrs == nil {
+						t.Fatalf("FromMarkdown() attrs = nil, want %v", tt.expectedAttrs)
+					}
+					expectedOrder := tt.expectedAttrs["order"]
+					gotOrder := node.Attrs["order"]
+					if gotOrder != expectedOrder {
+						t.Errorf("FromMarkdown() order = %v, want %v", gotOrder, expectedOrder)
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("RoundTrip", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			attrs    map[string]interface{}
+			markdown string
+		}{
+			{
+				name:     "start at 5 survives roundtrip",
+				attrs:    map[string]interface{}{"order": float64(5)},
+				markdown: "5. Alpha\n6. Beta\n\n",
+			},
+			{
+				name:     "default start survives roundtrip",
+				attrs:    nil,
+				markdown: "1. Alpha\n2. Beta\n\n",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				node := adf_types.ADFNode{
+					Type:  adf_types.NodeTypeOrderedList,
+					Attrs: tt.attrs,
+					Content: []adf_types.ADFNode{
+						{
+							Type: adf_types.NodeTypeListItem,
+							Content: []adf_types.ADFNode{
+								{
+									Type:    adf_types.NodeTypeParagraph,
+									Content: []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: "Alpha"}},
+								},
+							},
+						},
+						{
+							Type: adf_types.NodeTypeListItem,
+							Content: []adf_types.ADFNode{
+								{
+									Type:    adf_types.NodeTypeParagraph,
+									Content: []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: "Beta"}},
+								},
+							},
+						},
+					},
+				}
+
+				ctx := converter.ConversionContext{}
+
+				// ADF → Markdown
+				result, err := olc.ToMarkdown(node, ctx)
+				if err != nil {
+					t.Fatalf("ToMarkdown() error = %v", err)
+				}
+				if result.Content != tt.markdown {
+					t.Errorf("ToMarkdown() = %q, want %q", result.Content, tt.markdown)
+				}
+
+				// Markdown → ADF
+				lines := strings.Split(strings.TrimSuffix(result.Content, "\n"), "\n")
+				roundTripped, _, err := olc.FromMarkdown(lines, 0, ctx)
+				if err != nil {
+					t.Fatalf("FromMarkdown() error = %v", err)
+				}
+
+				// Verify attrs survived
+				if tt.attrs == nil {
+					if roundTripped.Attrs != nil {
+						t.Errorf("RoundTrip attrs = %v, want nil", roundTripped.Attrs)
+					}
+				} else {
+					if roundTripped.Attrs == nil {
+						t.Fatalf("RoundTrip attrs = nil, want %v", tt.attrs)
+					}
+					if roundTripped.Attrs["order"] != tt.attrs["order"] {
+						t.Errorf("RoundTrip order = %v, want %v", roundTripped.Attrs["order"], tt.attrs["order"])
+					}
+				}
+
+				// Verify content survived
+				if len(roundTripped.Content) != len(node.Content) {
+					t.Errorf("RoundTrip items = %d, want %d", len(roundTripped.Content), len(node.Content))
+				}
+			})
+		}
+	})
+}
+
 // NOTE: TestMain is defined in paragraph_test.go for the entire elements package
 // It registers all converters including OrderedListConverter

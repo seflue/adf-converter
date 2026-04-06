@@ -1290,6 +1290,89 @@ Regular content after all details.`,
 }
 
 // ============================================================================
+// OrderedList Start-Number Round-trip Tests
+// ============================================================================
+
+func TestRoundTrip_OrderedList_StartNumber(t *testing.T) {
+	conv := NewDefaultConverter()
+
+	tests := []struct {
+		name          string
+		attrs         map[string]interface{}
+		expectedStart string
+		expectAttrs   bool
+	}{
+		{
+			name:          "start at 5 survives full pipeline",
+			attrs:         map[string]interface{}{"order": float64(5)},
+			expectedStart: "5.",
+			expectAttrs:   true,
+		},
+		{
+			name:          "default start (no attrs) survives full pipeline",
+			attrs:         nil,
+			expectedStart: "1.",
+			expectAttrs:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			doc := adf_types.ADFDocument{
+				Version: 1,
+				Type:    "doc",
+				Content: []adf_types.ADFNode{
+					{
+						Type:  adf_types.NodeTypeOrderedList,
+						Attrs: tt.attrs,
+						Content: []adf_types.ADFNode{
+							{
+								Type: adf_types.NodeTypeListItem,
+								Content: []adf_types.ADFNode{
+									{
+										Type:    adf_types.NodeTypeParagraph,
+										Content: []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: "Alpha"}},
+									},
+								},
+							},
+							{
+								Type: adf_types.NodeTypeListItem,
+								Content: []adf_types.ADFNode{
+									{
+										Type:    adf_types.NodeTypeParagraph,
+										Content: []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: "Beta"}},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			md, restored, err := conv.ConvertRoundTrip(doc)
+			require.NoError(t, err)
+
+			// Markdown contains correct start number
+			assert.Contains(t, md, tt.expectedStart+" Alpha")
+
+			// Structure preserved
+			require.Len(t, restored.Content, 1)
+			list := restored.Content[0]
+			assert.Equal(t, adf_types.NodeTypeOrderedList, list.Type)
+			assert.Len(t, list.Content, 2)
+
+			// Attrs roundtrip
+			if tt.expectAttrs {
+				require.NotNil(t, list.Attrs)
+				assert.Equal(t, tt.attrs["order"], list.Attrs["order"])
+			} else {
+				assert.Nil(t, list.Attrs)
+			}
+		})
+	}
+}
+
+// ============================================================================
 // Table Round-trip Tests
 // ============================================================================
 

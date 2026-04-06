@@ -32,6 +32,13 @@ func (olc *OrderedListConverter) ToMarkdown(node adf_types.ADFNode, context conv
 		ListDepth:      context.ListDepth + 1,
 	}
 
+	start := 1
+	if order, ok := node.Attrs["order"]; ok {
+		if v, ok := order.(float64); ok {
+			start = int(v)
+		}
+	}
+
 	for i, item := range node.Content {
 		itemConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(item.Type))
 		if itemConverter == nil {
@@ -44,14 +51,15 @@ func (olc *OrderedListConverter) ToMarkdown(node adf_types.ADFNode, context conv
 		}
 
 		itemContent := itemResult.Content
+		num := start + i
 
 		dashIndex := strings.Index(itemContent, "- ")
 		if dashIndex >= 0 {
 			indent := itemContent[:dashIndex]
 			rest := itemContent[dashIndex+2:]
-			itemContent = fmt.Sprintf("%s%d. %s", indent, i+1, rest)
+			itemContent = fmt.Sprintf("%s%d. %s", indent, num, rest)
 		} else {
-			itemContent = fmt.Sprintf("%d. %s", i+1, itemContent)
+			itemContent = fmt.Sprintf("%d. %s", num, itemContent)
 		}
 
 		builder.AppendContent(itemContent)
