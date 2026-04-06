@@ -240,11 +240,12 @@ func createEmojiNode(emoji gomoji.Emoji) adf_types.ADFNode {
 		"text": emoji.Character,
 	}
 
-	// Add shortName if available
+	// Add shortName: prefer slug, fall back to UnicodeName
 	if emoji.Slug != "" {
 		// gomoji uses slug like "thumbs-up", convert to shortName like ":thumbs_up:"
-		shortName := ":" + strings.ReplaceAll(emoji.Slug, "-", "_") + ":"
-		attrs["shortName"] = shortName
+		attrs["shortName"] = ":" + strings.ReplaceAll(emoji.Slug, "-", "_") + ":"
+	} else if emoji.UnicodeName != "" {
+		attrs["shortName"] = ":" + strings.ReplaceAll(strings.ToLower(emoji.UnicodeName), " ", "_") + ":"
 	}
 
 	// Add id (code point) if available

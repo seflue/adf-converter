@@ -2,9 +2,11 @@ package inline
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/forPelevin/gomoji"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/text"
@@ -883,5 +885,38 @@ func TestConvertInlineAST_DoesNotMutateParentMarksBackingArray(t *testing.T) {
 	if backing[1].Type != "sentinel" {
 		t.Errorf("backing array mutated: got %q, want %q — append(parentMarks, mark) aliased the caller's backing array",
 			backing[1].Type, "sentinel")
+	}
+}
+
+func TestCreateEmojiNode_ShortNameFromSlug(t *testing.T) {
+	emoji := gomoji.Emoji{
+		Character: "✅",
+		Slug:      "white-check-mark",
+		CodePoint: "U+2705",
+	}
+	node := createEmojiNode(emoji)
+	shortName, ok := node.Attrs["shortName"].(string)
+	if !ok || shortName == "" {
+		t.Fatalf("expected shortName from slug, got %v", node.Attrs["shortName"])
+	}
+	if shortName != ":white_check_mark:" {
+		t.Errorf("expected ':white_check_mark:', got %q", shortName)
+	}
+}
+
+func TestCreateEmojiNode_ShortNameFallbackToUnicodeName(t *testing.T) {
+	emoji := gomoji.Emoji{
+		Character:   "✅",
+		Slug:        "",
+		UnicodeName: "white check mark",
+		CodePoint:   "U+2705",
+	}
+	node := createEmojiNode(emoji)
+	shortName, ok := node.Attrs["shortName"].(string)
+	if !ok || shortName == "" {
+		t.Fatalf("expected shortName fallback from UnicodeName, got %v", node.Attrs["shortName"])
+	}
+	if !strings.HasPrefix(shortName, ":") || !strings.HasSuffix(shortName, ":") {
+		t.Errorf("shortName should be colon-wrapped, got %q", shortName)
 	}
 }
