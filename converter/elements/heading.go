@@ -64,15 +64,6 @@ func (hc *HeadingConverter) FromMarkdown(lines []string, startIndex int, _ conve
 	trimmed := strings.TrimSpace(lines[startIndex])
 	rest := strings.TrimLeft(trimmed[level:], " \t")
 
-	if rest == "" {
-		node := adf_types.ADFNode{
-			Type:    adf_types.NodeTypeHeading,
-			Attrs:   map[string]interface{}{"level": level},
-			Content: []adf_types.ADFNode{},
-		}
-		return node, 1, nil
-	}
-
 	textNodes, err := inline.ParseContent(rest)
 	if err != nil {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("failed to parse heading content: %w", err)

@@ -405,33 +405,7 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 		return nil, nil
 
 	case *ast.Link:
-		href := string(n.Destination)
-		linkText := extractLinkText(n.FirstChild(), source)
-
-		// Mention: accountid: scheme → ADF mention node
-		if mentionNode, ok := parseMentionLink(href, linkText); ok {
-			return []adf_types.ADFNode{mentionNode}, nil
-		}
-
-		if linkText == href {
-			inlineCardNode := adf_types.ADFNode{
-				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
-					"url": href,
-				},
-			}
-			return []adf_types.ADFNode{inlineCardNode}, nil
-		}
-
-		attrs := map[string]interface{}{
-			"href": href,
-		}
-		if len(n.Title) > 0 {
-			attrs["title"] = string(n.Title)
-		}
-		linkMark := adf_types.NewMark(adf_types.MarkTypeLink, attrs)
-		childMarks := append(parentMarks[:len(parentMarks):len(parentMarks)], linkMark)
-		return convertInlineAST(n.FirstChild(), source, childMarks)
+		return convertLinkNode(n, source, parentMarks)
 
 	case *ast.RawHTML:
 		if isOpeningHTMLTag(n, source, "u") {
@@ -609,6 +583,36 @@ func attrsEqual(a, b map[string]interface{}) bool {
 		}
 	}
 	return true
+}
+
+// isInlineCardLink reports whether a link is an inline card (text equals href).
+func isInlineCardLink(linkText, href string) bool {
+	return linkText == href
+}
+
+// convertLinkNode converts a goldmark Link node to ADF: mention, inlineCard, or linked text.
+func convertLinkNode(n *ast.Link, source []byte, parentMarks []adf_types.ADFMark) ([]adf_types.ADFNode, error) {
+	href := string(n.Destination)
+	linkText := extractLinkText(n.FirstChild(), source)
+
+	if mentionNode, ok := parseMentionLink(href, linkText); ok {
+		return []adf_types.ADFNode{mentionNode}, nil
+	}
+
+	if isInlineCardLink(linkText, href) {
+		return []adf_types.ADFNode{{
+			Type:  adf_types.NodeTypeInlineCard,
+			Attrs: map[string]interface{}{"url": href},
+		}}, nil
+	}
+
+	attrs := map[string]interface{}{"href": href}
+	if len(n.Title) > 0 {
+		attrs["title"] = string(n.Title)
+	}
+	linkMark := adf_types.NewMark(adf_types.MarkTypeLink, attrs)
+	childMarks := append(parentMarks[:len(parentMarks):len(parentMarks)], linkMark)
+	return convertInlineAST(n.FirstChild(), source, childMarks)
 }
 
 // parseMentionLink checks if a link destination is an accountid: mention

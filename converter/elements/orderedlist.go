@@ -50,17 +50,7 @@ func (olc *OrderedListConverter) ToMarkdown(node adf_types.ADFNode, context conv
 			return converter.EnhancedConversionResult{}, fmt.Errorf("failed to convert list item: %w", err)
 		}
 
-		itemContent := itemResult.Content
-		num := start + i
-
-		dashIndex := strings.Index(itemContent, "- ")
-		if dashIndex >= 0 {
-			indent := itemContent[:dashIndex]
-			rest := itemContent[dashIndex+2:]
-			itemContent = fmt.Sprintf("%s%d. %s", indent, num, rest)
-		} else {
-			itemContent = fmt.Sprintf("%d. %s", num, itemContent)
-		}
+		itemContent := replaceListMarker(itemResult.Content, start+i)
 
 		builder.AppendContent(itemContent)
 	}
@@ -85,21 +75,7 @@ func (olc *OrderedListConverter) FromMarkdown(lines []string, startIndex int, co
 			break
 		}
 
-		// Check if line starts with ordered list marker (number followed by . or ))
-		isOrderedLine := false
-		if len(trimmed) >= 2 && trimmed[0] >= '0' && trimmed[0] <= '9' {
-			for j := 0; j < len(trimmed); j++ {
-				if trimmed[j] == '.' || trimmed[j] == ')' {
-					isOrderedLine = true
-					break
-				}
-				if trimmed[j] < '0' || trimmed[j] > '9' {
-					break
-				}
-			}
-		}
-
-		if isOrderedLine {
+		if isOrderedListLine(trimmed) {
 			// This is an ordered list line - always include
 			inList = true
 			listLineCount++
@@ -133,6 +109,32 @@ func (olc *OrderedListConverter) FromMarkdown(lines []string, startIndex int, co
 	}
 
 	return node, consumed, nil
+}
+
+// replaceListMarker replaces the leading "- " marker in a list item with "N. ".
+// Preserves any leading indentation before the dash.
+func replaceListMarker(content string, num int) string {
+	dashIndex := strings.Index(content, "- ")
+	if dashIndex >= 0 {
+		return fmt.Sprintf("%s%d. %s", content[:dashIndex], num, content[dashIndex+2:])
+	}
+	return fmt.Sprintf("%d. %s", num, content)
+}
+
+// isOrderedListLine reports whether trimmed starts with an ordered list marker (e.g. "1." or "1)").
+func isOrderedListLine(trimmed string) bool {
+	if len(trimmed) < 2 || trimmed[0] < '0' || trimmed[0] > '9' {
+		return false
+	}
+	for j := 0; j < len(trimmed); j++ {
+		if trimmed[j] == '.' || trimmed[j] == ')' {
+			return true
+		}
+		if trimmed[j] < '0' || trimmed[j] > '9' {
+			return false
+		}
+	}
+	return false
 }
 
 func (olc *OrderedListConverter) CanParseLine(line string) bool {

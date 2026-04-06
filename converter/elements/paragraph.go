@@ -40,27 +40,10 @@ func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	var renderableContent []adf_types.ADFNode
 	for _, child := range node.Content {
 		if context.Classifier != nil && context.Classifier.IsPreserved(child.Type) {
-			placeholderID, preview, err := context.PlaceholderManager.Store(child)
+			var err error
+			renderableContent, err = appendPreservedChild(child, renderableContent, context, builder)
 			if err != nil {
-				return converter.EnhancedConversionResult{}, fmt.Errorf("failed to store placeholder for %s: %w", child.Type, err)
-			}
-
-			comment := fmt.Sprintf("<!-- %s: %s -->", placeholderID, preview)
-
-			// Flush accumulated nodes before placeholder
-			if len(renderableContent) > 0 {
-				rendered, err := inline.RenderInlineNodes(renderableContent, context)
-				if err != nil {
-					return converter.EnhancedConversionResult{}, err
-				}
-				builder.AppendContent(rendered)
-				renderableContent = nil
-			}
-
-			if adf_types.IsInlineNode(child.Type) {
-				builder.AppendContent(comment)
-			} else {
-				builder.AppendContent(comment + "\n\n")
+				return converter.EnhancedConversionResult{}, err
 			}
 			continue
 		}
@@ -133,6 +116,38 @@ func (pc *ParagraphConverter) FromMarkdown(lines []string, startIndex int, conte
 	}
 
 	return node, consumed, nil
+}
+
+// appendPreservedChild flushes any pending inline nodes, stores child as placeholder,
+// and appends the placeholder comment to builder. Returns empty pending slice.
+func appendPreservedChild(
+	child adf_types.ADFNode,
+	pending []adf_types.ADFNode,
+	context converter.ConversionContext,
+	builder *converter.EnhancedConversionResultBuilder,
+) ([]adf_types.ADFNode, error) {
+	placeholderID, preview, err := context.PlaceholderManager.Store(child)
+	if err != nil {
+		return nil, fmt.Errorf("failed to store placeholder for %s: %w", child.Type, err)
+	}
+
+	comment := fmt.Sprintf("<!-- %s: %s -->", placeholderID, preview)
+
+	if len(pending) > 0 {
+		rendered, err := inline.RenderInlineNodes(pending, context)
+		if err != nil {
+			return nil, err
+		}
+		builder.AppendContent(rendered)
+	}
+
+	if adf_types.IsInlineNode(child.Type) {
+		builder.AppendContent(comment)
+	} else {
+		builder.AppendContent(comment + "\n\n")
+	}
+
+	return nil, nil
 }
 
 func (pc *ParagraphConverter) CanHandle(nodeType converter.ADFNodeType) bool {
