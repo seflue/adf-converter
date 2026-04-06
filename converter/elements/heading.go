@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/text"
+
 	"adf-converter/adf_types"
 	"adf-converter/converter"
 	"adf-converter/converter/elements/inline"
@@ -46,48 +50,55 @@ func (hc *HeadingConverter) FromMarkdown(lines []string, startIndex int, _ conve
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
 
-	line := strings.TrimSpace(lines[startIndex])
+	source := []byte(lines[startIndex])
+	doc := goldmark.New().Parser().Parse(text.NewReader(source))
 
-	level := 0
-	for i := 0; i < len(line) && line[i] == '#'; i++ {
-		level++
+	headingNode, ok := doc.FirstChild().(*ast.Heading)
+	if !ok {
+		return adf_types.ADFNode{}, 0, fmt.Errorf("not a valid ATX heading: %q", lines[startIndex])
 	}
 
-	if level < 1 || level > 6 {
-		return adf_types.ADFNode{}, 0, fmt.Errorf("invalid heading level: %d", level)
-	}
+	level := headingNode.Level
 
-	text := strings.TrimSpace(line[level:])
+	// Extract inline content: strip leading whitespace + # prefix + separator space.
+	trimmed := strings.TrimSpace(lines[startIndex])
+	rest := strings.TrimLeft(trimmed[level:], " \t")
 
-	if text == "" {
+	if rest == "" {
 		node := adf_types.ADFNode{
-			Type: adf_types.NodeTypeHeading,
-			Attrs: map[string]interface{}{
-				"level": level,
-			},
+			Type:    adf_types.NodeTypeHeading,
+			Attrs:   map[string]interface{}{"level": level},
 			Content: []adf_types.ADFNode{},
 		}
 		return node, 1, nil
 	}
 
-	textNodes, err := inline.ParseContent(text)
+	textNodes, err := inline.ParseContent(rest)
 	if err != nil {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("failed to parse heading content: %w", err)
 	}
 
 	node := adf_types.ADFNode{
-		Type: adf_types.NodeTypeHeading,
-		Attrs: map[string]interface{}{
-			"level": level,
-		},
+		Type:    adf_types.NodeTypeHeading,
+		Attrs:   map[string]interface{}{"level": level},
 		Content: textNodes,
 	}
-
 	return node, 1, nil
 }
 
 func (hc *HeadingConverter) CanParseLine(line string) bool {
-	return strings.HasPrefix(line, "#")
+	if !strings.HasPrefix(line, "#") {
+		return false
+	}
+	level := 0
+	for level < len(line) && line[level] == '#' {
+		level++
+	}
+	if level < 1 || level > 6 {
+		return false
+	}
+	// CommonMark: must be followed by space, tab, or end of line.
+	return level == len(line) || line[level] == ' ' || line[level] == '\t'
 }
 
 func (hc *HeadingConverter) CanHandle(nodeType converter.ADFNodeType) bool {

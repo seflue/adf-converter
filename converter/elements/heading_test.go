@@ -418,10 +418,8 @@ func TestHeadingConverter_FromMarkdown(t *testing.T) {
 			name:          "tab-indented heading",
 			lines:         []string{"\t### Tab Heading", ""},
 			startIndex:    0,
-			expectedLevel: 3,
-			expectedText:  "Tab Heading",
-			expectedLines: 1,
-			wantErr:       false,
+			expectedLines: 0,
+			wantErr:       true, // tab = 4 spaces indentation → not an ATX heading per CommonMark
 		},
 		{
 			name:          "empty lines",
@@ -569,6 +567,35 @@ func TestHeadingConverter_CanHandle(t *testing.T) {
 	}
 }
 
+func TestHeadingConverter_CanParseLine(t *testing.T) {
+	hc := NewHeadingConverter()
+
+	tests := []struct {
+		line     string
+		expected bool
+	}{
+		{"# Heading", true},
+		{"## Heading 2", true},
+		{"###### H6", true},
+		{"#", true},           // bare hash is a heading
+		{"#NoSpace", false},   // no space after hash — not a valid CommonMark heading
+		{"####### seven", false}, // 7 hashes — not a valid CommonMark heading level
+		{"not a heading", false},
+		{"  ## indented", false}, // leading spaces — HasPrefix does not trim
+		{"", false},
+		{" # space first", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.line, func(t *testing.T) {
+			result := hc.CanParseLine(tt.line)
+			if result != tt.expected {
+				t.Errorf("CanParseLine(%q) = %v, want %v", tt.line, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestHeadingConverter_GetStrategy(t *testing.T) {
 	hc := NewHeadingConverter()
 	strategy := hc.GetStrategy()
@@ -613,5 +640,177 @@ func TestHeadingConverter_ValidateInput(t *testing.T) {
 				t.Errorf("ValidateInput() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+// TestHeadingConverter_FromMarkdown_MarksPreserved verifies that inline marks
+// (bold, italic, code) are present on the correct nodes in the ADF output.
+// The existing FromMarkdown table tests only collect plain text, so a silent
+// mark-loss during a Goldmark migration would not be caught there.
+func TestHeadingConverter_FromMarkdown_MarksPreserved(t *testing.T) {
+	hc := NewHeadingConverter()
+
+	tests := []struct {
+		name          string
+		line          string
+		wantNodes     []adf_types.ADFNode
+	}{
+		{
+			name: "bold mark",
+			line: "## **bold text**",
+			wantNodes: []adf_types.ADFNode{
+				{
+					Type:  adf_types.NodeTypeText,
+					Text:  "bold text",
+					Marks: []adf_types.ADFMark{{Type: "strong"}},
+				},
+			},
+		},
+		{
+			name: "italic mark",
+			line: "### *italic text*",
+			wantNodes: []adf_types.ADFNode{
+				{
+					Type:  adf_types.NodeTypeText,
+					Text:  "italic text",
+					Marks: []adf_types.ADFMark{{Type: "em"}},
+				},
+			},
+		},
+		{
+			name: "code mark",
+			line: "#### `code snippet`",
+			wantNodes: []adf_types.ADFNode{
+				{
+					Type:  adf_types.NodeTypeText,
+					Text:  "code snippet",
+					Marks: []adf_types.ADFMark{{Type: "code"}},
+				},
+			},
+		},
+		{
+			name: "mixed: plain + bold",
+			line: "## Intro **bold** end",
+			wantNodes: []adf_types.ADFNode{
+				{Type: adf_types.NodeTypeText, Text: "Intro "},
+				{
+					Type:  adf_types.NodeTypeText,
+					Text:  "bold",
+					Marks: []adf_types.ADFMark{{Type: "strong"}},
+				},
+				{Type: adf_types.NodeTypeText, Text: " end"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node, consumed, err := hc.FromMarkdown([]string{tt.line}, 0, converter.ConversionContext{})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if consumed != 1 {
+				t.Errorf("consumed = %d, want 1", consumed)
+			}
+			if len(node.Content) != len(tt.wantNodes) {
+				t.Fatalf("content len = %d, want %d (content: %v)", len(node.Content), len(tt.wantNodes), node.Content)
+			}
+			for i, want := range tt.wantNodes {
+				got := node.Content[i]
+				if got.Text != want.Text {
+					t.Errorf("node[%d].Text = %q, want %q", i, got.Text, want.Text)
+				}
+				if len(got.Marks) != len(want.Marks) {
+					t.Errorf("node[%d].Marks len = %d, want %d", i, len(got.Marks), len(want.Marks))
+					continue
+				}
+				for j, wm := range want.Marks {
+					if got.Marks[j].Type != wm.Type {
+						t.Errorf("node[%d].Marks[%d].Type = %q, want %q", i, j, got.Marks[j].Type, wm.Type)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestHeadingConverter_FromMarkdown_StartIndex verifies that the parser
+// correctly starts at a non-zero index and reports consumed relative to the
+// slice, not the full document.
+func TestHeadingConverter_FromMarkdown_StartIndex(t *testing.T) {
+	hc := NewHeadingConverter()
+	lines := []string{"paragraph text", "## The Heading", "more text"}
+
+	node, consumed, err := hc.FromMarkdown(lines, 1, converter.ConversionContext{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if consumed != 1 {
+		t.Errorf("consumed = %d, want 1", consumed)
+	}
+	level, ok := node.Attrs["level"].(int)
+	if !ok || level != 2 {
+		t.Errorf("level = %v, want 2", node.Attrs["level"])
+	}
+}
+
+// TestHeadingConverter_FromMarkdown_StartIndexOutOfRange ensures an error is
+// returned when startIndex is past the end of the slice.
+func TestHeadingConverter_FromMarkdown_StartIndexOutOfRange(t *testing.T) {
+	hc := NewHeadingConverter()
+	lines := []string{"# Only one line"}
+
+	_, _, err := hc.FromMarkdown(lines, 1, converter.ConversionContext{})
+	if err == nil {
+		t.Error("expected error for out-of-range startIndex, got nil")
+	}
+}
+
+// TestHeadingConverter_ToMarkdown_InvalidLevel documents the fallback behaviour
+// for heading levels outside [1, 6].  Both cases must render as an h1 so that
+// ADF round-trips remain stable even when the source JSON contains bad data.
+func TestHeadingConverter_ToMarkdown_InvalidLevel(t *testing.T) {
+	hc := NewHeadingConverter()
+
+	tests := []struct {
+		name     string
+		level    int
+		expected string
+	}{
+		{"level 0 defaults to h1", 0, "# Text\n\n"},
+		{"level 7 defaults to h1", 7, "# Text\n\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node := adf_types.ADFNode{
+				Type:  adf_types.NodeTypeHeading,
+				Attrs: map[string]interface{}{"level": tt.level},
+				Content: []adf_types.ADFNode{
+					{Type: adf_types.NodeTypeText, Text: "Text"},
+				},
+			}
+			result, err := hc.ToMarkdown(node, converter.ConversionContext{})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if result.Content != tt.expected {
+				t.Errorf("ToMarkdown() = %q, want %q", result.Content, tt.expected)
+			}
+		})
+	}
+}
+
+// TestHeadingConverter_FromMarkdown_HashWithoutSpace verifies that "#text"
+// (no space after the hash) is rejected.  CommonMark requires a space or
+// end-of-line after the opening sequence, so "#NoSpace" is not a heading.
+// The current handwritten parser accepts it (bug); this test drives the fix
+// via the Goldmark migration.
+func TestHeadingConverter_FromMarkdown_HashWithoutSpace(t *testing.T) {
+	hc := NewHeadingConverter()
+
+	_, _, err := hc.FromMarkdown([]string{"#NoSpace"}, 0, converter.ConversionContext{})
+	if err == nil {
+		t.Error("expected error for heading without space after #, got nil")
 	}
 }
