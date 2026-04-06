@@ -10,6 +10,7 @@ import (
 
 	"adf-converter/adf_types"
 	"adf-converter/converter/elements/inline"
+	"adf-converter/converter/elements/lists"
 	"adf-converter/converter/internal"
 )
 
@@ -67,6 +68,30 @@ func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context Conver
 
 			builder.AppendContent(nestedResult.Content)
 			builder.AddConverted(nestedResult.ElementsConverted)
+
+		case "bulletList":
+			listResult, err := NewBulletListConverter().ToMarkdown(contentNode, context)
+			if err != nil {
+				builder.AddWarningf("Failed to convert bulletList: %v", err)
+				continue
+			}
+			builder.AppendContent(bc.prefixLines(listResult.Content, context.NestedLevel) + "\n")
+
+		case "orderedList":
+			listResult, err := NewOrderedListConverter().ToMarkdown(contentNode, context)
+			if err != nil {
+				builder.AddWarningf("Failed to convert orderedList: %v", err)
+				continue
+			}
+			builder.AppendContent(bc.prefixLines(listResult.Content, context.NestedLevel) + "\n")
+
+		case "codeBlock":
+			codeResult, err := NewCodeBlockConverter().ToMarkdown(contentNode, context)
+			if err != nil {
+				builder.AddWarningf("Failed to convert codeBlock: %v", err)
+				continue
+			}
+			builder.AppendContent(bc.prefixLines(codeResult.Content, context.NestedLevel) + "\n")
 
 		default:
 			text := bc.extractTextContent(contentNode)
@@ -142,6 +167,23 @@ func (bc *BlockquoteConverter) convertParagraphToMarkdown(paragraph adf_types.AD
 	}
 
 	return result.String()
+}
+
+// prefixLines adds a blockquote prefix ("> ") to each line of multi-line content.
+// Empty lines get only the bare prefix without trailing space.
+func (bc *BlockquoteConverter) prefixLines(content string, nestedLevel int) string {
+	prefix := bc.createQuotePrefix(nestedLevel) + " "
+	trimmed := strings.TrimRight(content, "\n")
+	lines := strings.Split(trimmed, "\n")
+	result := make([]string, 0, len(lines))
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			result = append(result, strings.TrimRight(prefix, " "))
+		} else {
+			result = append(result, prefix+line)
+		}
+	}
+	return strings.Join(result, "\n")
 }
 
 func (bc *BlockquoteConverter) createQuotePrefix(nestedLevel int) string {
@@ -354,11 +396,38 @@ func parseMarkdownBlockquote(lines []string) (adf_types.ADFNode, error) {
 				// The stripped > becomes literal text in a paragraph.
 				para := flattenNestedBlockquote(n, source)
 				paragraphs = append(paragraphs, para)
+			case *ast.List:
+				listNode, err := lists.ConvertListNode(n, source, nil)
+				if err != nil {
+					return adf_types.ADFNode{}, fmt.Errorf("converting list in blockquote: %w", err)
+				}
+				paragraphs = append(paragraphs, listNode)
+			case *ast.FencedCodeBlock:
+				paragraphs = append(paragraphs, convertBlockquoteCodeBlock(n, source))
 			}
 		}
 	}
 
 	return adf_types.ADFNode{Type: "blockquote", Content: paragraphs}, nil
+}
+
+// convertBlockquoteCodeBlock converts a goldmark FencedCodeBlock inside a blockquote to an ADF codeBlock node.
+func convertBlockquoteCodeBlock(n *ast.FencedCodeBlock, source []byte) adf_types.ADFNode {
+	language := strings.TrimSpace(string(n.Language(source)))
+
+	var lines []string
+	for i := 0; i < n.Lines().Len(); i++ {
+		seg := n.Lines().At(i)
+		lines = append(lines, string(source[seg.Start:seg.Stop]))
+	}
+	content := strings.TrimRight(strings.Join(lines, ""), "\n")
+
+	node := adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock}
+	if language != "" {
+		node.Attrs = map[string]interface{}{"language": language}
+	}
+	node.Content = []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: content}}
+	return node
 }
 
 // convertBlockquoteParagraph converts a goldmark Paragraph node inside a blockquote to an ADF paragraph.

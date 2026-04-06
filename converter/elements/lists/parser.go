@@ -74,6 +74,12 @@ func ParseOrderedList(markdown string, manager placeholder.Manager) (adf_types.A
 	return convertList(listNode, source, manager)
 }
 
+// ConvertListNode converts a goldmark List AST node into an ADF bulletList or orderedList node.
+// It is exported for use by other converters (e.g. blockquote) that already have a parsed AST.
+func ConvertListNode(list *ast.List, source []byte, manager placeholder.Manager) (adf_types.ADFNode, error) {
+	return convertList(list, source, manager)
+}
+
 // convertList converts a goldmark List AST node into an ADF bulletList or orderedList node.
 // This handles the recursive conversion of nested lists and list items.
 func convertList(list *ast.List, source []byte, manager placeholder.Manager) (adf_types.ADFNode, error) {

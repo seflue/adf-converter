@@ -508,5 +508,160 @@ func TestBlockquoteConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 	}
 }
 
+func TestParseMarkdownBlockquote_Lists(t *testing.T) {
+	tests := []struct {
+		name             string
+		lines            []string
+		expectedType     string // type of first content node
+		expectedItems    int    // expected list item count
+		expectedItemText []string
+	}{
+		{
+			name:             "bullet list in blockquote",
+			lines:            []string{"> - item1", "> - item2"},
+			expectedType:     "bulletList",
+			expectedItems:    2,
+			expectedItemText: []string{"item1", "item2"},
+		},
+		{
+			name:             "ordered list in blockquote",
+			lines:            []string{"> 1. first", "> 2. second"},
+			expectedType:     "orderedList",
+			expectedItems:    2,
+			expectedItemText: []string{"first", "second"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node, err := parseMarkdownBlockquote(tt.lines)
+			require.NoError(t, err)
+			assert.Equal(t, "blockquote", node.Type)
+			require.Len(t, node.Content, 1)
+
+			listNode := node.Content[0]
+			assert.Equal(t, tt.expectedType, listNode.Type)
+			require.Len(t, listNode.Content, tt.expectedItems)
+
+			for i, expectedText := range tt.expectedItemText {
+				item := listNode.Content[i]
+				assert.Equal(t, "listItem", item.Type)
+				require.NotEmpty(t, item.Content)
+				para := item.Content[0]
+				assert.Equal(t, "paragraph", para.Type)
+				require.NotEmpty(t, para.Content)
+				assert.Equal(t, expectedText, para.Content[0].Text)
+			}
+		})
+	}
+}
+
+func TestParseMarkdownBlockquote_CodeBlock(t *testing.T) {
+	lines := []string{"> ```go", "> x := 1", "> ```"}
+
+	node, err := parseMarkdownBlockquote(lines)
+	require.NoError(t, err)
+	assert.Equal(t, "blockquote", node.Type)
+	require.Len(t, node.Content, 1)
+
+	codeNode := node.Content[0]
+	assert.Equal(t, "codeBlock", codeNode.Type)
+	assert.Equal(t, "go", codeNode.Attrs["language"])
+	require.Len(t, codeNode.Content, 1)
+	assert.Equal(t, "x := 1", codeNode.Content[0].Text)
+}
+
+func TestBlockquoteConverter_ToMarkdown_Lists(t *testing.T) {
+	bc := NewBlockquoteConverter()
+	ctx := ConversionContext{}
+
+	tests := []struct {
+		name     string
+		node     adf_types.ADFNode
+		wantLine string
+	}{
+		{
+			name: "bullet list child",
+			node: adf_types.ADFNode{
+				Type: "blockquote",
+				Content: []adf_types.ADFNode{{
+					Type: "bulletList",
+					Content: []adf_types.ADFNode{
+						{Type: "listItem", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "item1"}}},
+						}},
+						{Type: "listItem", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "item2"}}},
+						}},
+					},
+				}},
+			},
+			wantLine: "> - item1\n> - item2",
+		},
+		{
+			name: "ordered list child",
+			node: adf_types.ADFNode{
+				Type: "blockquote",
+				Content: []adf_types.ADFNode{{
+					Type: "orderedList",
+					Content: []adf_types.ADFNode{
+						{Type: "listItem", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "first"}}},
+						}},
+						{Type: "listItem", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "second"}}},
+						}},
+					},
+				}},
+			},
+			wantLine: "> 1. first\n> 2. second",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := bc.ToMarkdown(tt.node, ctx)
+			require.NoError(t, err)
+			assert.Contains(t, result.Content, tt.wantLine)
+		})
+	}
+}
+
+func TestBlockquoteConverter_ToMarkdown_CodeBlock(t *testing.T) {
+	bc := NewBlockquoteConverter()
+	ctx := ConversionContext{}
+
+	node := adf_types.ADFNode{
+		Type: "blockquote",
+		Content: []adf_types.ADFNode{{
+			Type:  "codeBlock",
+			Attrs: map[string]interface{}{"language": "go"},
+			Content: []adf_types.ADFNode{
+				{Type: "text", Text: "x := 1"},
+			},
+		}},
+	}
+
+	result, err := bc.ToMarkdown(node, ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Content, "> ```go\n> x := 1\n> ```")
+}
+
+func TestBlockquoteConverter_Roundtrip_BulletList(t *testing.T) {
+	bc := NewBlockquoteConverter()
+	ctx := ConversionContext{}
+
+	lines := []string{"> - item1", "> - item2"}
+
+	node, consumed, err := bc.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 2, consumed)
+
+	result, err := bc.ToMarkdown(node, ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Content, "> - item1")
+	assert.Contains(t, result.Content, "> - item2")
+}
+
 // Suppress unused import warning
 var _ = strings.Split
