@@ -2,18 +2,14 @@ package elements
 
 import (
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 
 	"adf-converter/adf_types"
 	"adf-converter/converter/elements/inline"
+	"adf-converter/converter/elements/tables"
 	"adf-converter/converter/internal"
 )
-
-// separatorCellPattern matches a single separator cell per CommonMark spec:
-// optional colon, one or more dashes, optional colon.
-var separatorCellPattern = regexp.MustCompile(`^:?-+:?$`)
 
 // TableConverter implements markdown table conversion for ADF table nodes
 type TableConverter struct{}
@@ -164,35 +160,6 @@ func (tc *TableConverter) firstRowIsHeader(node adf_types.ADFNode) bool {
 	return false
 }
 
-// isSeparatorRow returns true if every cell matches the CommonMark separator
-// pattern: optional colon, one or more dashes, optional colon (:?-+:?).
-func isSeparatorRow(line string) bool {
-	trimmed := strings.TrimSpace(line)
-	if !strings.HasPrefix(trimmed, "|") || !strings.HasSuffix(trimmed, "|") {
-		return false
-	}
-	cells := strings.Split(trimmed[1:len(trimmed)-1], "|")
-	if len(cells) == 0 {
-		return false
-	}
-	for _, cell := range cells {
-		if !separatorCellPattern.MatchString(strings.TrimSpace(cell)) {
-			return false
-		}
-	}
-	return true
-}
-
-// allCellsEmpty returns true if every cell string is empty after trimming.
-func allCellsEmpty(cells []string) bool {
-	for _, c := range cells {
-		if strings.TrimSpace(c) != "" {
-			return false
-		}
-	}
-	return true
-}
-
 // extractCellText extracts text content from a table cell, preserving markdown formatting
 func (tc *TableConverter) extractCellText(cell adf_types.ADFNode, context ConversionContext) string {
 	var text strings.Builder
@@ -246,12 +213,14 @@ func (tc *TableConverter) FromMarkdown(lines []string, startIndex int, context C
 		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, 0, nil
 	}
 
-	node, err := tc.parseMarkdownTableLines(lines[startIndex : startIndex+consumed])
+	tableLines := lines[startIndex : startIndex+consumed]
+	markdown := strings.Join(tableLines, "\n") + "\n"
+	node, err := tables.ParseTable(markdown)
 	return node, consumed, err
 }
 
 // countPlainTableLines counts consecutive lines that belong to a markdown table.
-// A table line starts with | or is a separator row (|---|).
+// A table line starts with |.
 func (tc *TableConverter) countPlainTableLines(lines []string, startIndex int) int {
 	count := 0
 	for i := startIndex; i < len(lines); i++ {
@@ -309,8 +278,9 @@ func (tc *TableConverter) parseXMLWrappedTable(lines []string) (adf_types.ADFNod
 		markdownLines = append(markdownLines, lines[i])
 	}
 
-	// Parse the markdown table content into ADF
-	tableNode, err := tc.parseMarkdownTableLines(markdownLines)
+	// Parse the markdown table content into ADF using Goldmark
+	markdown := strings.Join(markdownLines, "\n") + "\n"
+	tableNode, err := tables.ParseTable(markdown)
 	if err != nil {
 		return adf_types.ADFNode{}, fmt.Errorf("failed to parse markdown table content: %w", err)
 	}
@@ -326,84 +296,6 @@ func (tc *TableConverter) parseXMLWrappedTable(lines []string) (adf_types.ADFNod
 	}
 
 	return tableNode, nil
-}
-
-// parseMarkdownTableLines parses plain markdown table lines into ADF table node
-func (tc *TableConverter) parseMarkdownTableLines(lines []string) (adf_types.ADFNode, error) {
-	if len(lines) < 2 {
-		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, nil
-	}
-
-	var tableRows []adf_types.ADFNode
-
-	// Process each line as a potential table row
-	for i, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "" {
-			continue
-		}
-
-		// Skip separator row (contains only |, -, :, and spaces)
-		if i == 1 && isSeparatorRow(trimmed) {
-			continue
-		}
-
-		// Parse table row
-		if strings.HasPrefix(trimmed, "|") && strings.HasSuffix(trimmed, "|") {
-			cells := strings.Split(trimmed[1:len(trimmed)-1], "|")
-			isFirstRow := (i == 0)
-
-			// Detect synthetic empty header: first row with all cells empty
-			if isFirstRow && allCellsEmpty(cells) {
-				continue // Drop synthetic header — no tableHeader in ADF
-			}
-
-			var cellNodes []adf_types.ADFNode
-			cellType := "tableCell"
-			if isFirstRow {
-				cellType = "tableHeader"
-			}
-
-			for _, cell := range cells {
-				cellText := strings.TrimSpace(cell)
-				paragraphContent := tc.parseCellContent(cellText)
-
-				cellNodes = append(cellNodes, adf_types.ADFNode{
-					Type: cellType,
-					Content: []adf_types.ADFNode{
-						{
-							Type:    "paragraph",
-							Content: paragraphContent,
-						},
-					},
-				})
-			}
-
-			tableRows = append(tableRows, adf_types.ADFNode{
-				Type:    "tableRow",
-				Content: cellNodes,
-			})
-		}
-	}
-
-	return adf_types.ADFNode{
-		Type:    "table",
-		Content: tableRows,
-	}, nil
-}
-
-// parseCellContent parses cell text using the inline parser for rich formatting (bold, italic, code, links).
-// Falls back to plain text on parse error.
-func (tc *TableConverter) parseCellContent(cellText string) []adf_types.ADFNode {
-	if cellText == "" {
-		return []adf_types.ADFNode{{Type: "text", Text: ""}}
-	}
-
-	nodes, err := inline.ParseContent(cellText)
-	if err != nil || len(nodes) == 0 {
-		return []adf_types.ADFNode{{Type: "text", Text: cellText}}
-	}
-	return nodes
 }
 
 // CanHandle returns true if this converter can handle the given node type
