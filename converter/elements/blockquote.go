@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/text"
+
 	"adf-converter/adf_types"
 	"adf-converter/converter/elements/inline"
 	"adf-converter/converter/internal"
@@ -320,70 +324,76 @@ func parseXMLBlockquote(lines []string) (*adf_types.ADFNode, int, error) {
 	return &blockquoteNode, endIdx - startIdx + 1, nil
 }
 
-// parseMarkdownBlockquote parses standard markdown blockquote (> prefix) into ADF.
-// Only strips one level of > prefix. Remaining > characters stay as literal text
-// because ADF does not allow nested blockquote nodes.
+// parseMarkdownBlockquote parses standard markdown blockquote (> prefix) into ADF using goldmark.
+// Only strips one level of > prefix. Remaining > characters (nested blockquotes) stay as literal
+// text because ADF does not allow nested blockquote nodes.
+//
+// Note: goldmark splits a blank-line-separated blockquote ("> a\n\n> b") into multiple sibling
+// Blockquote nodes at the document level. We collect paragraphs from all of them.
 func parseMarkdownBlockquote(lines []string) (adf_types.ADFNode, error) {
-	var paragraphs []adf_types.ADFNode
-	var currentParagraphLines []string
+	source := []byte(strings.Join(lines, "\n"))
+	parser := goldmark.New()
+	doc := parser.Parser().Parse(text.NewReader(source))
 
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "" {
-			if len(currentParagraphLines) > 0 {
-				paragraphs = append(paragraphs, createParagraphFromLines(currentParagraphLines))
-				currentParagraphLines = nil
-			}
+	paragraphs := []adf_types.ADFNode{}
+	for topLevel := doc.FirstChild(); topLevel != nil; topLevel = topLevel.NextSibling() {
+		bq, ok := topLevel.(*ast.Blockquote)
+		if !ok {
 			continue
 		}
-
-		// Strip one level of > prefix — remaining > stays as literal text
-		content := stripBlockquotePrefix(trimmed)
-
-		if content == "" {
-			if len(currentParagraphLines) > 0 {
-				paragraphs = append(paragraphs, createParagraphFromLines(currentParagraphLines))
-				currentParagraphLines = nil
+		for child := bq.FirstChild(); child != nil; child = child.NextSibling() {
+			switch n := child.(type) {
+			case *ast.Paragraph:
+				para, err := convertBlockquoteParagraph(n, source)
+				if err != nil {
+					return adf_types.ADFNode{}, err
+				}
+				paragraphs = append(paragraphs, para)
+			case *ast.Blockquote:
+				// Flatten nested blockquote — ADF forbids nesting.
+				// The stripped > becomes literal text in a paragraph.
+				para := flattenNestedBlockquote(n, source)
+				paragraphs = append(paragraphs, para)
 			}
-		} else {
-			currentParagraphLines = append(currentParagraphLines, content)
 		}
 	}
 
-	if len(currentParagraphLines) > 0 {
-		paragraphs = append(paragraphs, createParagraphFromLines(currentParagraphLines))
-	}
-
-	return adf_types.ADFNode{
-		Type:    "blockquote",
-		Content: paragraphs,
-	}, nil
+	return adf_types.ADFNode{Type: "blockquote", Content: paragraphs}, nil
 }
 
-// stripBlockquotePrefix removes one level of > prefix from a line.
-func stripBlockquotePrefix(line string) string {
-	if strings.HasPrefix(line, "> ") {
-		return line[2:]
+// convertBlockquoteParagraph converts a goldmark Paragraph node inside a blockquote to an ADF paragraph.
+// Multiple lines are joined with a space to match the previous behaviour.
+func convertBlockquoteParagraph(para *ast.Paragraph, source []byte) (adf_types.ADFNode, error) {
+	lineTexts := make([]string, 0, para.Lines().Len())
+	for i := 0; i < para.Lines().Len(); i++ {
+		seg := para.Lines().At(i)
+		lineTexts = append(lineTexts, strings.TrimSpace(string(source[seg.Start:seg.Stop])))
 	}
-	if strings.HasPrefix(line, ">") {
-		return line[1:]
-	}
-	return line
-}
+	rawText := strings.Join(lineTexts, " ")
 
-// createParagraphFromLines creates an ADF paragraph node from text lines
-func createParagraphFromLines(lines []string) adf_types.ADFNode {
-	text := strings.Join(lines, " ")
-
-	// Parse inline content (bold, italic, links, etc.)
-	inlineContent, err := inline.ParseContent(text)
+	inlineContent, err := inline.ParseContent(rawText)
 	if err != nil || len(inlineContent) == 0 {
-		// Fallback to plain text on error
-		inlineContent = []adf_types.ADFNode{{Type: "text", Text: text}}
+		inlineContent = []adf_types.ADFNode{{Type: "text", Text: rawText}}
 	}
 
+	return adf_types.ADFNode{Type: "paragraph", Content: inlineContent}, nil
+}
+
+// flattenNestedBlockquote converts a goldmark nested Blockquote to an ADF paragraph with
+// literal > text — ADF does not allow blockquote nodes nested inside blockquote nodes.
+func flattenNestedBlockquote(bq *ast.Blockquote, source []byte) adf_types.ADFNode {
+	var parts []string
+	for child := bq.FirstChild(); child != nil; child = child.NextSibling() {
+		if para, ok := child.(*ast.Paragraph); ok {
+			for i := 0; i < para.Lines().Len(); i++ {
+				seg := para.Lines().At(i)
+				parts = append(parts, "> "+strings.TrimSpace(string(source[seg.Start:seg.Stop])))
+			}
+		}
+	}
+	rawText := strings.Join(parts, " ")
 	return adf_types.ADFNode{
 		Type:    "paragraph",
-		Content: inlineContent,
+		Content: []adf_types.ADFNode{{Type: "text", Text: rawText}},
 	}
 }

@@ -302,42 +302,6 @@ func TestBlockquoteConverter_GetStrategy(t *testing.T) {
 	assert.Equal(t, MarkdownBlockquote, strategy)
 }
 
-// Test helper functions
-
-func TestCreateParagraphFromLines(t *testing.T) {
-	tests := []struct {
-		name     string
-		lines    []string
-		expected string
-	}{
-		{
-			name:     "single line",
-			lines:    []string{"Hello"},
-			expected: "Hello",
-		},
-		{
-			name:     "multiple lines",
-			lines:    []string{"Hello", "World"},
-			expected: "Hello World",
-		},
-		{
-			name:     "three lines",
-			lines:    []string{"One", "Two", "Three"},
-			expected: "One Two Three",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			paragraph := createParagraphFromLines(tt.lines)
-			assert.Equal(t, "paragraph", paragraph.Type)
-			require.Len(t, paragraph.Content, 1)
-			assert.Equal(t, "text", paragraph.Content[0].Type)
-			assert.Equal(t, tt.expected, paragraph.Content[0].Text)
-		})
-	}
-}
-
 func TestParseMarkdownBlockquote(t *testing.T) {
 	tests := []struct {
 		name               string
@@ -486,6 +450,62 @@ func TestBlockquoteConverter_FromMarkdown_NestedPrefix(t *testing.T) {
 	// Second paragraph preserves literal > as text
 	require.Len(t, node.Content[1].Content, 1)
 	assert.Equal(t, "> Inner text", node.Content[1].Content[0].Text)
+}
+
+func TestBlockquoteConverter_FromMarkdown_InlineFormatting(t *testing.T) {
+	bc := NewBlockquoteConverter()
+	ctx := ConversionContext{}
+
+	tests := []struct {
+		name     string
+		lines    []string
+		wantMark string // mark type: "strong", "em", "code"
+		wantText string // expected text value in the marked node
+	}{
+		{
+			name:     "bold text in blockquote",
+			lines:    []string{"> **bold text**"},
+			wantMark: "strong",
+			wantText: "bold text",
+		},
+		{
+			name:     "italic text in blockquote",
+			lines:    []string{"> *italic text*"},
+			wantMark: "em",
+			wantText: "italic text",
+		},
+		{
+			name:     "inline code in blockquote",
+			lines:    []string{"> `code here`"},
+			wantMark: "code",
+			wantText: "code here",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node, _, err := bc.FromMarkdown(tt.lines, 0, ctx)
+			require.NoError(t, err)
+			require.Len(t, node.Content, 1)
+
+			para := node.Content[0]
+			assert.Equal(t, "paragraph", para.Type)
+
+			// Find a text node with the expected mark
+			found := false
+			for _, textNode := range para.Content {
+				if textNode.Type != "text" {
+					continue
+				}
+				for _, mark := range textNode.Marks {
+					if mark.Type == tt.wantMark && textNode.Text == tt.wantText {
+						found = true
+					}
+				}
+			}
+			assert.True(t, found, "expected text node with mark %q and text %q", tt.wantMark, tt.wantText)
+		})
+	}
 }
 
 // Suppress unused import warning
