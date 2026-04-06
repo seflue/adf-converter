@@ -1,6 +1,7 @@
 package adf_types
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -18,6 +19,24 @@ type ADFNode struct {
 	Content []ADFNode              `json:"content,omitempty"`
 	Marks   []ADFMark              `json:"marks,omitempty"`
 	Text    string                 `json:"text,omitempty"` // Only for text nodes
+}
+
+// MarshalJSON ensures text nodes always include the "text" field, even when empty.
+// ADF spec requires "text" on text nodes but not on other node types.
+func (n ADFNode) MarshalJSON() ([]byte, error) {
+	type Alias ADFNode
+
+	if n.Type == NodeTypeText {
+		return json.Marshal(struct {
+			Alias
+			Text string `json:"text"`
+		}{
+			Alias: Alias(n),
+			Text:  n.Text,
+		})
+	}
+
+	return json.Marshal(Alias(n))
 }
 
 // ADFMark represents text formatting marks (bold, italic, etc.)
