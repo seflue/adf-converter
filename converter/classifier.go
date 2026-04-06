@@ -48,9 +48,10 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypePanel: true,
 			// BlockCard is a block-level smart link
 			adf_types.NodeTypeBlockCard: true,
+			// Blockquote can be converted to markdown > syntax
+			adf_types.NodeTypeBlockquote: true,
 		},
 		preservedTypes: map[string]bool{
-			adf_types.NodeTypeBlockquote:  true,
 			adf_types.NodeTypeMediaSingle: true,
 			// mediaInline is preserved as placeholder (no editable representation)
 			adf_types.NodeTypeMediaInline: true,

@@ -87,8 +87,8 @@ func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context Conver
 		}
 		result.Content = wrappedMarkdown
 	} else {
-		// For plain markdown blockquotes, trim trailing newline for cleaner output
-		result.Content = strings.TrimSuffix(result.Content, "\n")
+		// Trim trailing newline, then add block-level spacing
+		result.Content = strings.TrimSuffix(result.Content, "\n") + "\n\n"
 	}
 
 	return result, nil
@@ -141,18 +141,14 @@ func (bc *BlockquoteConverter) convertParagraphToMarkdown(paragraph adf_types.AD
 }
 
 func (bc *BlockquoteConverter) createQuotePrefix(nestedLevel int) string {
-	if nestedLevel <= 0 {
-		nestedLevel = 1
-	}
-
+	depth := nestedLevel + 1
 	var prefix strings.Builder
-	for i := 0; i < nestedLevel; i++ {
+	for i := 0; i < depth; i++ {
 		if i > 0 {
 			prefix.WriteString(" ")
 		}
 		prefix.WriteString(">")
 	}
-
 	return prefix.String()
 }
 
@@ -320,7 +316,9 @@ func parseXMLBlockquote(lines []string) (*adf_types.ADFNode, int, error) {
 	return &blockquoteNode, endIdx - startIdx + 1, nil
 }
 
-// parseMarkdownBlockquote parses standard markdown blockquote (> prefix) into ADF
+// parseMarkdownBlockquote parses standard markdown blockquote (> prefix) into ADF.
+// Only strips one level of > prefix. Remaining > characters stay as literal text
+// because ADF does not allow nested blockquote nodes.
 func parseMarkdownBlockquote(lines []string) (adf_types.ADFNode, error) {
 	var paragraphs []adf_types.ADFNode
 	var currentParagraphLines []string
@@ -328,7 +326,6 @@ func parseMarkdownBlockquote(lines []string) (adf_types.ADFNode, error) {
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" {
-			// Empty line - end current paragraph if any
 			if len(currentParagraphLines) > 0 {
 				paragraphs = append(paragraphs, createParagraphFromLines(currentParagraphLines))
 				currentParagraphLines = nil
@@ -336,16 +333,10 @@ func parseMarkdownBlockquote(lines []string) (adf_types.ADFNode, error) {
 			continue
 		}
 
-		// Remove blockquote prefix (> )
-		content := line
-		if strings.HasPrefix(trimmed, "> ") {
-			content = strings.TrimSpace(line[strings.Index(line, ">")+1:])
-		} else if strings.HasPrefix(trimmed, ">") {
-			content = strings.TrimSpace(line[strings.Index(line, ">")+1:])
-		}
+		// Strip one level of > prefix — remaining > stays as literal text
+		content := stripBlockquotePrefix(trimmed)
 
 		if content == "" {
-			// Empty blockquote line (like "> ") - end current paragraph if any
 			if len(currentParagraphLines) > 0 {
 				paragraphs = append(paragraphs, createParagraphFromLines(currentParagraphLines))
 				currentParagraphLines = nil
@@ -355,7 +346,6 @@ func parseMarkdownBlockquote(lines []string) (adf_types.ADFNode, error) {
 		}
 	}
 
-	// Add final paragraph if any
 	if len(currentParagraphLines) > 0 {
 		paragraphs = append(paragraphs, createParagraphFromLines(currentParagraphLines))
 	}
@@ -364,6 +354,17 @@ func parseMarkdownBlockquote(lines []string) (adf_types.ADFNode, error) {
 		Type:    "blockquote",
 		Content: paragraphs,
 	}, nil
+}
+
+// stripBlockquotePrefix removes one level of > prefix from a line.
+func stripBlockquotePrefix(line string) string {
+	if strings.HasPrefix(line, "> ") {
+		return line[2:]
+	}
+	if strings.HasPrefix(line, ">") {
+		return line[1:]
+	}
+	return line
 }
 
 // createParagraphFromLines creates an ADF paragraph node from text lines

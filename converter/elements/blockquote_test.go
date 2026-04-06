@@ -202,7 +202,7 @@ func TestBlockquoteConverter_RoundTrip_Simple(t *testing.T) {
 	result, err := converter.ToMarkdown(node, ctx)
 	require.NoError(t, err)
 
-	assert.Equal(t, "> This is a simple blockquote", result.Content)
+	assert.Equal(t, "> This is a simple blockquote\n\n", result.Content)
 }
 
 func TestBlockquoteConverter_RoundTrip_WithAttributes(t *testing.T) {
@@ -460,6 +460,32 @@ func TestParseXMLBlockquote(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBlockquoteConverter_FromMarkdown_NestedPrefix(t *testing.T) {
+	bc := NewBlockquoteConverter()
+
+	// > > text is NOT a nested blockquote in ADF — the remaining > stays as literal text
+	// Separated by empty blockquote line to create two paragraphs
+	lines := []string{
+		"> Outer text",
+		">",
+		"> > Inner text",
+	}
+
+	node, consumed, err := bc.FromMarkdown(lines, 0, ConversionContext{})
+	require.NoError(t, err)
+	assert.Equal(t, 3, consumed)
+	assert.Equal(t, "blockquote", node.Type)
+
+	// Two paragraphs — no nested blockquote node
+	require.Len(t, node.Content, 2)
+	assert.Equal(t, "paragraph", node.Content[0].Type)
+	assert.Equal(t, "paragraph", node.Content[1].Type)
+
+	// Second paragraph preserves literal > as text
+	require.Len(t, node.Content[1].Content, 1)
+	assert.Equal(t, "> Inner text", node.Content[1].Content[0].Text)
 }
 
 // Suppress unused import warning
