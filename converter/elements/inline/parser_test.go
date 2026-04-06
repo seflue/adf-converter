@@ -5,6 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/text"
+
 	"adf-converter/adf_types"
 )
 
@@ -848,5 +852,36 @@ func TestParseContent_StatusNotMatched(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestConvertInlineAST_DoesNotMutateParentMarksBackingArray(t *testing.T) {
+	// Regression test for the slice-aliasing bug in mark propagation (ac-0017).
+	// append(parentMarks, mark) silently mutates the backing array of the caller's
+	// slice when cap > len. Fix: three-index slice parentMarks[:n:n] caps capacity.
+	parentMarks := make([]adf_types.ADFMark, 1, 2)
+	parentMarks[0] = adf_types.ADFMark{Type: adf_types.MarkTypeStrong}
+
+	// Place a sentinel at the extra-capacity slot to detect mutation.
+	backing := parentMarks[:2]
+	backing[1] = adf_types.ADFMark{Type: "sentinel"}
+
+	// Parse "*italic*": the Emphasis case does append(parentMarks, emMark).
+	// Without the fix, emMark is written to backing[1], overwriting the sentinel.
+	source := []byte("*italic*")
+	parser := goldmark.New(goldmark.WithExtensions(extension.Strikethrough))
+	doc := parser.Parser().Parse(text.NewReader(source))
+	para := doc.FirstChild()
+	if para == nil {
+		t.Fatal("expected paragraph node")
+	}
+
+	if _, err := convertInlineAST(para.FirstChild(), source, parentMarks); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if backing[1].Type != "sentinel" {
+		t.Errorf("backing array mutated: got %q, want %q — append(parentMarks, mark) aliased the caller's backing array",
+			backing[1].Type, "sentinel")
 	}
 }

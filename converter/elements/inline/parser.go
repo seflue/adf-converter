@@ -351,7 +351,7 @@ func isClosingHTMLTag(n *ast.RawHTML, source []byte, tagName string) bool {
 // collectNodesUntilClosingTag walks sibling nodes between opening and closing HTML tags,
 // applies the given mark to all collected content, and returns the node after the closing tag.
 func collectNodesUntilClosingTag(start ast.Node, source []byte, tagName string, mark adf_types.ADFMark, parentMarks []adf_types.ADFMark) ([]adf_types.ADFNode, ast.Node, error) {
-	allMarks := append(parentMarks, mark)
+	allMarks := append(parentMarks[:len(parentMarks):len(parentMarks)], mark)
 	var nodes []adf_types.ADFNode
 
 	current := start
@@ -382,12 +382,12 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 
 	case *ast.Emphasis:
 		mark := getEmphasisMark(n)
-		childMarks := append(parentMarks, mark)
+		childMarks := append(parentMarks[:len(parentMarks):len(parentMarks)], mark)
 		return convertInlineAST(n.FirstChild(), source, childMarks)
 
 	case *east.Strikethrough:
 		strikeMark := adf_types.ADFMark{Type: adf_types.MarkTypeStrike}
-		childMarks := append(parentMarks, strikeMark)
+		childMarks := append(parentMarks[:len(parentMarks):len(parentMarks)], strikeMark)
 		return convertInlineAST(n.FirstChild(), source, childMarks)
 
 	case *ast.CodeSpan:
@@ -429,7 +429,7 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 			attrs["title"] = string(n.Title)
 		}
 		linkMark := adf_types.NewMark(adf_types.MarkTypeLink, attrs)
-		childMarks := append(parentMarks, linkMark)
+		childMarks := append(parentMarks[:len(parentMarks):len(parentMarks)], linkMark)
 		return convertInlineAST(n.FirstChild(), source, childMarks)
 
 	case *ast.RawHTML:
