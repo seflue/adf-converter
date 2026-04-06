@@ -76,7 +76,7 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 	if localID, exists := node.Attrs["localId"]; exists {
 		if localIDStr, ok := localID.(string); ok {
-			htmlBuilder.WriteString(fmt.Sprintf(` id="%s"`, localIDStr))
+			fmt.Fprintf(&htmlBuilder, ` id="%s"`, localIDStr)
 		}
 	}
 
@@ -89,7 +89,7 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 	htmlBuilder.WriteString(">\n")
 
-	htmlBuilder.WriteString(fmt.Sprintf("  <summary>%s</summary>\n", title))
+	fmt.Fprintf(&htmlBuilder, "  <summary>%s</summary>\n", title)
 
 	content := strings.TrimSpace(contentBuilder.String())
 	if content != "" {

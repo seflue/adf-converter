@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"adf-converter/adf_types"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Manager handles the storage and retrieval of preserved ADF content
@@ -113,7 +115,7 @@ func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
 	case adf_types.NodeTypeInlineCard:
 		return "InlineCard (data object)"
 	default:
-		return fmt.Sprintf("%s (complex content)", strings.Title(node.Type))
+		return fmt.Sprintf("%s (complex content)", cases.Title(language.English).String(node.Type))
 	}
 }
 
@@ -193,10 +195,10 @@ func (m *DefaultManager) generatePanelPreview(node adf_types.ADFNode) string {
 		if len(text) > 50 {
 			text = text[:47] + "..."
 		}
-		return fmt.Sprintf("%s Panel: %s", strings.Title(panelType), text)
+		return fmt.Sprintf("%s Panel: %s", cases.Title(language.English).String(panelType), text)
 	}
 
-	return fmt.Sprintf("%s Panel", strings.Title(panelType))
+	return fmt.Sprintf("%s Panel", cases.Title(language.English).String(panelType))
 }
 
 // generateBlockquotePreview creates a preview for blockquotes

@@ -75,12 +75,8 @@ func (dhlp *DefaultHTMLLinkParser) extractAttributesWithValidation(htmlTag strin
 
 	// Remove < and > brackets
 	content := strings.TrimSpace(htmlTag)
-	if strings.HasPrefix(content, "<") {
-		content = content[1:]
-	}
-	if strings.HasSuffix(content, ">") {
-		content = content[:len(content)-1]
-	}
+	content = strings.TrimPrefix(content, "<")
+	content = strings.TrimSuffix(content, ">")
 
 	// Remove the 'a' tag name
 	if strings.HasPrefix(content, "a ") {

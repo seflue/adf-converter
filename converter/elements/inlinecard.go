@@ -55,16 +55,16 @@ func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 		for _, attr := range complexAttrs {
 			if value, exists := node.Attrs[attr]; exists {
 				if strValue, ok := value.(string); ok {
-					htmlBuilder.WriteString(fmt.Sprintf(` %s="%s"`, attr, strValue))
+					fmt.Fprintf(&htmlBuilder, ` %s="%s"`, attr, strValue)
 				} else if intValue, ok := value.(int); ok {
-					htmlBuilder.WriteString(fmt.Sprintf(` %s="%d"`, attr, intValue))
+					fmt.Fprintf(&htmlBuilder, ` %s="%d"`, attr, intValue)
 				}
 			}
 		}
 
 		htmlBuilder.WriteString(">")
 		if linkURL != "" {
-			htmlBuilder.WriteString(fmt.Sprintf("[%s](%s)", linkURL, linkURL))
+			fmt.Fprintf(&htmlBuilder, "[%s](%s)", linkURL, linkURL)
 		} else {
 			htmlBuilder.WriteString("[InlineCard]")
 		}

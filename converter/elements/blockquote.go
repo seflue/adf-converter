@@ -245,17 +245,15 @@ func (bc *BlockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, 
 
 	xmlBuilder.WriteString("<blockquote")
 
-	if attrs != nil {
-		for key, value := range attrs {
-			switch key {
-			case "localId":
-				if localIdStr, ok := value.(string); ok {
-					xmlBuilder.WriteString(fmt.Sprintf(` localId="%s"`, localIdStr))
-				}
-			case "level":
-				if levelInt, ok := value.(int); ok {
-					xmlBuilder.WriteString(fmt.Sprintf(` level="%d"`, levelInt))
-				}
+	for key, value := range attrs {
+		switch key {
+		case "localId":
+			if localIdStr, ok := value.(string); ok {
+				fmt.Fprintf(&xmlBuilder, ` localId="%s"`, localIdStr)
+			}
+		case "level":
+			if levelInt, ok := value.(int); ok {
+				fmt.Fprintf(&xmlBuilder, ` level="%d"`, levelInt)
 			}
 		}
 	}

@@ -132,12 +132,8 @@ func (v *XMLValidator) ValidateElement(elementName string, attrs map[string]stri
 		allowedAttrs[attr] = true
 	}
 
-	for attrName := range attrs {
-		if !allowedAttrs[attrName] {
-			// This is a warning, not an error, to allow for future extensibility
-			// In production, you might want to log this as a warning
-		}
-	}
+	// Unknown attributes are silently accepted for forward-compatibility.
+	// Validation only checks required attrs and content type below.
 
 	// Validate content type
 	switch schema.ContentType {

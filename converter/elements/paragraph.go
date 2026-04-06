@@ -10,6 +10,8 @@ import (
 	"adf-converter/converter/elements/inline"
 )
 
+var orderedListPattern = regexp.MustCompile(`^\s*\d+\.\s`)
+
 // ParagraphConverter handles conversion of ADF paragraph nodes to/from markdown
 type ParagraphConverter struct{}
 
@@ -98,7 +100,7 @@ func (pc *ParagraphConverter) FromMarkdown(lines []string, startIndex int, conte
 			break
 		}
 
-		if matched, _ := regexp.MatchString(`^\s*\d+\.\s`, line); matched {
+		if orderedListPattern.MatchString(line) {
 			consumed = i - startIndex
 			break
 		}

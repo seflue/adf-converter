@@ -300,7 +300,7 @@ func TestParseFromString(t *testing.T) {
 	}
 
 	if doc == nil {
-		t.Error("Expected document but got nil")
+		t.Fatal("Expected document but got nil")
 	}
 
 	if doc.Version != 1 {

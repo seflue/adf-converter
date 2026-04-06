@@ -326,20 +326,20 @@ func (dvmt *DefaultValidationMetricsTracker) GenerateReport() string {
 
 	// Overall metrics
 	report.WriteString("Overall Metrics:\n")
-	report.WriteString(fmt.Sprintf("  Total Conversions: %d\n", dvmt.metrics.TotalConversions))
-	report.WriteString(fmt.Sprintf("  Successful Rounds: %d\n", dvmt.metrics.SuccessfulRounds))
-	report.WriteString(fmt.Sprintf("  Success Rate: %.2f%%\n", dvmt.getSuccessRate()))
-	report.WriteString(fmt.Sprintf("  Fidelity Score: %.3f\n", dvmt.metrics.FidelityScore))
-	report.WriteString(fmt.Sprintf("  Attributes Lost: %d\n", dvmt.metrics.AttributesLost))
-	report.WriteString(fmt.Sprintf("  Content Modified: %d\n", dvmt.metrics.ContentModified))
-	report.WriteString(fmt.Sprintf("  Conversions/sec: %.2f\n", dvmt.metrics.ConversionsPerSecond))
+	fmt.Fprintf(&report, "  Total Conversions: %d\n", dvmt.metrics.TotalConversions)
+	fmt.Fprintf(&report, "  Successful Rounds: %d\n", dvmt.metrics.SuccessfulRounds)
+	fmt.Fprintf(&report, "  Success Rate: %.2f%%\n", dvmt.getSuccessRate())
+	fmt.Fprintf(&report, "  Fidelity Score: %.3f\n", dvmt.metrics.FidelityScore)
+	fmt.Fprintf(&report, "  Attributes Lost: %d\n", dvmt.metrics.AttributesLost)
+	fmt.Fprintf(&report, "  Content Modified: %d\n", dvmt.metrics.ContentModified)
+	fmt.Fprintf(&report, "  Conversions/sec: %.2f\n", dvmt.metrics.ConversionsPerSecond)
 
 	// Timing metrics
 	report.WriteString("\nTiming Metrics:\n")
-	report.WriteString(fmt.Sprintf("  Average Time: %v\n", dvmt.metrics.AverageValidationTime))
-	report.WriteString(fmt.Sprintf("  Min Time: %v\n", dvmt.metrics.MinValidationTime))
-	report.WriteString(fmt.Sprintf("  Max Time: %v\n", dvmt.metrics.MaxValidationTime))
-	report.WriteString(fmt.Sprintf("  Total Time: %v\n", dvmt.metrics.TotalValidationTime))
+	fmt.Fprintf(&report, "  Average Time: %v\n", dvmt.metrics.AverageValidationTime)
+	fmt.Fprintf(&report, "  Min Time: %v\n", dvmt.metrics.MinValidationTime)
+	fmt.Fprintf(&report, "  Max Time: %v\n", dvmt.metrics.MaxValidationTime)
+	fmt.Fprintf(&report, "  Total Time: %v\n", dvmt.metrics.TotalValidationTime)
 
 	// Node type breakdown
 	report.WriteString("\nNode Type Breakdown:\n")
@@ -348,8 +348,8 @@ func (dvmt *DefaultValidationMetricsTracker) GenerateReport() string {
 		if metrics.TotalConversions > 0 {
 			successRate = float64(metrics.SuccessfulRounds) / float64(metrics.TotalConversions) * 100
 		}
-		report.WriteString(fmt.Sprintf("  %s: %d conversions, %.1f%% success, %d attr lost, %d content modified\n",
-			nodeType, metrics.TotalConversions, successRate, metrics.AttributesLost, metrics.ContentModified))
+		fmt.Fprintf(&report, "  %s: %d conversions, %.1f%% success, %d attr lost, %d content modified\n",
+			nodeType, metrics.TotalConversions, successRate, metrics.AttributesLost, metrics.ContentModified)
 	}
 
 	// Strategy breakdown
@@ -359,15 +359,15 @@ func (dvmt *DefaultValidationMetricsTracker) GenerateReport() string {
 		if metrics.TotalConversions > 0 {
 			successRate = float64(metrics.SuccessfulRounds) / float64(metrics.TotalConversions) * 100
 		}
-		report.WriteString(fmt.Sprintf("  %s: %d conversions, %.1f%% success\n",
-			strategy.String(), metrics.TotalConversions, successRate))
+		fmt.Fprintf(&report, "  %s: %d conversions, %.1f%% success\n",
+			strategy.String(), metrics.TotalConversions, successRate)
 	}
 
 	// Top errors
 	report.WriteString("\nMost Common Errors:\n")
 	for errorType, count := range dvmt.metrics.ErrorsByType {
 		if count > 0 {
-			report.WriteString(fmt.Sprintf("  %s: %d occurrences\n", errorType, count))
+			fmt.Fprintf(&report, "  %s: %d occurrences\n", errorType, count)
 		}
 	}
 

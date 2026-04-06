@@ -263,7 +263,7 @@ func generateNestedDetailsMarkdown(depth int) string {
 
 	// Opening tags
 	for i := 0; i < depth; i++ {
-		builder.WriteString(fmt.Sprintf("<details>\n<summary>Level %d</summary>\n", i+1))
+		fmt.Fprintf(&builder, "<details>\n<summary>Level %d</summary>\n", i+1)
 	}
 
 	builder.WriteString("Deepest content\n")
@@ -282,7 +282,7 @@ func generateMalformedNestedDetails(depth int) string {
 
 	// Create nested structure but deliberately omit some closing tags
 	for i := 0; i < depth; i++ {
-		builder.WriteString(fmt.Sprintf("<details>\n<summary>Level %d</summary>\n", i+1))
+		fmt.Fprintf(&builder, "<details>\n<summary>Level %d</summary>\n", i+1)
 	}
 
 	builder.WriteString("Content without proper closing\n")

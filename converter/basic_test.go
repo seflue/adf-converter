@@ -152,7 +152,7 @@ func TestToMarkdown_BasicDocument(t *testing.T) {
 	}
 
 	if session == nil {
-		t.Error("Expected session to be returned")
+		t.Fatal("Expected session to be returned")
 	}
 
 	if session.ID == "" {

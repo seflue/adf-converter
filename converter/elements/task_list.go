@@ -183,10 +183,6 @@ func (tc *TaskListConverter) countTaskListLines(lines []string, startIndex int) 
 	return lastTaskLine
 }
 
-func (tc *TaskListConverter) hasXMLWrapper(lines []string) bool {
-	return len(lines) > 0 && strings.HasPrefix(strings.TrimSpace(lines[0]), "<taskList")
-}
-
 func (tc *TaskListConverter) extractFromXMLWrapper(lines []string) ([]string, map[string]interface{}) {
 	attrs := internal.ParseXMLAttributes(strings.TrimSpace(lines[0]))
 	var contentLines []string
@@ -285,12 +281,12 @@ func (tc *TaskListConverter) wrapTaskListWithXML(markdownTaskList string, attrs 
 	xmlBuilder.WriteString("<taskList")
 
 	if localId, ok := attrs["localId"].(string); ok {
-		xmlBuilder.WriteString(fmt.Sprintf(` localId="%s"`, localId))
+		fmt.Fprintf(&xmlBuilder, ` localId="%s"`, localId)
 	}
 
 	completed, total := tc.countTaskStats(markdownTaskList)
 	if total > 0 {
-		xmlBuilder.WriteString(fmt.Sprintf(` completed="%d" total="%d"`, completed, total))
+		fmt.Fprintf(&xmlBuilder, ` completed="%d" total="%d"`, completed, total)
 	}
 
 	xmlBuilder.WriteString(">\n")

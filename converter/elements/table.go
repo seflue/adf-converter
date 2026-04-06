@@ -615,19 +615,19 @@ func (tc *TableConverter) wrapTableWithXML(markdownTable string, attrs map[strin
 	if attrs != nil {
 		if localId, exists := attrs["localId"]; exists {
 			if localIdStr, ok := localId.(string); ok {
-				xmlBuilder.WriteString(fmt.Sprintf(` localId="%s"`, localIdStr))
+				fmt.Fprintf(&xmlBuilder, ` localId="%s"`, localIdStr)
 			}
 		}
 
 		if layout, exists := attrs["layout"]; exists {
 			if layoutStr, ok := layout.(string); ok {
-				xmlBuilder.WriteString(fmt.Sprintf(` layout="%s"`, layoutStr))
+				fmt.Fprintf(&xmlBuilder, ` layout="%s"`, layoutStr)
 			}
 		}
 
 		if isNumberColumnEnabled, exists := attrs["isNumberColumnEnabled"]; exists {
 			if isNumberColumnEnabledBool, ok := isNumberColumnEnabled.(bool); ok {
-				xmlBuilder.WriteString(fmt.Sprintf(` isNumberColumnEnabled="%t"`, isNumberColumnEnabledBool))
+				fmt.Fprintf(&xmlBuilder, ` isNumberColumnEnabled="%t"`, isNumberColumnEnabledBool)
 			}
 		}
 	}

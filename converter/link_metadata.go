@@ -111,7 +111,7 @@ func (lm *LinkMetadata) AttributeCount() int {
 
 // IsEmpty returns true if the metadata has no href or attributes
 func (lm *LinkMetadata) IsEmpty() bool {
-	return lm.Href == "" && (lm.Attributes == nil || len(lm.Attributes) == 0)
+	return lm.Href == "" && len(lm.Attributes) == 0
 }
 
 // HasSignificantMetadata returns true if there are attributes beyond href
