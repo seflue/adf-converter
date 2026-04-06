@@ -12,14 +12,13 @@ import (
 var (
 	detailsOpenRegex = regexp.MustCompile(`^<details(\s+[^>]*)?>`)
 	idAttrRegex      = regexp.MustCompile(`\sid\s*=\s*["|']([^"']*)["|']`)
-	adfTypeAttrRegex = regexp.MustCompile(`data-adf-type="([^"]+)"`)
 )
 
 // ExpandConverter handles conversion of ADF expand and nestedExpand nodes to/from markdown
 //
 // This converter handles BOTH "expand" AND "nestedExpand" node types with a single implementation.
-// The two types are functionally identical in terms of conversion - they both use HTML <details>
-// elements with data-adf-type attributes to preserve the original type for round-trip fidelity.
+// Both use plain HTML <details> elements. The node type is derived from structural context:
+// top-level <details> → expand, nested <details> (NestedLevel > 0) → nestedExpand.
 type ExpandConverter struct{}
 
 func NewExpandConverter() *ExpandConverter {
@@ -63,17 +62,14 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 	htmlBuilder.WriteString("<details")
 
+	if expanded, ok := node.Attrs["expanded"].(bool); ok && expanded {
+		htmlBuilder.WriteString(" open")
+	}
+
 	if localID, exists := node.Attrs["localId"]; exists {
 		if localIDStr, ok := localID.(string); ok {
 			fmt.Fprintf(&htmlBuilder, ` id="%s"`, localIDStr)
 		}
-	}
-
-	switch node.Type {
-	case adf_types.NodeTypeNestedExpand:
-		htmlBuilder.WriteString(` data-adf-type="nestedExpand"`)
-	case adf_types.NodeTypeExpand:
-		htmlBuilder.WriteString(` data-adf-type="expand"`)
 	}
 
 	htmlBuilder.WriteString(">\n")
@@ -122,11 +118,10 @@ func (ec *ExpandConverter) FromMarkdown(lines []string, startIndex int, context 
 		attributes["localId"] = idMatch[1]
 	}
 
+	// Derive node type from structural context: nested <details> = nestedExpand
 	nodeType := adf_types.NodeTypeExpand
-	if matches := adfTypeAttrRegex.FindStringSubmatch(firstLine); len(matches) > 1 {
-		if matches[1] == "nestedExpand" {
-			nodeType = adf_types.NodeTypeNestedExpand
-		}
+	if context.NestedLevel > 0 {
+		nodeType = adf_types.NodeTypeNestedExpand
 	}
 
 	// Find summary and closing tag with nesting-aware scan

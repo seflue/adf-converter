@@ -133,9 +133,13 @@ Eine Notiz zur Kenntnisnahme.
 
 ## 13. Expand (Details)
 
-<details data-adf-type="expand">
+<details>
   <summary>Klick mich auf</summary>
   Versteckter Inhalt im Expand-Block.
+  <details>
+    <summary>Verschachtelter Expand</summary>
+    Inhalt im verschachtelten Expand.
+  </details>
 </details>
 
 ## 14. Mention

@@ -576,10 +576,7 @@ func TestEnhancedLinkRoundtrip_BasicExternalLinks(t *testing.T) {
 // Expand Element Round-trip Tests
 // ============================================================================
 
-// DISABLED: False positive - passes despite known production failures (QA Gate Mandate)
-// Re-enable only after new parser architecture is implemented and comprehensive stress testing added
-func TestExpandRoundtrip_BasicExpandElement_DISABLED(t *testing.T) {
-	t.Skip("DISABLED: False positive test - passes while production code fails with infinite recursion")
+func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 	// Test basic expand element through round-trip conversion
 	original := adf_types.ADFDocument{
 		Version: 1,
@@ -612,8 +609,9 @@ func TestExpandRoundtrip_BasicExpandElement_DISABLED(t *testing.T) {
 	markdown, session, err := ToMarkdown(original, classifier, manager)
 	require.NoError(t, err)
 
-	// Should contain HTML details element
+	// No data-adf-type attribute — node type is derived from structural context
 	assert.Contains(t, markdown, "<details>")
+	assert.NotContains(t, markdown, `data-adf-type`)
 	assert.Contains(t, markdown, "<summary>Click to expand</summary>")
 	assert.Contains(t, markdown, "Hidden content here.")
 	assert.Contains(t, markdown, "</details>")
@@ -847,52 +845,154 @@ func TestRoundTripFidelity_PreservesAllContent(t *testing.T) {
 	}
 }
 
-// DISABLED: False positive - passes despite known production failures (QA Gate Mandate)
-// Re-enable only after new parser architecture is implemented and comprehensive stress testing added
-func TestExpandBackwardCompatibility_XMLFormat_DISABLED(t *testing.T) {
-	t.Skip("DISABLED: False positive test - passes while production code fails with infinite recursion")
-	// Test that existing XML expand format can still be parsed
-	markdownWithXML := `This is a test document.
+func TestExpandBackwardCompatibility_DetailsFormat(t *testing.T) {
+	// Test that <details> expand in context (surrounded by paragraphs) is parsed correctly
+	markdownWithDetails := "paragraph before\n\n<details data-adf-type=\"expand\">\n  <summary>Section Title</summary>\n  Content inside.\n</details>\n\nMore content here."
 
-<expand title="Legacy XML Format">
-This content was created with the old XML format.
-It should still be parsed correctly.
-</expand>
-
-More content here.`
-
-	classifier := NewDefaultClassifier()
 	manager := placeholder.NewManager()
-
-	// Convert XML markdown back to ADF
 	session := manager.GetSession()
-	restored, err := FromMarkdown(markdownWithXML, session, manager)
+
+	restored, err := FromMarkdown(markdownWithDetails, session, manager)
 	require.NoError(t, err)
 
-	// Verify expand element is parsed correctly
 	require.Equal(t, 3, len(restored.Content), "Should have 3 top-level elements")
 
-	expandNode := restored.Content[1] // Middle element should be expand
+	expandNode := restored.Content[1]
 	assert.Equal(t, adf_types.NodeTypeExpand, expandNode.Type)
-	assert.Equal(t, "Legacy XML Format", expandNode.Attrs["title"])
-
-	// Verify content is preserved
+	assert.Equal(t, "Section Title", expandNode.Attrs["title"])
 	require.Greater(t, len(expandNode.Content), 0, "Expand should have content")
-
-	newMarkdown, _, err := ToMarkdown(restored, classifier, manager)
-	require.NoError(t, err)
-
-	// Should now be in details format
-	assert.Contains(t, newMarkdown, "<details>")
-	assert.Contains(t, newMarkdown, "<summary>Legacy XML Format</summary>")
-	assert.Contains(t, newMarkdown, "This content was created with the old XML format.")
-	assert.Contains(t, newMarkdown, "</details>")
 }
 
-// DISABLED: False positive - passes despite known production failures (QA Gate Mandate)
-// Re-enable only after new parser architecture is implemented and comprehensive stress testing added
-func TestExpandDetails_AttributeHandling_DISABLED(t *testing.T) {
-	t.Skip("DISABLED: False positive test - passes while production code fails with infinite recursion")
+func TestExpandNested_NoBlankLineBeforeInnerDetails(t *testing.T) {
+	// Bug: when there's no blank line between text and nested <details>,
+	// the inner expand gets corrupted during roundtrip
+	markdown := "<details>\n  <summary>Outer</summary>\n  Some text before\n  <details>\n    <summary>Inner</summary>\n    Inner content\n  </details>\n</details>"
+
+	manager := placeholder.NewManager()
+	session := manager.GetSession()
+
+	restored, err := FromMarkdown(markdown, session, manager)
+	require.NoError(t, err)
+
+	// Find the expand node
+	require.Greater(t, len(restored.Content), 0)
+	expandNode := restored.Content[0]
+	assert.Equal(t, adf_types.NodeTypeExpand, expandNode.Type)
+	assert.Equal(t, "Outer", expandNode.Attrs["title"])
+
+	// Should have both: a paragraph with "Some text before" AND a nestedExpand
+	require.GreaterOrEqual(t, len(expandNode.Content), 2, "Should have paragraph + nestedExpand")
+
+	var foundParagraph, foundNestedExpand bool
+	for _, child := range expandNode.Content {
+		if child.Type == adf_types.NodeTypeParagraph {
+			foundParagraph = true
+		}
+		if child.Type == adf_types.NodeTypeNestedExpand {
+			foundNestedExpand = true
+			assert.Equal(t, "Inner", child.Attrs["title"])
+		}
+	}
+	assert.True(t, foundParagraph, "Should have paragraph with text content")
+	assert.True(t, foundNestedExpand, "Should have nestedExpand child")
+}
+
+func TestParagraph_InlineHTMLNotBlockBoundary(t *testing.T) {
+	// Inline HTML tags at line start must NOT break the paragraph.
+	// isBlockBoundary delegates to BlockParsers — none should claim <u>, <sub>, etc.
+	markdown := "First line\n<u>underlined</u> text\n<sub>subscript</sub> too"
+
+	manager := placeholder.NewManager()
+	session := manager.GetSession()
+
+	restored, err := FromMarkdown(markdown, session, manager)
+	require.NoError(t, err)
+
+	// All three lines should be in a single paragraph
+	require.Equal(t, 1, len(restored.Content), "Should be one paragraph, not split at inline HTML")
+	assert.Equal(t, adf_types.NodeTypeParagraph, restored.Content[0].Type)
+}
+
+func TestExpandRoundtrip_NestedExpandWithContent(t *testing.T) {
+	// Full ADF→MD→ADF roundtrip: expand containing text + nestedExpand
+	original := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type:  adf_types.NodeTypeExpand,
+				Attrs: map[string]interface{}{"title": "Outer"},
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeParagraph,
+						Content: []adf_types.ADFNode{
+							{Type: adf_types.NodeTypeText, Text: "Text before nested"},
+						},
+					},
+					{
+						Type:  adf_types.NodeTypeNestedExpand,
+						Attrs: map[string]interface{}{"title": "Inner"},
+						Content: []adf_types.ADFNode{
+							{
+								Type: adf_types.NodeTypeParagraph,
+								Content: []adf_types.ADFNode{
+									{Type: adf_types.NodeTypeText, Text: "Nested content"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	manager := placeholder.NewManager()
+	classifier := NewDefaultClassifier()
+
+	markdown, session, err := ToMarkdown(original, classifier, manager)
+	require.NoError(t, err)
+
+	restored, err := FromMarkdown(markdown, session, manager)
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(restored.Content))
+	expand := restored.Content[0]
+	assert.Equal(t, adf_types.NodeTypeExpand, expand.Type)
+	assert.Equal(t, "Outer", expand.Attrs["title"])
+
+	// Must have paragraph + nestedExpand
+	var hasParagraph, hasNestedExpand bool
+	for _, child := range expand.Content {
+		if child.Type == adf_types.NodeTypeParagraph {
+			hasParagraph = true
+		}
+		if child.Type == adf_types.NodeTypeNestedExpand {
+			hasNestedExpand = true
+			assert.Equal(t, "Inner", child.Attrs["title"])
+		}
+	}
+	assert.True(t, hasParagraph, "Roundtrip must preserve paragraph")
+	assert.True(t, hasNestedExpand, "Roundtrip must preserve nestedExpand")
+}
+
+func TestExpandParsing_BackToBackExpands(t *testing.T) {
+	// Two expands without blank line between closing and opening tag
+	markdown := "<details>\n  <summary>First</summary>\n  Content 1\n</details>\n<details>\n  <summary>Second</summary>\n  Content 2\n</details>"
+
+	manager := placeholder.NewManager()
+	session := manager.GetSession()
+
+	restored, err := FromMarkdown(markdown, session, manager)
+	require.NoError(t, err)
+
+	require.Equal(t, 2, len(restored.Content), "Should parse two separate expand nodes")
+	assert.Equal(t, adf_types.NodeTypeExpand, restored.Content[0].Type)
+	assert.Equal(t, "First", restored.Content[0].Attrs["title"])
+	assert.Equal(t, adf_types.NodeTypeExpand, restored.Content[1].Type)
+	assert.Equal(t, "Second", restored.Content[1].Attrs["title"])
+}
+
+func TestExpandDetails_AttributeHandling(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    adf_types.ADFDocument
@@ -1003,10 +1103,7 @@ func TestExpandDetails_AttributeHandling_DISABLED(t *testing.T) {
 	}
 }
 
-// DISABLED: Insufficient depth testing - doesn't catch infinite recursion (QA Gate Mandate)
-// Re-enable only after new parser architecture is implemented and comprehensive stress testing added
-func TestExpandDetails_EdgeCases_DISABLED(t *testing.T) {
-	t.Skip("DISABLED: Insufficient depth testing - doesn't test deeply nested content that causes infinite recursion")
+func TestExpandDetails_EdgeCases(t *testing.T) {
 	tests := []struct {
 		name        string
 		markdownIn  string
@@ -1018,16 +1115,14 @@ func TestExpandDetails_EdgeCases_DISABLED(t *testing.T) {
 			markdownIn: `<details>
 Content without summary
 </details>`,
-			expectError: false, // Should fallback to paragraph
-			expectNodes: 1,     // Becomes a paragraph
+			expectError: true, // findSummary returns error
 		},
 		{
 			name: "malformed details - no closing tag",
 			markdownIn: `<details>
 <summary>Title</summary>
 Content without closing`,
-			expectError: false, // Should fallback to paragraph
-			expectNodes: 1,     // Becomes a paragraph
+			expectError: true, // findClosingTag returns error
 		},
 		{
 			name: "valid nested content",

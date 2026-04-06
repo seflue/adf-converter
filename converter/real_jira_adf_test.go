@@ -355,30 +355,20 @@ func TestRealJiraADF(t *testing.T) {
 	})
 
 	t.Run("Convert Real Jira ADF to Markdown", func(t *testing.T) {
-		// Convert to markdown - this should handle nestedExpand gracefully
 		markdown, _, err := converter.ToMarkdown(adfDoc)
-		// For now, we expect this to either work or give a clear error about unsupported node type
-		if err != nil {
-			// If it fails, it should be because nestedExpand is not supported yet
-			assert.Contains(t, err.Error(), "nestedExpand", "Error should mention unsupported nestedExpand node type")
-			t.Logf("Expected failure due to unsupported nestedExpand: %v", err)
-			return
-		}
+		require.NoError(t, err)
 
-		// If it succeeds, validate the output
-		assert.NotEmpty(t, markdown, "Should generate non-empty markdown")
+		assert.NotEmpty(t, markdown)
 		assert.Contains(t, markdown, "Test 1", "Should contain heading content")
 		assert.Contains(t, markdown, "This is for testing", "Should contain expand title")
 		assert.Contains(t, markdown, "Further testing", "Should contain second expand title")
 		assert.Contains(t, markdown, "**bold** item", "Should preserve bold formatting")
 		assert.Contains(t, markdown, "*italic* item", "Should preserve italic formatting")
-
-		t.Logf("Generated markdown from real Jira ADF:\n%s", markdown)
 	})
 
 	t.Run("Expected Markdown Structure for Real Jira ADF", func(t *testing.T) {
-		// This test documents what we expect the conversion to produce
-		// when nestedExpand support is implemented
+		markdown, _, err := converter.ToMarkdown(adfDoc)
+		require.NoError(t, err)
 
 		expectedElements := []string{
 			"# Test 1",
@@ -397,44 +387,30 @@ func TestRealJiraADF(t *testing.T) {
 			"<summary>Further testing</summary>",
 			"1. Some content",
 			"2. More content",
-			// For nestedExpand, we might expect nested details or some other structure
-			"<details>", // nested details for nestedExpand
+			"<details>",
 			"<summary>Nested</summary>",
 			"- more",
 			"- content",
-			"</details>", // end nested details
-			"</details>", // end parent details
+			"</details>",
+			"</details>",
 			"Test Instructions",
 			"- Simple text item",
 			"- **Bold text item**",
 			"- Item with [link](https://example.com)",
 		}
 
-		// For now, just document what we expect
-		t.Logf("When nestedExpand support is implemented, markdown should contain these elements:")
-		for i, element := range expectedElements {
-			t.Logf("  %d. %s", i+1, element)
+		for _, element := range expectedElements {
+			assert.Contains(t, markdown, element)
 		}
 	})
 
 	t.Run("Round-trip Test with Real Jira ADF", func(t *testing.T) {
-		// This test will verify that we can round-trip the real Jira structure
-		// Currently expected to fail until nestedExpand support is added
-
 		markdown, _, err := converter.ToMarkdown(adfDoc)
-		if err != nil {
-			t.Skipf("Skipping round-trip test due to ToMarkdown error: %v", err)
-			return
-		}
+		require.NoError(t, err)
 
-		// Convert back to ADF
 		newADF, err := converter.FromMarkdownLegacy(markdown, session)
-		if err != nil {
-			t.Logf("Round-trip conversion failed (expected): %v", err)
-			return
-		}
+		require.NoError(t, err)
 
-		// If round-trip succeeds, validate structure preservation
 		assert.Equal(t, adfDoc.Version, newADF.Version, "Version should be preserved")
 		assert.Equal(t, adfDoc.Type, newADF.Type, "Document type should be preserved")
 
@@ -462,7 +438,7 @@ func countExpandInNodeIncludingNested(node adf_types.ADFNode) int {
 	count := 0
 
 	// Check if this node is an expand or nestedExpand type
-	if node.Type == adf_types.NodeTypeExpand || node.Type == "nestedExpand" {
+	if node.Type == adf_types.NodeTypeExpand || node.Type == adf_types.NodeTypeNestedExpand {
 		count++
 	}
 

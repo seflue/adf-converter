@@ -155,9 +155,9 @@ func TestExpandConverter_ToMarkdown_BasicExpand(t *testing.T) {
 	result, err := ec.ToMarkdown(node, ctx)
 	require.NoError(t, err)
 
-	// Should contain details tag with expand data-adf-type
-	assert.Contains(t, result.Content, "<details")
-	assert.Contains(t, result.Content, `data-adf-type="expand"`)
+	// No data-adf-type attribute — node type is derived from structural context
+	assert.Contains(t, result.Content, "<details>")
+	assert.NotContains(t, result.Content, `data-adf-type`)
 	assert.Contains(t, result.Content, "<summary>Click to expand</summary>")
 	assert.Contains(t, result.Content, "Hidden content here")
 	assert.Contains(t, result.Content, "</details>")
@@ -191,8 +191,9 @@ func TestExpandConverter_ToMarkdown_NestedExpand(t *testing.T) {
 	result, err := ec.ToMarkdown(node, ctx)
 	require.NoError(t, err)
 
-	// Should contain nestedExpand data-adf-type
-	assert.Contains(t, result.Content, `data-adf-type="nestedExpand"`)
+	// No data-adf-type attribute — node type is derived from structural context
+	assert.NotContains(t, result.Content, `data-adf-type`)
+	assert.Contains(t, result.Content, "<details>")
 	assert.Contains(t, result.Content, "<summary>Nested section</summary>")
 	assert.Contains(t, result.Content, "Nested content")
 }
@@ -250,7 +251,7 @@ func TestExpandConverter_FromMarkdown_BasicExpand(t *testing.T) {
 	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
 
 	markdown := []string{
-		`<details data-adf-type="expand">`,
+		`<details>`,
 		`  <summary>Test Title</summary>`,
 		`  Some content here`,
 		`</details>`,
@@ -265,10 +266,11 @@ func TestExpandConverter_FromMarkdown_BasicExpand(t *testing.T) {
 
 func TestExpandConverter_FromMarkdown_NestedExpand(t *testing.T) {
 	ec := NewExpandConverter()
-	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+	// NestedLevel > 0 signals this <details> is inside another expand → nestedExpand
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown, NestedLevel: 1}
 
 	markdown := []string{
-		`<details data-adf-type="nestedExpand">`,
+		`<details>`,
 		`  <summary>Nested Title</summary>`,
 		`  Nested content`,
 		`</details>`,
@@ -286,7 +288,7 @@ func TestExpandConverter_FromMarkdown_WithOpenAttribute(t *testing.T) {
 	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
 
 	markdown := []string{
-		`<details open data-adf-type="expand">`,
+		`<details open>`,
 		`  <summary>Open Title</summary>`,
 		`  Visible content`,
 		`</details>`,
@@ -305,7 +307,7 @@ func TestExpandConverter_FromMarkdown_WithLocalId(t *testing.T) {
 	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
 
 	markdown := []string{
-		`<details id="section-123" data-adf-type="expand">`,
+		`<details id="section-123">`,
 		`  <summary>Section Title</summary>`,
 		`  Content with ID`,
 		`</details>`,
@@ -454,16 +456,17 @@ func TestExpandConverter_RoundTrip_NestedExpand(t *testing.T) {
 	result, err := ec.ToMarkdown(original, ctx)
 	require.NoError(t, err)
 
-	// Verify nestedExpand type is preserved in markdown
-	assert.Contains(t, result.Content, `data-adf-type="nestedExpand"`)
+	// No data-adf-type in output — type derived from context
+	assert.NotContains(t, result.Content, `data-adf-type`)
 
-	// Convert back to ADF
+	// Convert back with NestedLevel > 0 to simulate nested context
 	lines := strings.Split(strings.TrimSpace(result.Content), "\n")
-	restored, consumed, err := ec.FromMarkdown(lines, 0, ctx)
+	nestedCtx := converter.ConversionContext{Strategy: converter.StandardMarkdown, NestedLevel: 1}
+	restored, consumed, err := ec.FromMarkdown(lines, 0, nestedCtx)
 	require.NoError(t, err)
 	assert.Greater(t, consumed, 0)
 
-	// CRITICAL: Verify nestedExpand type is preserved through round-trip
+	// nestedExpand type derived from structural context
 	assert.Equal(t, adf_types.NodeTypeNestedExpand, restored.Type)
 	assert.Equal(t, original.Attrs["title"], restored.Attrs["title"])
 }
@@ -499,9 +502,9 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	result, err := ec.ToMarkdown(original, ctx)
 	require.NoError(t, err)
 
-	// Verify attributes in markdown
+	// Verify attributes in markdown (no data-adf-type, only localId)
 	assert.Contains(t, result.Content, `id="test-id-456"`)
-	assert.Contains(t, result.Content, `data-adf-type="expand"`)
+	assert.NotContains(t, result.Content, `data-adf-type`)
 
 	// Convert back to ADF
 	lines := strings.Split(strings.TrimSpace(result.Content), "\n")
@@ -520,9 +523,9 @@ func TestExpandConverter_FromMarkdown_NestedDetailsElements(t *testing.T) {
 	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
 
 	markdown := []string{
-		`<details data-adf-type="expand">`,
+		`<details>`,
 		`  <summary>Outer</summary>`,
-		`  <details data-adf-type="nestedExpand">`,
+		`  <details>`,
 		`    <summary>Inner</summary>`,
 		`    Inner content`,
 		`  </details>`,
@@ -567,7 +570,7 @@ func TestExpandConverter_FromMarkdown_WithPlaceholderContent(t *testing.T) {
 	placeholderComment := placeholder.GeneratePlaceholderComment(placeholderID, "mediaInline")
 
 	markdown := []string{
-		`<details data-adf-type="expand">`,
+		`<details>`,
 		`  <summary>With Media</summary>`,
 		`  ` + placeholderComment,
 		`</details>`,
@@ -590,7 +593,7 @@ func TestExpandConverter_FromMarkdown_NestingDepthLimit(t *testing.T) {
 	}
 
 	markdown := []string{
-		`<details data-adf-type="expand">`,
+		`<details>`,
 		`  <summary>Too Deep</summary>`,
 		`  content`,
 		`</details>`,

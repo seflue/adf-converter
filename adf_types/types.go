@@ -104,7 +104,8 @@ func IsBlockNode(nodeType string) bool {
 		NodeTypeOrderedList: true,
 		NodeTypeBulletList:  true,
 		NodeTypeListItem:    true,
-		NodeTypeExpand:      true,
+		NodeTypeExpand:       true,
+		NodeTypeNestedExpand: true,
 	}
 	return blockTypes[nodeType]
 }

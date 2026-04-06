@@ -2,7 +2,6 @@ package elements
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"adf-converter/adf_types"
@@ -10,7 +9,16 @@ import (
 	"adf-converter/converter/elements/inline"
 )
 
-var orderedListPattern = regexp.MustCompile(`^\s*\d+\.\s`)
+// isBlockBoundary checks if a trimmed line starts a new block element
+// by asking all registered BlockParsers. This avoids hardcoding tag names.
+func isBlockBoundary(trimmed string) bool {
+	for _, entry := range converter.GetGlobalRegistry().BlockParsers() {
+		if entry.Parser.CanParseLine(trimmed) {
+			return true
+		}
+	}
+	return false
+}
 
 // ParagraphConverter handles conversion of ADF paragraph nodes to/from markdown
 type ParagraphConverter struct{}
@@ -91,16 +99,7 @@ func (pc *ParagraphConverter) FromMarkdown(lines []string, startIndex int, conte
 			break
 		}
 
-		if strings.HasPrefix(trimmed, "#") ||
-			strings.HasPrefix(trimmed, "- ") ||
-			strings.HasPrefix(trimmed, ">") ||
-			strings.HasPrefix(trimmed, "<!--") ||
-			strings.HasPrefix(trimmed, "```") {
-			consumed = i - startIndex
-			break
-		}
-
-		if orderedListPattern.MatchString(line) {
+		if isBlockBoundary(trimmed) {
 			consumed = i - startIndex
 			break
 		}
