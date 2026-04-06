@@ -174,7 +174,13 @@ Deadline ist [date:2026-12-31] fuer dieses Projekt.
 
 ## 19. Text Color
 
-<span style="color: #ff0000">Roter Text</span> und <span style="color: #00ff00">gruener Text</span> und <span style="color: #0000ff">blauer Text</span>.
+<span style="color: #ff5630">Roter Text</span> und <span style="color: #36b37e">gruener Text</span> und <span style="color: #4c9aff">blauer Text</span>.
+
+|                                          |                                          |                                          |                                          |                                          |                                          |                                          |
+|--|--|--|--|--|--|--|
+| text                                     | <span style="color: #0747a6">text</span> | <span style="color: #008da6">text</span> | <span style="color: #006644">text</span> | <span style="color: #ff991f">text</span> | <span style="color: #bf2600">text</span> | <span style="color: #403294">text</span> |
+| <span style="color: #97a0af">text</span> | <span style="color: #4c9aff">text</span> | <span style="color: #00b8d9">text</span> | <span style="color: #36b37e">text</span> | <span style="color: #ffc400">text</span> | <span style="color: #ff5630">text</span> | <span style="color: #6554c0">text</span> |
+| <span style="color: #ffffff">text</span> | <span style="color: #b3d4ff">text</span> | <span style="color: #b3f5ff">text</span> | <span style="color: #abf5d1">text</span> | <span style="color: #fff0b3">text</span> | <span style="color: #ffbdad">text</span> | <span style="color: #eae6ff">text</span> |
 
 ## 20. Subscript und Superscript
 

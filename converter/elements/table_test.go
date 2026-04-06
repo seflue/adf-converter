@@ -594,6 +594,73 @@ func TestTableConverter_RoundTrip_NoHeader(t *testing.T) {
 	assert.Equal(t, "A1", cell00.Text)
 }
 
+func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
+	tc := NewTableConverter()
+	ctx := ConversionContext{PreserveAttrs: false}
+
+	tests := []struct {
+		name     string
+		marks    []adf_types.ADFMark
+		text     string
+		wantCell string
+	}{
+		{
+			name:     "textColor",
+			marks:    []adf_types.ADFMark{{Type: "textColor", Attrs: map[string]interface{}{"color": "#ff5630"}}},
+			text:     "red",
+			wantCell: `<span style="color: #ff5630">red</span>`,
+		},
+		{
+			name:     "strikethrough",
+			marks:    []adf_types.ADFMark{{Type: "strike"}},
+			text:     "deleted",
+			wantCell: "~~deleted~~",
+		},
+		{
+			name:     "subscript",
+			marks:    []adf_types.ADFMark{{Type: "subsup", Attrs: map[string]interface{}{"type": "sub"}}},
+			text:     "2",
+			wantCell: "<sub>2</sub>",
+		},
+		{
+			name: "bold with textColor",
+			marks: []adf_types.ADFMark{
+				{Type: "strong"},
+				{Type: "textColor", Attrs: map[string]interface{}{"color": "#36b37e"}},
+			},
+			text:     "green bold",
+			wantCell: `**<span style="color: #36b37e">green bold</span>**`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node := adf_types.ADFNode{
+				Type: "table",
+				Content: []adf_types.ADFNode{
+					{Type: "tableRow", Content: []adf_types.ADFNode{
+						{Type: "tableHeader", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "Header"}}},
+						}},
+					}},
+					{Type: "tableRow", Content: []adf_types.ADFNode{
+						{Type: "tableCell", Content: []adf_types.ADFNode{
+							{Type: "paragraph", Content: []adf_types.ADFNode{
+								{Type: "text", Text: tt.text, Marks: tt.marks},
+							}},
+						}},
+					}},
+				},
+			}
+
+			result, err := tc.ToMarkdown(node, ctx)
+			require.NoError(t, err)
+			assert.Contains(t, result.Content, tt.wantCell,
+				"cell should contain formatted text")
+		})
+	}
+}
+
 // ============================================================================
 // Inline Content Tests
 // ============================================================================

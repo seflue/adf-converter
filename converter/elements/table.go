@@ -15,27 +15,6 @@ import (
 // optional colon, one or more dashes, optional colon.
 var separatorCellPattern = regexp.MustCompile(`^:?-+:?$`)
 
-// TableStructure represents the parsed structure of an ADF table
-type TableStructure struct {
-	RowCount    int
-	ColumnCount int
-	HasHeaders  bool
-	Headers     []string
-	Rows        []TableRowStructure
-}
-
-// TableRowStructure represents a row within a table
-type TableRowStructure struct {
-	IsHeader bool
-	Cells    []TableCellStructure
-}
-
-// TableCellStructure represents a cell within a table row
-type TableCellStructure struct {
-	Content  string
-	IsHeader bool
-}
-
 // TableConverter implements markdown table conversion for ADF table nodes
 type TableConverter struct{}
 
@@ -60,7 +39,7 @@ func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context ConversionC
 
 		var cells []string
 		for _, cell := range row.Content {
-			cellText := tc.extractCellText(cell)
+			cellText := tc.extractCellText(cell, context)
 			cells = append(cells, cellText)
 		}
 
@@ -215,46 +194,20 @@ func allCellsEmpty(cells []string) bool {
 }
 
 // extractCellText extracts text content from a table cell, preserving markdown formatting
-func (tc *TableConverter) extractCellText(cell adf_types.ADFNode) string {
+func (tc *TableConverter) extractCellText(cell adf_types.ADFNode, context ConversionContext) string {
 	var text strings.Builder
 
 	for _, content := range cell.Content {
 		if content.Type == "paragraph" {
-			text.WriteString(tc.convertParagraphToMarkdown(content))
+			rendered, err := inline.RenderInlineNodes(content.Content, context)
+			if err != nil {
+				continue
+			}
+			text.WriteString(rendered)
 		}
 	}
 
 	return text.String()
-}
-
-// convertParagraphToMarkdown converts paragraph content to markdown, handling marks
-func (tc *TableConverter) convertParagraphToMarkdown(paragraph adf_types.ADFNode) string {
-	var result strings.Builder
-
-	for _, textNode := range paragraph.Content {
-		if textNode.Type == "text" {
-			text := textNode.Text
-
-			for _, mark := range textNode.Marks {
-				switch mark.Type {
-				case "strong":
-					text = "**" + text + "**"
-				case "em":
-					text = "*" + text + "*"
-				case "code":
-					text = "`" + text + "`"
-				case "link":
-					if href, ok := mark.Attrs["href"].(string); ok {
-						text = "[" + text + "](" + href + ")"
-					}
-				}
-			}
-
-			result.WriteString(text)
-		}
-	}
-
-	return result.String()
 }
 
 // FromMarkdown converts markdown table syntax back to ADF table node.
@@ -487,223 +440,6 @@ func (tc *TableConverter) ValidateInput(input interface{}) error {
 	default:
 		return fmt.Errorf("input must be adf_types.ADFNode or string, got: %T", input)
 	}
-}
-
-// ParseTableStructure parses an ADF table node and returns its structure
-func (tc *TableConverter) ParseTableStructure(node adf_types.ADFNode) (TableStructure, error) {
-	if node.Type != "table" {
-		return TableStructure{}, fmt.Errorf("node must be of type 'table', got: %s", node.Type)
-	}
-
-	structure := TableStructure{
-		RowCount:    len(node.Content),
-		ColumnCount: 0,
-		HasHeaders:  false,
-		Headers:     []string{},
-		Rows:        []TableRowStructure{},
-	}
-
-	for rowIdx, row := range node.Content {
-		if row.Type != "tableRow" {
-			continue
-		}
-
-		rowStructure := tc.parseTableRow(row, rowIdx == 0)
-
-		if rowStructure.IsHeader {
-			structure.HasHeaders = true
-			for _, cell := range rowStructure.Cells {
-				structure.Headers = append(structure.Headers, cell.Content)
-			}
-		}
-
-		// Update column count if this row has more columns
-		if len(rowStructure.Cells) > structure.ColumnCount {
-			structure.ColumnCount = len(rowStructure.Cells)
-		}
-
-		structure.Rows = append(structure.Rows, rowStructure)
-	}
-
-	return structure, nil
-}
-
-// parseTableRow parses a single table row and returns its structure
-func (tc *TableConverter) parseTableRow(row adf_types.ADFNode, isFirstRow bool) TableRowStructure {
-	rowStructure := TableRowStructure{
-		IsHeader: false,
-		Cells:    []TableCellStructure{},
-	}
-
-	// Determine if this is a header row (first row with tableHeader cells)
-	isHeaderRow := isFirstRow && len(row.Content) > 0 && row.Content[0].Type == "tableHeader"
-
-	if isHeaderRow {
-		rowStructure.IsHeader = true
-	}
-
-	for _, cell := range row.Content {
-		cellContent := tc.extractCellText(cell)
-
-		cellStructure := TableCellStructure{
-			Content:  cellContent,
-			IsHeader: cell.Type == "tableHeader",
-		}
-
-		rowStructure.Cells = append(rowStructure.Cells, cellStructure)
-	}
-
-	return rowStructure
-}
-
-// GenerateMarkdownTable generates markdown table syntax from a table structure
-func (tc *TableConverter) GenerateMarkdownTable(structure TableStructure) (string, error) {
-	if structure.ColumnCount == 0 {
-		return "", fmt.Errorf("table structure has no columns")
-	}
-
-	var markdown strings.Builder
-
-	if structure.HasHeaders && len(structure.Headers) > 0 {
-		markdown.WriteString("| ")
-		markdown.WriteString(strings.Join(structure.Headers, " | "))
-		markdown.WriteString(" |\n")
-
-		markdown.WriteString("|")
-		for i := 0; i < structure.ColumnCount; i++ {
-			if i == structure.ColumnCount-1 {
-				markdown.WriteString("-----|\n")
-			} else {
-				markdown.WriteString("------|")
-			}
-		}
-	}
-
-	for _, row := range structure.Rows {
-		if row.IsHeader {
-			continue
-		}
-
-		markdown.WriteString("| ")
-		var cellContents []string
-		for _, cell := range row.Cells {
-			cellContents = append(cellContents, cell.Content)
-		}
-		markdown.WriteString(strings.Join(cellContents, " | "))
-		markdown.WriteString(" |\n")
-	}
-
-	return markdown.String(), nil
-}
-
-// ProcessTableHeadersAndCells processes an ADF table and handles headers and cells with formatting
-func (tc *TableConverter) ProcessTableHeadersAndCells(node adf_types.ADFNode) (TableStructure, error) {
-	if node.Type != "table" {
-		return TableStructure{}, fmt.Errorf("node must be of type 'table', got: %s", node.Type)
-	}
-
-	structure := TableStructure{
-		RowCount:    len(node.Content),
-		ColumnCount: 0,
-		HasHeaders:  false,
-		Headers:     []string{},
-		Rows:        []TableRowStructure{},
-	}
-
-	for rowIdx, row := range node.Content {
-		if row.Type != "tableRow" {
-			continue
-		}
-
-		rowStructure := tc.processTableRowWithFormatting(row, rowIdx == 0)
-
-		if rowStructure.IsHeader {
-			structure.HasHeaders = true
-			for _, cell := range rowStructure.Cells {
-				structure.Headers = append(structure.Headers, cell.Content)
-			}
-		}
-
-		// Update column count if this row has more columns
-		if len(rowStructure.Cells) > structure.ColumnCount {
-			structure.ColumnCount = len(rowStructure.Cells)
-		}
-
-		structure.Rows = append(structure.Rows, rowStructure)
-	}
-
-	return structure, nil
-}
-
-// processTableRowWithFormatting processes a table row and handles cell content with markdown formatting
-func (tc *TableConverter) processTableRowWithFormatting(row adf_types.ADFNode, isFirstRow bool) TableRowStructure {
-	rowStructure := TableRowStructure{
-		IsHeader: false,
-		Cells:    []TableCellStructure{},
-	}
-
-	// Determine if this is a header row (first row with tableHeader cells)
-	isHeaderRow := isFirstRow && len(row.Content) > 0 && row.Content[0].Type == "tableHeader"
-
-	if isHeaderRow {
-		rowStructure.IsHeader = true
-	}
-
-	for _, cell := range row.Content {
-		cellContent := tc.extractCellTextWithFormatting(cell)
-
-		cellStructure := TableCellStructure{
-			Content:  cellContent,
-			IsHeader: cell.Type == "tableHeader",
-		}
-
-		rowStructure.Cells = append(rowStructure.Cells, cellStructure)
-	}
-
-	return rowStructure
-}
-
-// extractCellTextWithFormatting extracts text content from a table cell with markdown formatting
-func (tc *TableConverter) extractCellTextWithFormatting(cell adf_types.ADFNode) string {
-	var text strings.Builder
-
-	for _, content := range cell.Content {
-		if content.Type == "paragraph" {
-			text.WriteString(tc.processParagraphWithFormatting(content))
-		}
-	}
-
-	return text.String()
-}
-
-// processParagraphWithFormatting processes a paragraph and applies markdown formatting to text nodes
-func (tc *TableConverter) processParagraphWithFormatting(paragraph adf_types.ADFNode) string {
-	var result strings.Builder
-
-	for _, textNode := range paragraph.Content {
-		if textNode.Type == "text" {
-			text := textNode.Text
-
-			for _, mark := range textNode.Marks {
-				switch mark.Type {
-				case "strong":
-					text = "**" + text + "**"
-				case "em":
-					text = "*" + text + "*"
-				case "link":
-					if href, exists := mark.Attrs["href"]; exists {
-						if hrefStr, ok := href.(string); ok {
-							text = "[" + text + "](" + hrefStr + ")"
-						}
-					}
-				}
-			}
-
-			result.WriteString(text)
-		}
-	}
-
-	return result.String()
 }
 
 // wrapTableWithXML wraps markdown table content with XML tags and ADF attributes.
