@@ -133,11 +133,6 @@ Eine Notiz zur Kenntnisnahme.
   Versteckter Inhalt im Expand-Block.
 </details>
 
-<details open data-adf-type="expand">
-  <summary>Bereits offen</summary>
-  Dieser Expand ist standardmaessig offen.
-</details>
-
 ## 14. Mention
 
 [@Max Mustermann](accountid:5b10ac8d82e05b22cc7d4ef5)

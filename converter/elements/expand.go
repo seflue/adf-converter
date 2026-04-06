@@ -40,13 +40,6 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 		return converter.EnhancedConversionResult{}, fmt.Errorf("expand node missing required title attribute")
 	}
 
-	isExpanded := false
-	if expandedAttr, exists := node.Attrs["expanded"]; exists {
-		if expandedBool, ok := expandedAttr.(bool); ok {
-			isExpanded = expandedBool
-		}
-	}
-
 	var contentBuilder strings.Builder
 	for i, child := range node.Content {
 		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
@@ -68,11 +61,7 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 	var htmlBuilder strings.Builder
 
-	if isExpanded {
-		htmlBuilder.WriteString("<details open")
-	} else {
-		htmlBuilder.WriteString("<details")
-	}
+	htmlBuilder.WriteString("<details")
 
 	if localID, exists := node.Attrs["localId"]; exists {
 		if localIDStr, ok := localID.(string); ok {
@@ -128,10 +117,6 @@ func (ec *ExpandConverter) FromMarkdown(lines []string, startIndex int, context 
 
 	// Parse attributes from opening tag
 	attributes := make(map[string]interface{})
-
-	if strings.Contains(firstLine, " open") || strings.Contains(firstLine, " open>") {
-		attributes["expanded"] = true
-	}
 
 	if idMatch := idAttrRegex.FindStringSubmatch(firstLine); len(idMatch) > 1 {
 		attributes["localId"] = idMatch[1]

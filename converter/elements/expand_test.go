@@ -197,38 +197,6 @@ func TestExpandConverter_ToMarkdown_NestedExpand(t *testing.T) {
 	assert.Contains(t, result.Content, "Nested content")
 }
 
-func TestExpandConverter_ToMarkdown_ExpandedState(t *testing.T) {
-	// Register necessary converters
-	// Converters already registered in TestMain
-
-	ec := NewExpandConverter()
-	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
-
-	node := adf_types.ADFNode{
-		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
-			"title":    "Open section",
-			"expanded": true,
-		},
-		Content: []adf_types.ADFNode{
-			{
-				Type: adf_types.NodeTypeParagraph,
-				Content: []adf_types.ADFNode{
-					{
-						Type: adf_types.NodeTypeText,
-						Text: "Visible by default",
-					},
-				},
-			},
-		},
-	}
-
-	result, err := ec.ToMarkdown(node, ctx)
-	require.NoError(t, err)
-
-	// Should have 'open' attribute
-	assert.Contains(t, result.Content, "<details open")
-}
 
 func TestExpandConverter_ToMarkdown_WithLocalId(t *testing.T) {
 	// Register necessary converters
@@ -327,7 +295,9 @@ func TestExpandConverter_FromMarkdown_WithOpenAttribute(t *testing.T) {
 	node, consumed, err := ec.FromMarkdown(markdown, 0, ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 4, consumed)
-	assert.True(t, node.Attrs["expanded"].(bool))
+	// Jira's ADF API rejects 'expanded' as an attribute — must not appear in ADF output
+	_, hasExpanded := node.Attrs["expanded"]
+	assert.False(t, hasExpanded, "expanded must not be in ADF attrs (Jira API rejects it)")
 }
 
 func TestExpandConverter_FromMarkdown_WithLocalId(t *testing.T) {
@@ -509,9 +479,8 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
 		Attrs: map[string]interface{}{
-			"title":    "Complete Attributes",
-			"expanded": true,
-			"localId":  "test-id-456",
+			"title":   "Complete Attributes",
+			"localId": "test-id-456",
 		},
 		Content: []adf_types.ADFNode{
 			{
@@ -530,8 +499,7 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	result, err := ec.ToMarkdown(original, ctx)
 	require.NoError(t, err)
 
-	// Verify all attributes in markdown
-	assert.Contains(t, result.Content, "open")
+	// Verify attributes in markdown
 	assert.Contains(t, result.Content, `id="test-id-456"`)
 	assert.Contains(t, result.Content, `data-adf-type="expand"`)
 
@@ -541,10 +509,9 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	require.NoError(t, err)
 	assert.Greater(t, consumed, 0)
 
-	// Verify all attributes preserved
+	// Verify attributes preserved
 	assert.Equal(t, original.Type, restored.Type)
 	assert.Equal(t, original.Attrs["title"], restored.Attrs["title"])
-	assert.Equal(t, original.Attrs["expanded"], restored.Attrs["expanded"])
 	assert.Equal(t, original.Attrs["localId"], restored.Attrs["localId"])
 }
 
