@@ -232,6 +232,28 @@ func TestCodeBlock_FromMarkdown_StartIndex(t *testing.T) {
 	assert.Equal(t, "code", node.Content[0].Text)
 }
 
+func TestCodeBlock_FromMarkdown_BlankLinesInContent(t *testing.T) {
+	cb := NewCodeBlockConverter()
+	lines := []string{"```go", "line1", "", "line3", "```"}
+
+	node, consumed, err := cb.FromMarkdown(lines, 0, converter.ConversionContext{})
+	require.NoError(t, err)
+	assert.Equal(t, 5, consumed)
+	require.Len(t, node.Content, 1)
+	assert.Equal(t, "line1\n\nline3", node.Content[0].Text)
+}
+
+func TestCodeBlock_FromMarkdown_IndentedContent(t *testing.T) {
+	cb := NewCodeBlockConverter()
+	lines := []string{"```go", "func main() {", "\tfmt.Println()", "}", "```"}
+
+	node, consumed, err := cb.FromMarkdown(lines, 0, converter.ConversionContext{})
+	require.NoError(t, err)
+	assert.Equal(t, 5, consumed)
+	require.Len(t, node.Content, 1)
+	assert.Equal(t, "func main() {\n\tfmt.Println()\n}", node.Content[0].Text)
+}
+
 // --- Roundtrip Tests ---
 
 func TestCodeBlock_RoundTrip_Simple(t *testing.T) {

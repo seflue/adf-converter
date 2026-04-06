@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/text"
+
 	"adf-converter/adf_types"
 	"adf-converter/converter"
 )
@@ -53,62 +57,50 @@ func (c *CodeBlockConverter) FromMarkdown(lines []string, startIndex int, contex
 		return adf_types.ADFNode{}, 0, fmt.Errorf("startIndex out of range")
 	}
 
-	firstLine := lines[startIndex]
-	trimmed := strings.TrimSpace(firstLine)
+	remainingLines := lines[startIndex:]
+	source := []byte(strings.Join(remainingLines, "\n"))
 
-	// Count opening fence length and extract language
-	fenceLen := 0
-	for _, ch := range trimmed {
-		if ch == '`' {
-			fenceLen++
-		} else {
-			break
+	parser := goldmark.New()
+	doc := parser.Parser().Parse(text.NewReader(source))
+
+	for n := doc.FirstChild(); n != nil; n = n.NextSibling() {
+		fcb, ok := n.(*ast.FencedCodeBlock)
+		if !ok {
+			continue
 		}
-	}
-	if fenceLen < 3 {
-		return adf_types.ADFNode{}, 0, fmt.Errorf("not a valid code fence: %s", firstLine)
-	}
 
-	language := strings.TrimSpace(trimmed[fenceLen:])
-
-	// Collect content lines until closing fence
-	var contentLines []string
-	closingFound := false
-	i := startIndex + 1
-	for i < len(lines) {
-		line := strings.TrimSpace(lines[i])
-		// Closing fence: at least fenceLen backticks and nothing else
-		if len(line) >= fenceLen && strings.Count(line, "`") == len(line) && len(line) >= fenceLen {
-			closingFound = true
-			i++
-			break
+		// Extract language from info string
+		var language string
+		if lang := fcb.Language(source); len(lang) > 0 {
+			language = strings.TrimSpace(string(lang))
 		}
-		contentLines = append(contentLines, lines[i])
-		i++
+
+		// Extract content — each segment is one line including its trailing newline
+		var contentParts []string
+		for i := 0; i < fcb.Lines().Len(); i++ {
+			seg := fcb.Lines().At(i)
+			contentParts = append(contentParts, string(source[seg.Start:seg.Stop]))
+		}
+		content := strings.TrimSuffix(strings.Join(contentParts, ""), "\n")
+
+		// consumed = opening fence (1) + content lines + closing fence (1)
+		consumed := 1 + fcb.Lines().Len() + 1
+		if consumed > len(remainingLines) {
+			return adf_types.ADFNode{}, 0, fmt.Errorf("unclosed code fence starting at line %d", startIndex)
+		}
+
+		node := adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock}
+		if language != "" {
+			node.Attrs = map[string]interface{}{"language": language}
+		}
+		node.Content = []adf_types.ADFNode{
+			{Type: adf_types.NodeTypeText, Text: content},
+		}
+
+		return node, consumed, nil
 	}
 
-	if !closingFound {
-		return adf_types.ADFNode{}, 0, fmt.Errorf("unclosed code fence starting at line %d", startIndex)
-	}
-
-	consumed := i - startIndex
-
-	// Build ADF node
-	node := adf_types.ADFNode{
-		Type: adf_types.NodeTypeCodeBlock,
-	}
-
-	// Set language attr only if non-empty
-	if language != "" {
-		node.Attrs = map[string]interface{}{"language": language}
-	}
-
-	// Content is always a single text node
-	node.Content = []adf_types.ADFNode{
-		{Type: adf_types.NodeTypeText, Text: strings.Join(contentLines, "\n")},
-	}
-
-	return node, consumed, nil
+	return adf_types.ADFNode{}, 0, fmt.Errorf("not a valid code fence: %s", lines[startIndex])
 }
 
 func (c *CodeBlockConverter) CanParseLine(line string) bool {
