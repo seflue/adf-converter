@@ -64,6 +64,22 @@ func IsThematicBreak(line string) bool {
 	return true
 }
 
+func (rc *RuleConverter) CanParseLine(line string) bool {
+	if len(line) < 3 {
+		return false
+	}
+	ch := line[0]
+	if ch != '-' && ch != '*' && ch != '_' {
+		return false
+	}
+	for i := 1; i < len(line); i++ {
+		if line[i] != ch {
+			return false
+		}
+	}
+	return true
+}
+
 func (rc *RuleConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == adf_types.NodeTypeRule
 }

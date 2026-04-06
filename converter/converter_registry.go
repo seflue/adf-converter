@@ -7,16 +7,23 @@ import (
 	"adf-converter/placeholder"
 )
 
-// ConverterRegistry manages registration and lookup of element converters
+// BlockParserEntry pairs a node type with its BlockParser for ordered dispatch.
+type BlockParserEntry struct {
+	NodeType ADFNodeType
+	Parser   BlockParser
+}
+
+// ConverterRegistry manages registration and lookup of element converters.
 //
-// The registry enables incremental migration from switch-statement dispatch
-// to polymorphic converter dispatch. Initially empty, converters are registered
-// one at a time as they are extracted from the legacy switch statement.
+// Two dispatch paths:
+// - ADF→MD: converters map, keyed by node type (GetConverter)
+// - MD→ADF: blockParsers slice, ordered by registration (BlockParsers)
 //
 // Thread-safe for concurrent access via RWMutex.
 type ConverterRegistry struct {
-	converters map[ADFNodeType]ElementConverter
-	mu         sync.RWMutex
+	converters   map[ADFNodeType]ElementConverter
+	blockParsers []BlockParserEntry
+	mu           sync.RWMutex
 }
 
 // NewConverterRegistry creates a new empty converter registry
@@ -95,7 +102,7 @@ func (r *ConverterRegistry) Count() int {
 	return len(r.converters)
 }
 
-// Clear removes all registered converters
+// Clear removes all registered converters and block parsers.
 //
 // Primarily used for testing to reset registry state between tests.
 func (r *ConverterRegistry) Clear() {
@@ -103,6 +110,35 @@ func (r *ConverterRegistry) Clear() {
 	defer r.mu.Unlock()
 
 	r.converters = make(map[ADFNodeType]ElementConverter)
+	r.blockParsers = r.blockParsers[:0]
+}
+
+// RegisterBlockParser adds the converter for nodeType to the ordered block parser list.
+// The converter must already be registered via Register() and implement BlockParser.
+// Registration order determines dispatch priority (first match wins).
+func (r *ConverterRegistry) RegisterBlockParser(nodeType ADFNodeType) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	conv, exists := r.converters[nodeType]
+	if !exists {
+		panic(fmt.Sprintf("RegisterBlockParser: converter %q not registered", nodeType))
+	}
+
+	bp, ok := conv.(BlockParser)
+	if !ok {
+		panic(fmt.Sprintf("RegisterBlockParser: converter %q does not implement BlockParser", nodeType))
+	}
+
+	r.blockParsers = append(r.blockParsers, BlockParserEntry{NodeType: nodeType, Parser: bp})
+}
+
+// BlockParsers returns the ordered block parser list for MD→ADF dispatch.
+func (r *ConverterRegistry) BlockParsers() []BlockParserEntry {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return r.blockParsers
 }
 
 // RegisterGlobal registers a converter with the global registry

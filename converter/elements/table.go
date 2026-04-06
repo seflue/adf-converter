@@ -356,6 +356,10 @@ func (tc *TableConverter) parseCellContent(cellText string) []adf_types.ADFNode 
 }
 
 // CanHandle returns true if this converter can handle the given node type
+func (tc *TableConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, "<table") || strings.HasPrefix(line, "|")
+}
+
 func (tc *TableConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeTable
 }

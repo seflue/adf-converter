@@ -116,6 +116,10 @@ func (pc *PanelConverter) parseFencedDiv(lines []string, startIndex int, context
 	return node, consumed, nil
 }
 
+func (pc *PanelConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, ":::") || admonitionRegex.MatchString(line)
+}
+
 func (pc *PanelConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypePanel)
 }

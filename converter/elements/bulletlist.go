@@ -110,6 +110,10 @@ func (blc *BulletListConverter) FromMarkdown(lines []string, startIndex int, con
 	return node, consumed, nil
 }
 
+func (blc *BulletListConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, "- ")
+}
+
 func (blc *BulletListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeBulletList)
 }

@@ -51,6 +51,22 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 			}
 		}
 	}
+
+	// Block parser dispatch order for MD→ADF (first match wins).
+	// Specific patterns before general ones:
+	// - panel before blockquote (> [!TYPE] vs >)
+	// - taskList before bulletList (- [ ] vs -)
+	// - rule before bulletList (--- vs -)
+	blockParserOrder := []ADFNodeType{
+		"expand", "blockCard", "panel", "table", "taskList",
+		"blockquote", "codeBlock", "heading", "rule",
+		"bulletList", "orderedList",
+	}
+	for _, nodeType := range blockParserOrder {
+		if globalRegistry.IsRegistered(nodeType) {
+			globalRegistry.RegisterBlockParser(nodeType)
+		}
+	}
 }
 
 // GetGlobalRegistry provides access to the global registry for manual registration

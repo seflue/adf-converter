@@ -86,6 +86,10 @@ func (hc *HeadingConverter) FromMarkdown(lines []string, startIndex int, _ conve
 	return node, 1, nil
 }
 
+func (hc *HeadingConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, "#")
+}
+
 func (hc *HeadingConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeHeading)
 }

@@ -2,12 +2,15 @@ package elements
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"adf-converter/adf_types"
 	"adf-converter/converter"
 	"adf-converter/converter/elements/lists"
 )
+
+var orderedListLinePattern = regexp.MustCompile(`^\s*\d+\.\s`)
 
 // OrderedListConverter handles conversion of ADF ordered list nodes to/from markdown
 type OrderedListConverter struct{}
@@ -122,6 +125,10 @@ func (olc *OrderedListConverter) FromMarkdown(lines []string, startIndex int, co
 	}
 
 	return node, consumed, nil
+}
+
+func (olc *OrderedListConverter) CanParseLine(line string) bool {
+	return orderedListLinePattern.MatchString(line)
 }
 
 func (olc *OrderedListConverter) CanHandle(nodeType converter.ADFNodeType) bool {

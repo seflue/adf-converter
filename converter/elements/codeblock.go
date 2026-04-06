@@ -111,6 +111,10 @@ func (c *CodeBlockConverter) FromMarkdown(lines []string, startIndex int, contex
 	return node, consumed, nil
 }
 
+func (c *CodeBlockConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, "```")
+}
+
 func (c *CodeBlockConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeCodeBlock)
 }

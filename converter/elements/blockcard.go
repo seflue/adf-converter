@@ -64,6 +64,10 @@ func (bc *BlockCardConverter) FromMarkdown(lines []string, startIndex int, conte
 	return node, 1, nil
 }
 
+func (bc *BlockCardConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, `<div data-adf-type="blockCard"`)
+}
+
 func (bc *BlockCardConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeBlockCard)
 }

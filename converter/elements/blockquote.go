@@ -207,6 +207,10 @@ func countBlockquoteLines(lines []string, startIndex int) int {
 	return lastQuoteLine
 }
 
+func (bc *BlockquoteConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, "<blockquote") || strings.HasPrefix(line, ">")
+}
+
 func (bc *BlockquoteConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeBlockquote
 }

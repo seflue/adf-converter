@@ -239,6 +239,10 @@ func parseInnerContentWithContext(lines []string, context converter.ConversionCo
 	return parser.ParseMarkdownToADFNodes(lines)
 }
 
+func (ec *ExpandConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, "<details")
+}
+
 func (ec *ExpandConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeExpand) ||
 		nodeType == converter.ADFNodeType(adf_types.NodeTypeNestedExpand)

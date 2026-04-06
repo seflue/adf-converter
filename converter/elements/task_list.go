@@ -240,6 +240,13 @@ func (tc *TaskListConverter) parseTaskItems(lines []string, taskListAttrs map[st
 	return taskItems
 }
 
+func (tc *TaskListConverter) CanParseLine(line string) bool {
+	return strings.HasPrefix(line, "<taskList") ||
+		strings.HasPrefix(line, "- [ ]") ||
+		strings.HasPrefix(line, "- [x]") ||
+		strings.HasPrefix(line, "- [X]")
+}
+
 func (tc *TaskListConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeTaskList
 }

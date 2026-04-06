@@ -52,3 +52,14 @@ type ElementConverter interface {
 	// For FromMarkdown: validates markdown format
 	ValidateInput(input interface{}) error
 }
+
+// BlockParser extends ElementConverter with line-based dispatch for MD→ADF parsing.
+// Block-level converters implement this to declare which markdown lines they handle.
+// Inline converters (text, hardBreak, emoji, etc.) do not implement this interface.
+type BlockParser interface {
+	ElementConverter
+	// CanParseLine returns true if this converter can parse a block starting with the given line.
+	// The line is already trimmed. Matching is purely positive — no need to exclude
+	// other converters' patterns; dispatch priority is determined by registration order.
+	CanParseLine(line string) bool
+}
