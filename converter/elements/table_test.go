@@ -279,6 +279,56 @@ func TestTableConverter_ToMarkdown_PlainTable(t *testing.T) {
 	assert.Contains(t, result.Content, "Cell 1")
 }
 
+func TestTableConverter_ToMarkdown_NoHeader(t *testing.T) {
+	tc := NewTableConverter()
+	ctx := ConversionContext{PreserveAttrs: false}
+
+	// ADF table where ALL cells are tableCell (no tableHeader)
+	node := adf_types.ADFNode{
+		Type: "table",
+		Content: []adf_types.ADFNode{
+			{
+				Type: "tableRow",
+				Content: []adf_types.ADFNode{
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "A1"}}},
+					}},
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "B1"}}},
+					}},
+				},
+			},
+			{
+				Type: "tableRow",
+				Content: []adf_types.ADFNode{
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "A2"}}},
+					}},
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "B2"}}},
+					}},
+				},
+			},
+		},
+	}
+
+	result, err := tc.ToMarkdown(node, ctx)
+	require.NoError(t, err)
+
+	lines := strings.Split(strings.TrimSpace(result.Content), "\n")
+	require.Len(t, lines, 4, "should have empty header + separator + 2 data rows")
+
+	// First line: empty synthetic header
+	assert.Equal(t, "|  |  |", lines[0])
+	// Second line: separator
+	assert.Contains(t, lines[1], "--")
+	// Data rows preserve content
+	assert.Contains(t, lines[2], "A1")
+	assert.Contains(t, lines[2], "B1")
+	assert.Contains(t, lines[3], "A2")
+	assert.Contains(t, lines[3], "B2")
+}
+
 func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
 	tc := NewTableConverter()
 	ctx := ConversionContext{PreserveAttrs: true}
@@ -379,6 +429,90 @@ func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
 	require.NotNil(t, adfNode2.Attrs)
 	assert.Equal(t, "abc123", adfNode2.Attrs["localId"])
 	assert.Equal(t, "wide", adfNode2.Attrs["layout"])
+}
+
+func TestTableConverter_FromMarkdown_EmptyHeaderMeansNoHeader(t *testing.T) {
+	tc := NewTableConverter()
+	ctx := ConversionContext{}
+
+	lines := []string{
+		"|  |  |",
+		"|--|--|",
+		"| A1 | B1 |",
+		"| A2 | B2 |",
+	}
+
+	result, consumed, err := tc.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 4, consumed)
+
+	// All rows should be tableCell, no tableHeader
+	require.Len(t, result.Content, 2, "empty header row should be dropped")
+	for i, row := range result.Content {
+		for j, cell := range row.Content {
+			assert.Equal(t, "tableCell", cell.Type,
+				"row %d cell %d should be tableCell, not tableHeader", i, j)
+		}
+	}
+}
+
+func TestTableConverter_RoundTrip_NoHeader(t *testing.T) {
+	tc := NewTableConverter()
+	ctx := ConversionContext{PreserveAttrs: false}
+
+	// Start with ADF: all tableCell, no tableHeader
+	originalNode := adf_types.ADFNode{
+		Type: "table",
+		Content: []adf_types.ADFNode{
+			{
+				Type: "tableRow",
+				Content: []adf_types.ADFNode{
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "A1"}}},
+					}},
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "B1"}}},
+					}},
+				},
+			},
+			{
+				Type: "tableRow",
+				Content: []adf_types.ADFNode{
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "A2"}}},
+					}},
+					{Type: "tableCell", Content: []adf_types.ADFNode{
+						{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "B2"}}},
+					}},
+				},
+			},
+		},
+	}
+
+	// ADF → MD
+	mdResult, err := tc.ToMarkdown(originalNode, ctx)
+	require.NoError(t, err)
+
+	// MD → ADF
+	lines := strings.Split(strings.TrimSpace(mdResult.Content), "\n")
+	roundtrippedNode, _, err := tc.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+
+	// Same number of rows
+	assert.Equal(t, len(originalNode.Content), len(roundtrippedNode.Content),
+		"row count must survive roundtrip")
+
+	// All cells remain tableCell (not promoted to tableHeader)
+	for i, row := range roundtrippedNode.Content {
+		for j, cell := range row.Content {
+			assert.Equal(t, "tableCell", cell.Type,
+				"row %d cell %d should be tableCell after roundtrip", i, j)
+		}
+	}
+
+	// Content preserved
+	cell00 := roundtrippedNode.Content[0].Content[0].Content[0].Content[0]
+	assert.Equal(t, "A1", cell00.Text)
 }
 
 // ============================================================================

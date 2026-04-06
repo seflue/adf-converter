@@ -2,12 +2,17 @@ package elements
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"adf-converter/adf_types"
 	"adf-converter/converter/elements/inline"
 	"adf-converter/converter/internal"
 )
+
+// separatorCellPattern matches a single separator cell per CommonMark spec:
+// optional colon, one or more dashes, optional colon.
+var separatorCellPattern = regexp.MustCompile(`^:?-+:?$`)
 
 // TableStructure represents the parsed structure of an ADF table
 type TableStructure struct {
@@ -44,42 +49,48 @@ func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context ConversionC
 
 	var markdown strings.Builder
 	var headers []string
-	var rows [][]string
+	var dataRows [][]string
+	hasRealHeader := tc.firstRowIsHeader(node)
 
-	for _, row := range node.Content {
+	for i, row := range node.Content {
 		if row.Type != "tableRow" {
 			continue
 		}
 
 		var cells []string
-		isHeaderRow := len(headers) == 0
-
 		for _, cell := range row.Content {
 			cellText := tc.extractCellText(cell)
 			cells = append(cells, cellText)
 		}
 
-		if isHeaderRow {
+		if i == 0 && hasRealHeader {
 			headers = cells
 		} else {
-			rows = append(rows, cells)
+			dataRows = append(dataRows, cells)
 		}
 	}
 
-	if len(headers) > 0 {
+	// Determine column count for synthetic header
+	colCount := len(headers)
+	if colCount == 0 && len(dataRows) > 0 {
+		colCount = len(dataRows[0])
+		// Synthetic empty header for tables without tableHeader cells
+		headers = make([]string, colCount)
+	}
+
+	if colCount > 0 {
 		markdown.WriteString("| ")
 		markdown.WriteString(strings.Join(headers, " | "))
 		markdown.WriteString(" |\n")
 
 		markdown.WriteString("|")
 		for i, header := range headers {
-			// Create separator based on header length: 6 dashes for 4+ chars, 5 for 3 chars
 			headerLen := len(header)
 			var dashCount int
 			if headerLen >= 4 {
 				dashCount = 6
 			} else {
-				dashCount = 5
+				dashCount = 2
 			}
 			separator := strings.Repeat("-", dashCount)
 
@@ -90,7 +101,7 @@ func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context ConversionC
 			}
 		}
 
-		for _, row := range rows {
+		for _, row := range dataRows {
 			markdown.WriteString("| ")
 			markdown.WriteString(strings.Join(row, " | "))
 			markdown.WriteString(" |\n")
@@ -118,6 +129,46 @@ func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context ConversionC
 	}
 
 	return result, nil
+}
+
+// firstRowIsHeader checks whether the first row contains tableHeader cells.
+func (tc *TableConverter) firstRowIsHeader(node adf_types.ADFNode) bool {
+	for _, row := range node.Content {
+		if row.Type != "tableRow" {
+			continue
+		}
+		return len(row.Content) > 0 && row.Content[0].Type == "tableHeader"
+	}
+	return false
+}
+
+// isSeparatorRow returns true if every cell matches the CommonMark separator
+// pattern: optional colon, one or more dashes, optional colon (:?-+:?).
+func isSeparatorRow(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	if !strings.HasPrefix(trimmed, "|") || !strings.HasSuffix(trimmed, "|") {
+		return false
+	}
+	cells := strings.Split(trimmed[1:len(trimmed)-1], "|")
+	if len(cells) == 0 {
+		return false
+	}
+	for _, cell := range cells {
+		if !separatorCellPattern.MatchString(strings.TrimSpace(cell)) {
+			return false
+		}
+	}
+	return true
+}
+
+// allCellsEmpty returns true if every cell string is empty after trimming.
+func allCellsEmpty(cells []string) bool {
+	for _, c := range cells {
+		if strings.TrimSpace(c) != "" {
+			return false
+		}
+	}
+	return true
 }
 
 // extractCellText extracts text content from a table cell, preserving markdown formatting
@@ -296,25 +347,29 @@ func (tc *TableConverter) parseMarkdownTableLines(lines []string) (adf_types.ADF
 			continue
 		}
 
-		// Skip separator row (contains only |, -, and spaces)
-		if i == 1 && strings.Contains(trimmed, "---") {
+		// Skip separator row (contains only |, -, :, and spaces)
+		if i == 1 && isSeparatorRow(trimmed) {
 			continue
 		}
 
 		// Parse table row
 		if strings.HasPrefix(trimmed, "|") && strings.HasSuffix(trimmed, "|") {
 			cells := strings.Split(trimmed[1:len(trimmed)-1], "|")
-			var cellNodes []adf_types.ADFNode
+			isFirstRow := (i == 0)
 
-			isHeader := (i == 0) // First row is header
+			// Detect synthetic empty header: first row with all cells empty
+			if isFirstRow && allCellsEmpty(cells) {
+				continue // Drop synthetic header — no tableHeader in ADF
+			}
+
+			var cellNodes []adf_types.ADFNode
+			cellType := "tableCell"
+			if isFirstRow {
+				cellType = "tableHeader"
+			}
 
 			for _, cell := range cells {
 				cellText := strings.TrimSpace(cell)
-				cellType := "tableCell"
-				if isHeader {
-					cellType = "tableHeader"
-				}
-
 				paragraphContent := tc.parseCellContent(cellText)
 
 				cellNodes = append(cellNodes, adf_types.ADFNode{
