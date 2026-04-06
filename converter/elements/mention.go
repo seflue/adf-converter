@@ -31,7 +31,7 @@ func (mc *MentionConverter) ToMarkdown(node adf_types.ADFNode, context converter
 		text = "@" + id
 	}
 
-	destination := "accountid:" + id
+	destination := "accountid:" + url.PathEscape(id)
 	query := buildMentionQuery(node.Attrs)
 	if query != "" {
 		destination += "?" + query

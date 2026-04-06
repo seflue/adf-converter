@@ -104,6 +104,99 @@ func TestMentionRoundtrip(t *testing.T) {
 	}
 }
 
+func TestUnresolvedMentionRoundtrip(t *testing.T) {
+	tests := []struct {
+		name       string
+		markdown   string
+		wantID     string
+		wantText   string
+	}{
+		{
+			name:     "unresolved mention with single word",
+			markdown: "[@John]()",
+			wantID:   "John",
+			wantText: "@John",
+		},
+		{
+			name:     "unresolved mention with spaces",
+			markdown: "[@Some Name]()",
+			wantID:   "Some Name",
+			wantText: "@Some Name",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fullMarkdown := tt.markdown + "\n"
+			session := &placeholder.EditSession{}
+			manager := placeholder.NewManager()
+
+			resultDoc, err := converter.FromMarkdown(fullMarkdown, session, manager)
+			require.NoError(t, err)
+
+			require.Len(t, resultDoc.Content, 1)
+			para := resultDoc.Content[0]
+			require.Equal(t, adf_types.NodeTypeParagraph, para.Type)
+
+			var mentionNode *adf_types.ADFNode
+			for i, child := range para.Content {
+				if child.Type == adf_types.NodeTypeMention {
+					mentionNode = &para.Content[i]
+					break
+				}
+			}
+			require.NotNil(t, mentionNode, "expected mention node")
+			assert.Equal(t, tt.wantID, mentionNode.Attrs["id"])
+			assert.Equal(t, tt.wantText, mentionNode.Attrs["text"])
+		})
+	}
+}
+
+func TestMentionIDURLEncoding(t *testing.T) {
+	// id with spaces roundtrips correctly via URL encoding
+	doc := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeMention,
+						Attrs: map[string]interface{}{
+							"id":   "Some Name",
+							"text": "@Some Name",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	classifier := converter.NewDefaultClassifier()
+	manager := placeholder.NewManager()
+
+	markdown, session, err := converter.ToMarkdown(doc, classifier, manager)
+	require.NoError(t, err)
+	assert.Contains(t, markdown, "[@Some Name](accountid:Some%20Name)")
+
+	resultDoc, err := converter.FromMarkdown(markdown, session, manager)
+	require.NoError(t, err)
+
+	require.Len(t, resultDoc.Content, 1)
+	para := resultDoc.Content[0]
+	var mentionNode *adf_types.ADFNode
+	for i, child := range para.Content {
+		if child.Type == adf_types.NodeTypeMention {
+			mentionNode = &para.Content[i]
+			break
+		}
+	}
+	require.NotNil(t, mentionNode)
+	assert.Equal(t, "Some Name", mentionNode.Attrs["id"])
+	assert.Equal(t, "@Some Name", mentionNode.Attrs["text"])
+}
+
 func TestMentionInMixedParagraph(t *testing.T) {
 	doc := adf_types.ADFDocument{
 		Version: 1,

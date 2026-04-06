@@ -75,6 +75,17 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			expected: "[@abc123](accountid:abc123)",
 		},
 		{
+			name: "mention with spaces in id gets URL-encoded",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMention,
+				Attrs: map[string]interface{}{
+					"id":   "Some Name",
+					"text": "@Some Name",
+				},
+			},
+			expected: "[@Some Name](accountid:Some%20Name)",
+		},
+		{
 			name: "mention with nil attrs",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,

@@ -613,6 +613,18 @@ func attrsEqual(a, b map[string]interface{}) bool {
 // parseMentionLink checks if a link destination is an accountid: mention
 // and returns the corresponding ADF mention node
 func parseMentionLink(href, linkText string) (adf_types.ADFNode, bool) {
+	// Unresolved mention: [@Name]() → mention node using display name as id
+	if href == "" && strings.HasPrefix(linkText, "@") {
+		displayName := strings.TrimPrefix(linkText, "@")
+		return adf_types.ADFNode{
+			Type: adf_types.NodeTypeMention,
+			Attrs: map[string]interface{}{
+				"id":   displayName,
+				"text": linkText,
+			},
+		}, true
+	}
+
 	const prefix = "accountid:"
 	if !strings.HasPrefix(href, prefix) {
 		return adf_types.ADFNode{}, false
@@ -632,8 +644,13 @@ func parseMentionLink(href, linkText string) (adf_types.ADFNode, bool) {
 		return adf_types.ADFNode{}, false
 	}
 
+	decodedID, err := url.PathUnescape(id)
+	if err != nil {
+		decodedID = id
+	}
+
 	attrs := map[string]interface{}{
-		"id":   id,
+		"id":   decodedID,
 		"text": linkText,
 	}
 

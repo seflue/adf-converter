@@ -9,19 +9,24 @@ Test-Case. Mit jira-edit in ein Test-Ticket pasten und in Jira prüfen.
 
 Normaler Text ohne Formatierung.
 
-**Bold text** und *italic text* und `inline code` hier.
+**Bold text** und _italic text_ und `inline code` hier.
 
 ~~Durchgestrichen~~ und <u>unterstrichen</u> kombiniert.
 
-**Bold mit *italic nested* drin** — verschachtelte Marks.
+**Bold mit _italic nested_ drin** — verschachtelte Marks.
 
 ## 2. Headings
 
 # Heading 1
+
 ## Heading 2
+
 ### Heading 3
+
 #### Heading 4
+
 ##### Heading 5
+
 ###### Heading 6
 
 ## 3. Links
@@ -99,9 +104,9 @@ Text nach der Linie.
 ## 11. Table
 
 | Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
+| -------- | -------- | -------- |
 | Zelle 1  | Zelle 2  | Zelle 3  |
-| **Bold** | *Italic* | `Code`   |
+| **Bold** | _Italic_ | `Code`   |
 | Leer     |          | Wert     |
 
 ## 12. Panel (Fenced Div)
@@ -135,9 +140,9 @@ Eine Notiz zur Kenntnisnahme.
 
 ## 14. Mention
 
-[@Max Mustermann](accountid:5b10ac8d82e05b22cc7d4ef5)
+[@Max Mustermann]()
 
-Text mit [@Anna Schmidt](accountid:abc123?accessLevel=CONTAINER&userType=DEFAULT) inline.
+Text mit [@Anna Schmidt]() inline.
 
 ## 15. Emoji
 
@@ -181,12 +186,12 @@ E = mc<sup>2</sup> ist Einsteins Formel.
 
 **<u>Bold und unterstrichen</u>** zusammen.
 
-*~~Italic und durchgestrichen~~* kombiniert.
+_~~Italic und durchgestrichen~~_ kombiniert.
 
 <span style="color: #ff5500">**Farbiger Bold-Text**</span> verschachtelt.
 
 ## 22. Komplexer Absatz
 
-Hier kommt alles zusammen: **Bold**, *italic*, `code`, ~~strike~~, <u>underline</u>,
+Hier kommt alles zusammen: **Bold**, _italic_, `code`, ~~strike~~, <u>underline</u>,
 [ein Link](https://example.com), <span style="color: #ff0000">farbig</span>,
 H<sub>2</sub>O und x<sup>2</sup> — alles in einem Absatz.
