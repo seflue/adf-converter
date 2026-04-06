@@ -10,6 +10,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// stripLocalIds returns a deep copy of node with all localId attrs removed.
+// Used in tests that check structural correctness without caring about generated IDs.
+func stripLocalIds(node adf_types.ADFNode) adf_types.ADFNode {
+	cleaned := node
+	if cleaned.Attrs != nil {
+		newAttrs := make(map[string]interface{}, len(cleaned.Attrs))
+		for k, v := range cleaned.Attrs {
+			if k != "localId" {
+				newAttrs[k] = v
+			}
+		}
+		cleaned.Attrs = newAttrs
+	}
+	if cleaned.Content != nil {
+		newContent := make([]adf_types.ADFNode, len(cleaned.Content))
+		for i, child := range cleaned.Content {
+			newContent[i] = stripLocalIds(child)
+		}
+		cleaned.Content = newContent
+	}
+	return cleaned
+}
+
 func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 	converter := NewTaskListConverter()
 	ctx := ConversionContext{}
@@ -145,7 +168,7 @@ func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedConsumed, consumed)
-			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.want, stripLocalIds(got))
 		})
 	}
 }
@@ -390,14 +413,14 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedConsumed, consumed)
-			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.want, stripLocalIds(got))
 		})
 	}
 }
 
 func TestTaskListConverter_RoundTrip(t *testing.T) {
 	converter := NewTaskListConverter()
-	ctx := ConversionContext{PreserveAttrs: true}
+	ctx := ConversionContext{}
 
 	tests := []struct {
 		name     string
@@ -463,6 +486,53 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTaskListConverter_FromMarkdown_Plain_GeneratesLocalId(t *testing.T) {
+	// Jira requires localId on taskList and taskItem nodes.
+	// Plain markdown (no XML wrapper) must auto-generate UUIDs.
+	converter := NewTaskListConverter()
+	ctx := ConversionContext{}
+
+	lines := []string{"- [ ] Task 1", "- [x] Task 2"}
+	node, consumed, err := converter.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 2, consumed)
+
+	localId, ok := node.Attrs["localId"].(string)
+	assert.True(t, ok, "taskList.attrs.localId must be a non-empty string")
+	assert.NotEmpty(t, localId, "taskList.attrs.localId must not be empty")
+
+	require.Len(t, node.Content, 2)
+	for _, item := range node.Content {
+		itemLocalId, ok := item.Attrs["localId"].(string)
+		assert.True(t, ok, "taskItem.attrs.localId must be a non-empty string")
+		assert.NotEmpty(t, itemLocalId, "taskItem.attrs.localId must not be empty")
+	}
+}
+
+func TestTaskListConverter_ToMarkdown_TrailingNewline(t *testing.T) {
+	// Block-level elements must end with \n\n so the next element starts on its own line.
+	// Without this, the heading following a taskList ends up on the same line as </taskList>.
+	converter := NewTaskListConverter()
+
+	node := adf_types.ADFNode{
+		Type: "taskList",
+		Attrs: map[string]interface{}{
+			"localId": "test-id",
+		},
+		Content: []adf_types.ADFNode{
+			{Type: "taskItem", Attrs: map[string]interface{}{"state": "TODO"}, Content: []adf_types.ADFNode{{Type: "text", Text: "Task"}}},
+		},
+	}
+
+	t.Run("plain (no preserve attrs)", func(t *testing.T) {
+		result, err := converter.ToMarkdown(node, ConversionContext{PreserveAttrs: false})
+		require.NoError(t, err)
+		assert.True(t, strings.HasSuffix(result.Content, "\n\n"),
+			"plain task list output must end with \\n\\n, got: %q", result.Content)
+	})
+
 }
 
 // Suppress unused import warning

@@ -419,6 +419,28 @@ func TestEdgeCases_TaskListVariations(t *testing.T) {
 	assert.Contains(t, markdown, "task", "Should preserve task content")
 }
 
+func TestPlainMarkdownTaskList_ParsedAsTaskList(t *testing.T) {
+	// Regression test: plain `- [ ]`/`- [x]` markdown must produce taskList nodes,
+	// not bulletList nodes. The markdown_parser switch case for "- " previously
+	// swallowed task list lines before the task list handler could run.
+	markdown := "- [ ] Unchecked task\n- [x] Checked task\n"
+
+	manager := placeholder.NewManager()
+	session := manager.GetSession()
+
+	doc, err := FromMarkdown(markdown, session, manager)
+	require.NoError(t, err)
+	require.Len(t, doc.Content, 1, "should produce a single top-level node")
+
+	node := doc.Content[0]
+	assert.Equal(t, "taskList", node.Type, "plain checkbox markdown must be parsed as taskList, not bulletList")
+	require.Len(t, node.Content, 2, "should contain two task items")
+	assert.Equal(t, "taskItem", node.Content[0].Type)
+	assert.Equal(t, "TODO", node.Content[0].Attrs["state"])
+	assert.Equal(t, "taskItem", node.Content[1].Type)
+	assert.Equal(t, "DONE", node.Content[1].Attrs["state"])
+}
+
 // ============================================================================
 // Special Character Edge Cases
 // ============================================================================

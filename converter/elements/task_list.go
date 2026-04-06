@@ -1,6 +1,7 @@
 package elements
 
 import (
+	"crypto/rand"
 	"fmt"
 	"strings"
 
@@ -22,10 +23,6 @@ func (tc *TaskListConverter) ToMarkdown(node adf_types.ADFNode, context Conversi
 
 	builder := NewEnhancedConversionResultBuilder(MarkdownTaskList)
 
-	if context.PreserveAttrs && node.Attrs != nil {
-		builder.PreserveAttributes(node.Attrs)
-	}
-
 	for _, item := range node.Content {
 		if item.Type != "taskItem" {
 			builder.AddWarningf("Skipping non-taskItem element: %s", item.Type)
@@ -45,8 +42,8 @@ func (tc *TaskListConverter) ToMarkdown(node adf_types.ADFNode, context Conversi
 
 	result := builder.Build()
 
-	if tc.shouldPreserveAttrs(context, node) {
-		result.Content = tc.wrapTaskListWithXML(result.Content, node.Attrs)
+	if !strings.HasSuffix(result.Content, "\n\n") {
+		result.Content += "\n\n"
 	}
 
 	return result, nil
@@ -145,6 +142,7 @@ func (tc *TaskListConverter) FromMarkdown(lines []string, startIndex int, contex
 		return emptyNode, 0, nil
 	}
 
+	attrs["localId"] = generateLocalId()
 	contentLines := lines[startIndex : startIndex+consumed]
 	taskItems := tc.parseTaskItems(contentLines, attrs)
 	return adf_types.ADFNode{Type: "taskList", Content: taskItems, Attrs: attrs}, consumed, nil
@@ -271,43 +269,9 @@ func (tc *TaskListConverter) ValidateInput(input interface{}) error {
 	}
 }
 
-func (tc *TaskListConverter) shouldPreserveAttrs(context ConversionContext, node adf_types.ADFNode) bool {
-	return context.PreserveAttrs && len(node.Attrs) > 0
+func generateLocalId() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
-func (tc *TaskListConverter) wrapTaskListWithXML(markdownTaskList string, attrs map[string]interface{}) string {
-	var xmlBuilder strings.Builder
-
-	xmlBuilder.WriteString("<taskList")
-
-	if localId, ok := attrs["localId"].(string); ok {
-		fmt.Fprintf(&xmlBuilder, ` localId="%s"`, localId)
-	}
-
-	completed, total := tc.countTaskStats(markdownTaskList)
-	if total > 0 {
-		fmt.Fprintf(&xmlBuilder, ` completed="%d" total="%d"`, completed, total)
-	}
-
-	xmlBuilder.WriteString(">\n")
-	xmlBuilder.WriteString(markdownTaskList)
-	if !strings.HasSuffix(markdownTaskList, "\n") {
-		xmlBuilder.WriteString("\n")
-	}
-	xmlBuilder.WriteString("</taskList>")
-
-	return xmlBuilder.String()
-}
-
-func (tc *TaskListConverter) countTaskStats(markdown string) (completed, total int) {
-	for _, line := range strings.Split(strings.TrimSpace(markdown), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "- [x]") {
-			completed++
-			total++
-		} else if strings.HasPrefix(line, "- [ ]") {
-			total++
-		}
-	}
-	return
-}

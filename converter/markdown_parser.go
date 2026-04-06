@@ -123,6 +123,8 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 		return p.parseBlockquote(lines)
 	case strings.HasPrefix(line, "|"):
 		return p.parseMarkdownTable(lines)
+	case strings.HasPrefix(line, "- [ ]") || strings.HasPrefix(line, "- [x]") || strings.HasPrefix(line, "- [X]"):
+		return p.parseTaskList(lines)
 	case strings.HasPrefix(strings.TrimSpace(line), "- "):
 		return p.parseBulletList(lines)
 	default:
