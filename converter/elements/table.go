@@ -3,6 +3,7 @@ package elements
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"adf-converter/adf_types"
@@ -108,16 +109,26 @@ func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context ConversionC
 		}
 	}
 
-	// Only use XML wrapper when there are ADF attributes to preserve
+	// Only use XML wrapper when non-default attributes need preserving
 	var finalMarkdown string
-	if context.PreserveAttrs && node.Attrs != nil && len(node.Attrs) > 0 {
-		wrappedMarkdown, err := tc.wrapTableWithXML(markdown.String(), node.Attrs)
+	nonDefaultAttrs := filterDefaultTableAttrs(node.Attrs)
+	if context.PreserveAttrs && len(nonDefaultAttrs) > 0 {
+		wrappedMarkdown, err := tc.wrapTableWithXML(markdown.String(), nonDefaultAttrs)
 		if err != nil {
 			return CreateErrorResult(err.Error(), MarkdownTable), err
 		}
 		finalMarkdown = wrappedMarkdown
 	} else {
 		finalMarkdown = markdown.String()
+	}
+
+	// Block-level elements need trailing double newline for spacing
+	if !strings.HasSuffix(finalMarkdown, "\n\n") {
+		if strings.HasSuffix(finalMarkdown, "\n") {
+			finalMarkdown += "\n"
+		} else {
+			finalMarkdown += "\n\n"
+		}
 	}
 
 	result := CreateSuccessResult(finalMarkdown, MarkdownTable)
@@ -129,6 +140,38 @@ func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context ConversionC
 	}
 
 	return result, nil
+}
+
+// filterDefaultTableAttrs returns a copy of attrs with ADF spec defaults removed.
+// Defaults per spec: layout="center", isNumberColumnEnabled=false, displayMode="default".
+func filterDefaultTableAttrs(attrs map[string]interface{}) map[string]interface{} {
+	if len(attrs) == 0 {
+		return nil
+	}
+	result := make(map[string]interface{})
+	for k, v := range attrs {
+		switch k {
+		case "localId":
+			continue // Jira regenerates on save
+		case "layout":
+			if s, ok := v.(string); ok && (s == "center" || s == "default") {
+				continue
+			}
+		case "isNumberColumnEnabled":
+			if b, ok := v.(bool); ok && !b {
+				continue
+			}
+		case "displayMode":
+			if s, ok := v.(string); ok && s == "default" {
+				continue
+			}
+		}
+		result[k] = v
+	}
+	if len(result) == 0 {
+		return nil
+	}
+	return result
 }
 
 // firstRowIsHeader checks whether the first row contains tableHeader cells.
@@ -663,42 +706,43 @@ func (tc *TableConverter) processParagraphWithFormatting(paragraph adf_types.ADF
 	return result.String()
 }
 
-// wrapTableWithXML wraps markdown table content with XML tags and ADF attributes
+// wrapTableWithXML wraps markdown table content with XML tags and ADF attributes.
+// Writes all attrs from the map in a stable order (localId first, then sorted).
 //
 //nolint:unparam // error return reserved for future use
 func (tc *TableConverter) wrapTableWithXML(markdownTable string, attrs map[string]interface{}) (string, error) {
 	var xmlBuilder strings.Builder
-
 	xmlBuilder.WriteString("<table")
 
-	if attrs != nil {
-		if localId, exists := attrs["localId"]; exists {
-			if localIdStr, ok := localId.(string); ok {
-				fmt.Fprintf(&xmlBuilder, ` localId="%s"`, localIdStr)
-			}
-		}
-
-		if layout, exists := attrs["layout"]; exists {
-			if layoutStr, ok := layout.(string); ok {
-				fmt.Fprintf(&xmlBuilder, ` layout="%s"`, layoutStr)
-			}
-		}
-
-		if isNumberColumnEnabled, exists := attrs["isNumberColumnEnabled"]; exists {
-			if isNumberColumnEnabledBool, ok := isNumberColumnEnabled.(bool); ok {
-				fmt.Fprintf(&xmlBuilder, ` isNumberColumnEnabled="%t"`, isNumberColumnEnabledBool)
-			}
-		}
+	keys := sortedAttrKeys(attrs)
+	for _, k := range keys {
+		fmt.Fprintf(&xmlBuilder, ` %s="%v"`, k, attrs[k])
 	}
 
 	xmlBuilder.WriteString(">\n")
-
 	xmlBuilder.WriteString(markdownTable)
-
 	if !strings.HasSuffix(markdownTable, "\n") {
 		xmlBuilder.WriteString("\n")
 	}
 	xmlBuilder.WriteString("</table>")
 
 	return xmlBuilder.String(), nil
+}
+
+// sortedAttrKeys returns attr keys with localId first, rest alphabetically.
+func sortedAttrKeys(attrs map[string]interface{}) []string {
+	var keys []string
+	hasLocalId := false
+	for k := range attrs {
+		if k == "localId" {
+			hasLocalId = true
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	if hasLocalId {
+		keys = append([]string{"localId"}, keys...)
+	}
+	return keys
 }

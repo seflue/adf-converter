@@ -277,6 +277,8 @@ func TestTableConverter_ToMarkdown_PlainTable(t *testing.T) {
 	assert.Equal(t, 1, result.ElementsConverted)
 	assert.Contains(t, result.Content, "Header 1")
 	assert.Contains(t, result.Content, "Cell 1")
+	assert.True(t, strings.HasSuffix(result.Content, "\n\n"),
+		"table output must end with double newline for block spacing")
 }
 
 func TestTableConverter_ToMarkdown_NoHeader(t *testing.T) {
@@ -336,8 +338,7 @@ func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
 	node := adf_types.ADFNode{
 		Type: "table",
 		Attrs: map[string]interface{}{
-			"localId": "abc123",
-			"layout":  "wide",
+			"layout": "wide",
 		},
 		Content: []adf_types.ADFNode{
 			{
@@ -362,8 +363,84 @@ func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
 	result, err := tc.ToMarkdown(node, ctx)
 	require.NoError(t, err)
 	assert.Contains(t, result.Content, "<table")
-	assert.Contains(t, result.Content, "localId=")
-	assert.NotNil(t, result.PreservedAttrs)
+	assert.Contains(t, result.Content, `layout="wide"`)
+	assert.NotContains(t, result.Content, "localId", "localId is filtered as default")
+	assert.True(t, strings.HasSuffix(result.Content, "\n\n"),
+		"table output must end with double newline for block spacing")
+}
+
+func TestTableConverter_ToMarkdown_DefaultAttrsOmitWrapper(t *testing.T) {
+	tc := NewTableConverter()
+	ctx := ConversionContext{PreserveAttrs: true}
+
+	tableContent := []adf_types.ADFNode{
+		{
+			Type: "tableRow",
+			Content: []adf_types.ADFNode{
+				{Type: "tableHeader", Content: []adf_types.ADFNode{
+					{Type: "paragraph", Content: []adf_types.ADFNode{{Type: "text", Text: "H1"}}},
+				}},
+			},
+		},
+	}
+
+	tests := []struct {
+		name       string
+		attrs      map[string]interface{}
+		wantWrapper bool
+	}{
+		{
+			name:        "only defaults produces no wrapper",
+			attrs:       map[string]interface{}{"isNumberColumnEnabled": false, "layout": "center"},
+			wantWrapper: false,
+		},
+		{
+			name:        "layout default produces no wrapper",
+			attrs:       map[string]interface{}{"layout": "default"},
+			wantWrapper: false,
+		},
+		{
+			name:        "only default displayMode produces no wrapper",
+			attrs:       map[string]interface{}{"displayMode": "default"},
+			wantWrapper: false,
+		},
+		{
+			name:        "localId alone produces no wrapper",
+			attrs:       map[string]interface{}{"localId": "abc123", "isNumberColumnEnabled": false},
+			wantWrapper: false,
+		},
+		{
+			name:        "non-default layout triggers wrapper",
+			attrs:       map[string]interface{}{"layout": "align-start"},
+			wantWrapper: true,
+		},
+		{
+			name:        "isNumberColumnEnabled true triggers wrapper",
+			attrs:       map[string]interface{}{"isNumberColumnEnabled": true},
+			wantWrapper: true,
+		},
+		{
+			name:        "width always triggers wrapper",
+			attrs:       map[string]interface{}{"width": 960},
+			wantWrapper: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node := adf_types.ADFNode{
+				Type:    "table",
+				Attrs:   tt.attrs,
+				Content: tableContent,
+			}
+			result, err := tc.ToMarkdown(node, ctx)
+			require.NoError(t, err)
+
+			hasWrapper := strings.Contains(result.Content, "<table")
+			assert.Equal(t, tt.wantWrapper, hasWrapper,
+				"wrapper presence mismatch for attrs %v", tt.attrs)
+		})
+	}
 }
 
 // ============================================================================
@@ -404,7 +481,7 @@ func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
 	ctx := ConversionContext{PreserveAttrs: true}
 
 	lines := []string{
-		`<table localId="abc123" layout="wide" isNumberColumnEnabled="true">`,
+		`<table layout="wide" isNumberColumnEnabled="true">`,
 		"| Header 1 | Header 2 |",
 		"|----------|----------|",
 		"| Cell 1   | Cell 2   |",
@@ -415,7 +492,7 @@ func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
 	adfNode, _, err := tc.FromMarkdown(lines, 0, ctx)
 	require.NoError(t, err)
 	require.NotNil(t, adfNode.Attrs)
-	assert.Equal(t, "abc123", adfNode.Attrs["localId"])
+	assert.Equal(t, "wide", adfNode.Attrs["layout"])
 
 	// ADF → MD
 	result, err := tc.ToMarkdown(adfNode, ctx)
@@ -427,8 +504,10 @@ func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotNil(t, adfNode2.Attrs)
-	assert.Equal(t, "abc123", adfNode2.Attrs["localId"])
 	assert.Equal(t, "wide", adfNode2.Attrs["layout"])
+	enabled, ok := adfNode2.Attrs["isNumberColumnEnabled"].(bool)
+	assert.True(t, ok)
+	assert.True(t, enabled)
 }
 
 func TestTableConverter_FromMarkdown_EmptyHeaderMeansNoHeader(t *testing.T) {
