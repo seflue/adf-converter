@@ -605,7 +605,6 @@ func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 	classifier := NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	// Convert to markdown (should use HTML details for expand)
 	markdown, session, err := ToMarkdown(original, classifier, manager)
 	require.NoError(t, err)
 
@@ -616,20 +615,15 @@ func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 	assert.Contains(t, markdown, "Hidden content here.")
 	assert.Contains(t, markdown, "</details>")
 
-	// Convert back to ADF
 	restored, err := FromMarkdown(markdown, session, manager)
 	require.NoError(t, err)
 
-	// Verify round-trip fidelity
 	assert.Equal(t, original.Type, restored.Type)
 	assert.Equal(t, original.Version, restored.Version)
 	assert.Equal(t, len(original.Content), len(restored.Content))
-
-	// Verify expand element is preserved
 	assert.Equal(t, adf_types.NodeTypeExpand, restored.Content[0].Type)
-
-	// Check expand attributes are preserved (attrs may be interface{})
-	assert.NotNil(t, restored.Content[0].Attrs, "Expand element should have attributes")
+	assert.NotNil(t, restored.Content[0].Attrs)
+	assert.Equal(t, "Click to expand", restored.Content[0].Attrs["title"])
 }
 
 // ============================================================================
@@ -1081,21 +1075,17 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 			classifier := NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
-			// Convert to markdown
 			markdown, _, err := ToMarkdown(test.input, classifier, manager)
 			require.NoError(t, err)
 
-			// Check all expected content is present
 			for _, expected := range test.expected {
 				assert.Contains(t, markdown, expected, "Markdown should contain: %s", expected)
 			}
 
-			// Test round-trip conversion
 			session := manager.GetSession()
 			restored, err := FromMarkdown(markdown, session, manager)
 			require.NoError(t, err)
 
-			// Verify structure is preserved
 			assert.Equal(t, test.input.Type, restored.Type)
 			assert.Equal(t, len(test.input.Content), len(restored.Content))
 			assert.Equal(t, adf_types.NodeTypeExpand, restored.Content[0].Type)
@@ -1115,18 +1105,18 @@ func TestExpandDetails_EdgeCases(t *testing.T) {
 			markdownIn: `<details>
 Content without summary
 </details>`,
-			expectError: true, // findSummary returns error
+			expectError: true,
 		},
 		{
 			name: "malformed details - no closing tag",
 			markdownIn: `<details>
 <summary>Title</summary>
 Content without closing`,
-			expectError: true, // findClosingTag returns error
+			expectError: true,
 		},
 		{
 			name: "valid nested content",
-			markdownIn: `<details>
+			markdownIn: `<details data-adf-type="expand">
 <summary>Section Title</summary>
 
 ## Nested heading
@@ -1137,7 +1127,7 @@ Content without closing`,
 Some **bold text** here.
 </details>`,
 			expectError: false,
-			expectNodes: 1, // Single expand element
+			expectNodes: 1,
 		},
 	}
 
@@ -1156,6 +1146,39 @@ Some **bold text** here.
 			}
 		})
 	}
+}
+
+func TestExpandRoundtrip_BlockContentInExpand(t *testing.T) {
+	// Expand containing heading, list, and bold text — tests recursive content parsing
+	markdownIn := `<details data-adf-type="expand">
+<summary>Section Title</summary>
+
+## Nested heading
+
+- List item 1
+- List item 2
+
+Some **bold text** here.
+</details>`
+
+	manager := placeholder.NewManager()
+	session := manager.GetSession()
+
+	restored, err := FromMarkdown(markdownIn, session, manager)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(restored.Content), "should be single expand node")
+
+	expand := restored.Content[0]
+	assert.Equal(t, adf_types.NodeTypeExpand, expand.Type)
+	assert.Equal(t, "Section Title", expand.Attrs["title"])
+
+	require.Greater(t, len(expand.Content), 1, "expand content must have multiple block nodes")
+	types := make([]string, len(expand.Content))
+	for i, n := range expand.Content {
+		types[i] = n.Type
+	}
+	assert.Contains(t, types, adf_types.NodeTypeHeading, "expand content should include heading")
+	assert.Contains(t, types, adf_types.NodeTypeBulletList, "expand content should include bulletList")
 }
 
 // ============================================================================

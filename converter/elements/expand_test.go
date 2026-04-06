@@ -603,3 +603,130 @@ func TestExpandConverter_FromMarkdown_NestingDepthLimit(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "maximum nesting depth")
 }
+
+func TestExpandConverter_RoundTrip_WithBulletList(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	original := adf_types.ADFNode{
+		Type: adf_types.NodeTypeExpand,
+		Attrs: map[string]interface{}{
+			"title": "List content",
+		},
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeBulletList,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeListItem,
+						Content: []adf_types.ADFNode{
+							{
+								Type: adf_types.NodeTypeParagraph,
+								Content: []adf_types.ADFNode{
+									{Type: adf_types.NodeTypeText, Text: "Item one"},
+								},
+							},
+						},
+					},
+					{
+						Type: adf_types.NodeTypeListItem,
+						Content: []adf_types.ADFNode{
+							{
+								Type: adf_types.NodeTypeParagraph,
+								Content: []adf_types.ADFNode{
+									{Type: adf_types.NodeTypeText, Text: "Item two"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	result, err := ec.ToMarkdown(original, ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Content, "Item one")
+	assert.Contains(t, result.Content, "Item two")
+
+	lines := strings.Split(strings.TrimSpace(result.Content), "\n")
+	restored, consumed, err := ec.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+	assert.Greater(t, consumed, 0)
+
+	assert.Equal(t, adf_types.NodeTypeExpand, restored.Type)
+	require.Len(t, restored.Content, 1)
+	assert.Equal(t, adf_types.NodeTypeBulletList, restored.Content[0].Type, "expand content must be bulletList, not downgraded to paragraph")
+}
+
+func TestExpandConverter_RoundTrip_WithHeading(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	original := adf_types.ADFNode{
+		Type: adf_types.NodeTypeExpand,
+		Attrs: map[string]interface{}{
+			"title": "Heading content",
+		},
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeHeading,
+				Attrs: map[string]interface{}{
+					"level": float64(2),
+				},
+				Content: []adf_types.ADFNode{
+					{Type: adf_types.NodeTypeText, Text: "Section heading"},
+				},
+			},
+		},
+	}
+
+	result, err := ec.ToMarkdown(original, ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Content, "Section heading")
+
+	lines := strings.Split(strings.TrimSpace(result.Content), "\n")
+	restored, consumed, err := ec.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+	assert.Greater(t, consumed, 0)
+
+	assert.Equal(t, adf_types.NodeTypeExpand, restored.Type)
+	require.Len(t, restored.Content, 1)
+	assert.Equal(t, adf_types.NodeTypeHeading, restored.Content[0].Type, "expand content must be heading, not downgraded to paragraph")
+}
+
+func TestExpandConverter_RoundTrip_WithCodeBlock(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	original := adf_types.ADFNode{
+		Type: adf_types.NodeTypeExpand,
+		Attrs: map[string]interface{}{
+			"title": "Code example",
+		},
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeCodeBlock,
+				Attrs: map[string]interface{}{
+					"language": "go",
+				},
+				Content: []adf_types.ADFNode{
+					{Type: adf_types.NodeTypeText, Text: "fmt.Println(\"hello\")"},
+				},
+			},
+		},
+	}
+
+	result, err := ec.ToMarkdown(original, ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Content, "fmt.Println")
+
+	lines := strings.Split(strings.TrimSpace(result.Content), "\n")
+	restored, consumed, err := ec.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+	assert.Greater(t, consumed, 0)
+
+	assert.Equal(t, adf_types.NodeTypeExpand, restored.Type)
+	require.Len(t, restored.Content, 1)
+	assert.Equal(t, adf_types.NodeTypeCodeBlock, restored.Content[0].Type, "expand content must be codeBlock, not downgraded to paragraph")
+}

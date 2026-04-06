@@ -13,6 +13,8 @@ func TestIsBlockNode(t *testing.T) {
 		{NodeTypeHeading, true},
 		{NodeTypeCodeBlock, true},
 		{NodeTypeTable, true},
+		{NodeTypeExpand, true},
+		{NodeTypeNestedExpand, true},
 		{NodeTypeText, false},
 		{NodeTypeHardBreak, false},
 		{"unknown", false},
