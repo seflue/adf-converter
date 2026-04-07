@@ -50,9 +50,10 @@ func NewDefaultClassifier() ContentClassifier {
 			adf_types.NodeTypeBlockCard: true,
 			// Blockquote can be converted to markdown > syntax
 			adf_types.NodeTypeBlockquote: true,
+			// mediaSingle: external images → ![alt](url), internal → placeholder (handled in converter)
+			adf_types.NodeTypeMediaSingle: true,
 		},
 		preservedTypes: map[string]bool{
-			adf_types.NodeTypeMediaSingle: true,
 			// mediaInline is preserved as placeholder (no editable representation)
 			adf_types.NodeTypeMediaInline: true,
 		},

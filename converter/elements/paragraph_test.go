@@ -31,6 +31,7 @@ func TestMain(m *testing.M) {
 		NewStatusConverter(),
 		NewBlockquoteConverter(),
 		NewTaskListConverter(),
+		NewMediaSingleConverter(),
 	)
 
 	m.Run()

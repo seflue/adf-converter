@@ -58,6 +58,7 @@ const (
 	NodeTypePanel        = "panel"
 	NodeTypeBlockquote   = "blockquote"
 	NodeTypeRule         = "rule"
+	NodeTypeMedia        = "media"
 	NodeTypeMediaSingle  = "mediaSingle"
 	NodeTypeMediaInline  = "mediaInline"
 	NodeTypeOrderedList  = "orderedList"

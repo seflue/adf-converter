@@ -39,7 +39,7 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 		"listItem", "bulletList", "orderedList",
 		"expand", "nestedExpand", "inlineCard", "blockCard", "emoji",
 		"codeBlock", "rule", "mention", "table", "panel", "date", "status",
-		"blockquote", "taskList",
+		"blockquote", "taskList", "mediaSingle",
 	}
 
 	for _, converter := range elementConverters {
@@ -59,7 +59,7 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 	// - rule before bulletList (--- vs -)
 	blockParserOrder := []ADFNodeType{
 		"expand", "blockCard", "panel", "table", "taskList",
-		"blockquote", "codeBlock", "heading", "rule",
+		"blockquote", "codeBlock", "heading", "mediaSingle", "rule",
 		"bulletList", "orderedList",
 	}
 	for _, nodeType := range blockParserOrder {

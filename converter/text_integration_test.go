@@ -33,6 +33,7 @@ func TestMain(m *testing.M) {
 		elements.NewStatusConverter(),
 		elements.NewBlockquoteConverter(),
 		elements.NewTaskListConverter(),
+		elements.NewMediaSingleConverter(),
 	)
 
 	m.Run()
