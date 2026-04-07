@@ -68,8 +68,13 @@ func (m *DefaultManager) Store(node adf_types.ADFNode) (string, string, error) {
 		return "", "", fmt.Errorf("cannot store node with empty type")
 	}
 
-	m.counter++
-	placeholderID := fmt.Sprintf("ADF_PLACEHOLDER_%03d", m.counter)
+	var placeholderID string
+	if key := mediaIDKey(node); key != "" {
+		placeholderID = fmt.Sprintf("ADF_PLACEHOLDER_%s", key)
+	} else {
+		m.counter++
+		placeholderID = fmt.Sprintf("ADF_PLACEHOLDER_%03d", m.counter)
+	}
 
 	m.session.Preserved[placeholderID] = node
 	preview := m.GeneratePreview(node)
@@ -103,7 +108,7 @@ func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
 	case adf_types.NodeTypeMediaSingle:
 		return m.generateMediaPreview(node)
 	case adf_types.NodeTypeMediaInline:
-		return "Inline Media"
+		return m.generateMediaPreview(node)
 	case adf_types.NodeTypeMention:
 		return m.generateMentionPreview(node)
 	case adf_types.NodeTypeDate:
@@ -214,10 +219,68 @@ func (m *DefaultManager) generateBlockquotePreview(node adf_types.ADFNode) strin
 	return "Quote"
 }
 
+// mediaIDKey returns the first 5 characters of the media node's id attr,
+// or an empty string if the id is unavailable or shorter than 5 characters.
+func mediaIDKey(node adf_types.ADFNode) string {
+	var id string
+	switch node.Type {
+	case adf_types.NodeTypeMediaInline:
+		if node.Attrs != nil {
+			id, _ = node.Attrs["id"].(string)
+		}
+	case adf_types.NodeTypeMediaSingle:
+		if len(node.Content) > 0 && node.Content[0].Attrs != nil {
+			id, _ = node.Content[0].Attrs["id"].(string)
+		}
+	}
+	if len(id) >= 5 {
+		return id[:5]
+	}
+	return ""
+}
+
 // generateMediaPreview creates a preview for media content
 func (m *DefaultManager) generateMediaPreview(node adf_types.ADFNode) string {
-	// TODO: Extract media information from attrs when available
-	return "Media Content"
+	var mediaAttrs map[string]interface{}
+	var layout string
+
+	switch node.Type {
+	case adf_types.NodeTypeMediaSingle:
+		if node.Attrs != nil {
+			layout, _ = node.Attrs["layout"].(string)
+		}
+		if len(node.Content) > 0 {
+			mediaAttrs = node.Content[0].Attrs
+		}
+	case adf_types.NodeTypeMediaInline:
+		mediaAttrs = node.Attrs
+	}
+
+	prefix := ""
+	if node.Type == adf_types.NodeTypeMediaInline {
+		prefix = "Inline "
+	}
+
+	mediaType := "Media"
+	var parts []string
+	if mediaAttrs != nil {
+		if t, ok := mediaAttrs["type"].(string); ok && t != "" {
+			mediaType = cases.Title(language.English).String(t)
+		}
+		w, hasW := mediaAttrs["width"].(float64)
+		h, hasH := mediaAttrs["height"].(float64)
+		if hasW && hasH {
+			parts = append(parts, fmt.Sprintf("%dx%d", int(w), int(h)))
+		}
+	}
+	if layout != "" {
+		parts = append(parts, layout)
+	}
+
+	if len(parts) > 0 {
+		return fmt.Sprintf("%s%s (%s)", prefix, mediaType, strings.Join(parts, ", "))
+	}
+	return fmt.Sprintf("%s%s", prefix, mediaType)
 }
 
 // generateMentionPreview creates a preview for user mentions

@@ -1653,5 +1653,5 @@ func TestMediaInline_PlaceholderPreview(t *testing.T) {
 
 	_, preview, err := manager.Store(node)
 	require.NoError(t, err)
-	assert.Contains(t, preview, "Inline Media")
+	assert.Contains(t, preview, "Inline Image")
 }

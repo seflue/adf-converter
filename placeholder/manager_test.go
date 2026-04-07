@@ -254,6 +254,63 @@ func TestManager_GeneratePreview(t *testing.T) {
 			},
 			contains: "InlineCard (data object)",
 		},
+		{
+			name: "mediaSingle with image type, dimensions, and layout",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaSingle,
+				Attrs: map[string]interface{}{
+					"layout": "wide",
+				},
+				Content: []adf_types.ADFNode{
+					{
+						Type: "media",
+						Attrs: map[string]interface{}{
+							"id":     "a1b2c3d4",
+							"type":   "image",
+							"width":  float64(1920),
+							"height": float64(1080),
+						},
+					},
+				},
+			},
+			contains: "Image (1920x1080, wide)",
+		},
+		{
+			name: "mediaSingle with file type and no dimensions",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaSingle,
+				Content: []adf_types.ADFNode{
+					{
+						Type: "media",
+						Attrs: map[string]interface{}{
+							"id":   "b2c3d4",
+							"type": "file",
+						},
+					},
+				},
+			},
+			contains: "File",
+		},
+		{
+			name: "mediaInline with image type and dimensions",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaInline,
+				Attrs: map[string]interface{}{
+					"id":     "c3d4e5",
+					"type":   "image",
+					"width":  float64(200),
+					"height": float64(150),
+				},
+			},
+			contains: "Inline Image (200x150)",
+		},
+		{
+			name: "mediaInline without attrs",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaInline,
+			},
+			contains: "Inline Media",
+		},
 	}
 
 	for _, tt := range tests {
@@ -421,6 +478,80 @@ func TestParsePlaceholderComment(t *testing.T) {
 
 			if id != tt.expectedID {
 				t.Errorf("ParsePlaceholderComment() id = %q, want %q", id, tt.expectedID)
+			}
+		})
+	}
+}
+
+func TestManager_Store_MediaKeys(t *testing.T) {
+	tests := []struct {
+		name              string
+		node              adf_types.ADFNode
+		expectedKeyPrefix string
+	}{
+		{
+			name: "mediaSingle uses first 5 chars of media child id",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaSingle,
+				Attrs: map[string]interface{}{
+					"layout": "center",
+				},
+				Content: []adf_types.ADFNode{
+					{
+						Type: "media",
+						Attrs: map[string]interface{}{
+							"id":         "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+							"type":       "image",
+							"collection": "col-1",
+						},
+					},
+				},
+			},
+			expectedKeyPrefix: "ADF_PLACEHOLDER_a1b2c",
+		},
+		{
+			name: "mediaInline uses first 5 chars of id attr",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaInline,
+				Attrs: map[string]interface{}{
+					"id":         "xyz99-abcd-ef12-3456-7890abcdef12",
+					"type":       "file",
+					"collection": "col-2",
+				},
+			},
+			expectedKeyPrefix: "ADF_PLACEHOLDER_xyz99",
+		},
+		{
+			name: "mediaSingle without id falls back to counter",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaSingle,
+				Content: []adf_types.ADFNode{
+					{
+						Type:  "media",
+						Attrs: map[string]interface{}{"type": "image"},
+					},
+				},
+			},
+			expectedKeyPrefix: "ADF_PLACEHOLDER_001",
+		},
+		{
+			name: "mediaInline without id falls back to counter",
+			node: adf_types.ADFNode{
+				Type: adf_types.NodeTypeMediaInline,
+			},
+			expectedKeyPrefix: "ADF_PLACEHOLDER_002",
+		},
+	}
+
+	manager := NewManager()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			placeholderID, _, err := manager.Store(tt.node)
+			if err != nil {
+				t.Fatalf("Store() unexpected error: %v", err)
+			}
+			if placeholderID != tt.expectedKeyPrefix {
+				t.Errorf("Store() placeholderID = %q, want %q", placeholderID, tt.expectedKeyPrefix)
 			}
 		})
 	}

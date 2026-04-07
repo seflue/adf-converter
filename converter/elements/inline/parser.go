@@ -20,7 +20,8 @@ import (
 
 // PlaceholderPattern matches placeholder HTML comments
 // Example: <!-- ADF_PLACEHOLDER_001: Emoji: :white_check_mark: -->
-var PlaceholderPattern = regexp.MustCompile(`<!--\s*(ADF_PLACEHOLDER_\d+):\s*([^>]+?)\s*-->`)
+// Example: <!-- ADF_PLACEHOLDER_a1b2c: Inline Image (200x150) -->
+var PlaceholderPattern = regexp.MustCompile(`<!--\s*(ADF_PLACEHOLDER_[\w-]+):\s*([^>]+?)\s*-->`)
 
 // SpanColorPattern extracts color value from span style attribute
 var SpanColorPattern = regexp.MustCompile(`color:\s*([^;"]+)`)
