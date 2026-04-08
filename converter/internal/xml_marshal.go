@@ -328,10 +328,8 @@ func (m *DefaultXMLMarshaler) unmarshalExpandNode(data []byte) (adf_types.ADFNod
 		Attrs: make(map[string]interface{}),
 	}
 
-	// Restore attributes
-	if expand.Title != "" {
-		node.Attrs["title"] = expand.Title
-	}
+	// Restore attributes — empty title is valid (idiomatic in Jira)
+	node.Attrs["title"] = expand.Title
 	if expand.LocalID != "" {
 		node.Attrs["localId"] = expand.LocalID
 	}
@@ -564,11 +562,6 @@ func (m *DefaultXMLMarshaler) ValidateExpandStructure(data []byte) error {
 		return fmt.Errorf("failed to parse expand element: %w", err)
 	}
 
-	// Validate required attributes - title is required for expand elements
-	if expand.Title == "" {
-		return fmt.Errorf("expand element missing required title attribute")
-	}
-
 	return nil
 }
 
@@ -583,9 +576,8 @@ func (m *DefaultXMLMarshaler) ExtractAllAttributes(data []byte) (map[string]inte
 	// Extract all known attributes from the parsed expand element
 	attrs := make(map[string]interface{})
 
-	if expand.Title != "" {
-		attrs["title"] = expand.Title
-	}
+	// Empty title is valid (idiomatic in Jira)
+	attrs["title"] = expand.Title
 
 	if expand.LocalID != "" {
 		attrs["localId"] = expand.LocalID

@@ -1101,11 +1101,12 @@ func TestExpandDetails_EdgeCases(t *testing.T) {
 		expectNodes int
 	}{
 		{
-			name: "malformed details - no summary",
+			name: "details without summary - empty title",
 			markdownIn: `<details>
 Content without summary
 </details>`,
-			expectError: true,
+			expectError: false,
+			expectNodes: 1,
 		},
 		{
 			name: "malformed details - no closing tag",

@@ -142,6 +142,15 @@ Eine Notiz zur Kenntnisnahme.
   </details>
 </details>
 
+<details>
+  Inhalt ohne Titel (kein Summary-Tag).
+</details>
+
+<details>
+  <summary></summary>
+  Inhalt mit leerem Summary-Tag.
+</details>
+
 ## 14. Mention
 
 [@Max Mustermann]()

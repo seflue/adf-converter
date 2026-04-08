@@ -90,7 +90,17 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 				Type:  adf_types.NodeTypeExpand,
 				Attrs: map[string]interface{}{},
 			},
-			expectErr: true,
+			expectErr: false,
+		},
+		{
+			name: "empty title string",
+			input: adf_types.ADFNode{
+				Type: adf_types.NodeTypeExpand,
+				Attrs: map[string]interface{}{
+					"title": "",
+				},
+			},
+			expectErr: false,
 		},
 		{
 			name: "nil attributes",
@@ -232,18 +242,48 @@ func TestExpandConverter_ToMarkdown_WithLocalId(t *testing.T) {
 	assert.Contains(t, result.Content, `id="my-section-123"`)
 }
 
-func TestExpandConverter_ToMarkdown_MissingTitle(t *testing.T) {
+func TestExpandConverter_ToMarkdown_EmptyTitle(t *testing.T) {
 	ec := NewExpandConverter()
 	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
 
-	node := adf_types.ADFNode{
-		Type:  adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{},
+	tests := []struct {
+		name  string
+		attrs map[string]interface{}
+	}{
+		{
+			name:  "empty title string",
+			attrs: map[string]interface{}{"title": ""},
+		},
+		{
+			name:  "title key missing",
+			attrs: map[string]interface{}{},
+		},
 	}
 
-	_, err := ec.ToMarkdown(node, ctx)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "missing required title attribute")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node := adf_types.ADFNode{
+				Type:  adf_types.NodeTypeExpand,
+				Attrs: tt.attrs,
+				Content: []adf_types.ADFNode{
+					{
+						Type: adf_types.NodeTypeParagraph,
+						Content: []adf_types.ADFNode{
+							{Type: adf_types.NodeTypeText, Text: "Content without title"},
+						},
+					},
+				},
+			}
+
+			result, err := ec.ToMarkdown(node, ctx)
+			require.NoError(t, err)
+
+			assert.Contains(t, result.Content, "<details>")
+			assert.NotContains(t, result.Content, "<summary>")
+			assert.Contains(t, result.Content, "Content without title")
+			assert.Contains(t, result.Content, "</details>")
+		})
+	}
 }
 
 func TestExpandConverter_FromMarkdown_BasicExpand(t *testing.T) {
@@ -351,38 +391,55 @@ func TestExpandConverter_FromMarkdown_NotDetailsElement(t *testing.T) {
 	assert.Equal(t, "", node.Type)
 }
 
-func TestExpandConverter_FromMarkdown_MalformedElement(t *testing.T) {
+func TestExpandConverter_FromMarkdown_NoSummary(t *testing.T) {
 	ec := NewExpandConverter()
 	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
 
-	tests := []struct {
-		name     string
-		markdown []string
-	}{
-		{
-			name: "missing summary",
-			markdown: []string{
-				`<details>`,
-				`  Content without summary`,
-				`</details>`,
-			},
-		},
-		{
-			name: "missing closing tag",
-			markdown: []string{
-				`<details>`,
-				`  <summary>Title</summary>`,
-				`  Content without closing`,
-			},
-		},
+	markdown := []string{
+		`<details>`,
+		`  Some content here`,
+		`</details>`,
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := ec.FromMarkdown(tt.markdown, 0, ctx)
-			assert.Error(t, err)
-		})
+	node, consumed, err := ec.FromMarkdown(markdown, 0, ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 3, consumed)
+	assert.Equal(t, adf_types.NodeTypeExpand, node.Type)
+	assert.Equal(t, "", node.Attrs["title"])
+	require.NotEmpty(t, node.Content)
+}
+
+func TestExpandConverter_FromMarkdown_EmptySummary(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	markdown := []string{
+		`<details>`,
+		`  <summary></summary>`,
+		`  Some content here`,
+		`</details>`,
 	}
+
+	node, consumed, err := ec.FromMarkdown(markdown, 0, ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 4, consumed)
+	assert.Equal(t, adf_types.NodeTypeExpand, node.Type)
+	assert.Equal(t, "", node.Attrs["title"])
+	require.NotEmpty(t, node.Content)
+}
+
+func TestExpandConverter_FromMarkdown_MissingClosingTag(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	markdown := []string{
+		`<details>`,
+		`  <summary>Title</summary>`,
+		`  Content without closing`,
+	}
+
+	_, _, err := ec.FromMarkdown(markdown, 0, ctx)
+	assert.Error(t, err)
 }
 
 func TestExpandConverter_RoundTrip_BasicExpand(t *testing.T) {
@@ -516,6 +573,38 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	assert.Equal(t, original.Type, restored.Type)
 	assert.Equal(t, original.Attrs["title"], restored.Attrs["title"])
 	assert.Equal(t, original.Attrs["localId"], restored.Attrs["localId"])
+}
+
+func TestExpandConverter_RoundTrip_EmptyTitle(t *testing.T) {
+	ec := NewExpandConverter()
+	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+
+	original := adf_types.ADFNode{
+		Type: adf_types.NodeTypeExpand,
+		Attrs: map[string]interface{}{
+			"title": "",
+		},
+		Content: []adf_types.ADFNode{
+			{
+				Type: adf_types.NodeTypeParagraph,
+				Content: []adf_types.ADFNode{
+					{Type: adf_types.NodeTypeText, Text: "Content without title"},
+				},
+			},
+		},
+	}
+
+	result, err := ec.ToMarkdown(original, ctx)
+	require.NoError(t, err)
+
+	lines := strings.Split(strings.TrimSpace(result.Content), "\n")
+	restored, consumed, err := ec.FromMarkdown(lines, 0, ctx)
+	require.NoError(t, err)
+	assert.Greater(t, consumed, 0)
+
+	assert.Equal(t, original.Type, restored.Type)
+	assert.Equal(t, "", restored.Attrs["title"])
+	require.NotEmpty(t, restored.Content)
 }
 
 func TestExpandConverter_FromMarkdown_NestedDetailsElements(t *testing.T) {

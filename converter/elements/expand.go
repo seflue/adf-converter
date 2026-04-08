@@ -35,10 +35,6 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 		}
 	}
 
-	if title == "" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("expand node missing required title attribute")
-	}
-
 	var contentBuilder strings.Builder
 	for i, child := range node.Content {
 		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
@@ -74,7 +70,9 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 	htmlBuilder.WriteString(">\n")
 
-	fmt.Fprintf(&htmlBuilder, "  <summary>%s</summary>\n", title)
+	if title != "" {
+		fmt.Fprintf(&htmlBuilder, "  <summary>%s</summary>\n", title)
+	}
 
 	content := strings.TrimSpace(contentBuilder.String())
 	if content != "" {
@@ -171,13 +169,11 @@ func (ec *ExpandConverter) findSummary(lines []string, startIndex int) (summaryE
 
 		if summaryStart != -1 && summaryEnd != -1 {
 			title = strings.TrimSpace(line[summaryStart+9 : summaryEnd])
-			if title == "" {
-				return 0, "", fmt.Errorf("expand element missing required title")
-			}
 			return i, title, nil
 		}
 	}
-	return 0, "", fmt.Errorf("details element missing required summary tag")
+	// No <summary> found — empty title, content starts after <details> line
+	return startIndex, "", nil
 }
 
 // findClosingTag finds the matching </details> considering nested <details> elements.
@@ -244,10 +240,6 @@ func (ec *ExpandConverter) ValidateInput(input interface{}) error {
 
 	if node.Attrs == nil {
 		return fmt.Errorf("expand node missing attributes")
-	}
-
-	if _, exists := node.Attrs["title"]; !exists {
-		return fmt.Errorf("expand node missing required title attribute")
 	}
 
 	return nil

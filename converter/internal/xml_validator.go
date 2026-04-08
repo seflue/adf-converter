@@ -256,11 +256,6 @@ func (v *XMLValidator) validateExpandElement(data []byte) error {
 		return fmt.Errorf("invalid expand element: %w", err)
 	}
 
-	// Validate required fields
-	if expand.Title == "" {
-		return fmt.Errorf("expand element missing required title attribute")
-	}
-
 	// Validate title length (reasonable limit)
 	if len(expand.Title) > 200 {
 		return fmt.Errorf("expand title too long (max 200 characters)")
