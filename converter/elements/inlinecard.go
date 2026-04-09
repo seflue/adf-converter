@@ -89,7 +89,11 @@ func (ic *InlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, contex
 			return converter.EnhancedConversionResult{}, fmt.Errorf("storing inlineCard placeholder: %w", err)
 		}
 		builder := converter.NewEnhancedConversionResultBuilder(converter.Placeholder)
-		builder.AppendContent(placeholder.GeneratePlaceholderComment(placeholderID, preview))
+		if placeholderID == "" {
+			builder.AppendContent(preview)
+		} else {
+			builder.AppendContent(placeholder.GeneratePlaceholderComment(placeholderID, preview))
+		}
 		return builder.Build(), nil
 	}
 

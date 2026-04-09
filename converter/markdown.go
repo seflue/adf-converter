@@ -114,10 +114,15 @@ func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *MarkdownConve
 			return "", fmt.Errorf("failed to store placeholder for %s: %w", node.Type, err)
 		}
 
-		// Generate a markdown comment with the placeholder
-		comment := placeholder.GeneratePlaceholderComment(placeholderID, preview)
+		if placeholderID == "" {
+			// Display mode: preview text only, no comment wrapper
+			if adf_types.IsInlineNode(node.Type) {
+				return preview + " ", nil
+			}
+			return preview + "\n\n", nil
+		}
 
-		// Use inline spacing for inline nodes, block spacing for block nodes
+		comment := placeholder.GeneratePlaceholderComment(placeholderID, preview)
 		if adf_types.IsInlineNode(node.Type) {
 			return comment + " ", nil
 		}
@@ -148,6 +153,9 @@ func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *MarkdownConve
 		return "", fmt.Errorf("failed to store placeholder for unknown type %s: %w", node.Type, err)
 	}
 
+	if placeholderID == "" {
+		return preview + "\n\n", nil
+	}
 	comment := placeholder.GeneratePlaceholderComment(placeholderID, preview)
 	return comment + "\n\n", nil
 }

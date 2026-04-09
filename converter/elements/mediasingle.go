@@ -142,6 +142,10 @@ func (mc *MediaSingleConverter) internalToMarkdown(node adf_types.ADFNode, conte
 	}
 
 	builder := converter.NewEnhancedConversionResultBuilder(converter.Placeholder)
-	builder.AppendContent(placeholder.GeneratePlaceholderComment(placeholderID, preview) + "\n\n")
+	if placeholderID == "" {
+		builder.AppendContent(preview + "\n\n")
+	} else {
+		builder.AppendContent(placeholder.GeneratePlaceholderComment(placeholderID, preview) + "\n\n")
+	}
 	return builder.Build(), nil
 }

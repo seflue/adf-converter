@@ -7,6 +7,7 @@ import (
 	"adf-converter/adf_types"
 	"adf-converter/converter"
 	"adf-converter/converter/elements/inline"
+	"adf-converter/placeholder"
 )
 
 // isBlockBoundary checks if a trimmed line starts a new block element
@@ -131,8 +132,6 @@ func appendPreservedChild(
 		return nil, fmt.Errorf("failed to store placeholder for %s: %w", child.Type, err)
 	}
 
-	comment := fmt.Sprintf("<!-- %s: %s -->", placeholderID, preview)
-
 	if len(pending) > 0 {
 		rendered, err := inline.RenderInlineNodes(pending, context)
 		if err != nil {
@@ -141,10 +140,20 @@ func appendPreservedChild(
 		builder.AppendContent(rendered)
 	}
 
-	if adf_types.IsInlineNode(child.Type) {
-		builder.AppendContent(comment)
+	if placeholderID == "" {
+		// Display mode: preview text only, no comment wrapper
+		if adf_types.IsInlineNode(child.Type) {
+			builder.AppendContent(preview)
+		} else {
+			builder.AppendContent(preview + "\n\n")
+		}
 	} else {
-		builder.AppendContent(comment + "\n\n")
+		comment := placeholder.GeneratePlaceholderComment(placeholderID, preview)
+		if adf_types.IsInlineNode(child.Type) {
+			builder.AppendContent(comment)
+		} else {
+			builder.AppendContent(comment + "\n\n")
+		}
 	}
 
 	return nil, nil

@@ -96,6 +96,16 @@ func NewDefaultConverter() *DefaultConverter {
 	}
 }
 
+// NewDisplayConverter creates a converter for read-only display mode.
+// Uses a NullManager that produces preview text instead of placeholder comments.
+// FromMarkdown is still available but not useful in display context.
+func NewDisplayConverter() *DefaultConverter {
+	return &DefaultConverter{
+		classifier: NewDefaultClassifier(),
+		manager:    placeholder.NewNullManager(),
+	}
+}
+
 // ToMarkdown converts an ADF document to editable Markdown with placeholders for complex content
 func (c *DefaultConverter) ToMarkdown(doc adf_types.ADFDocument) (string, *placeholder.EditSession, error) {
 	return ToMarkdown(doc, c.classifier, c.manager)

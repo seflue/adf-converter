@@ -94,29 +94,35 @@ func (m *DefaultManager) Restore(placeholderID string) (adf_types.ADFNode, error
 
 // GeneratePreview creates a human-readable preview of an ADF node
 func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
+	return generatePreview(node)
+}
+
+// generatePreview creates a human-readable preview of an ADF node.
+// Package-level function so both DefaultManager and NullManager can use it.
+func generatePreview(node adf_types.ADFNode) string {
 	switch node.Type {
 	case adf_types.NodeTypeCodeBlock:
-		return m.generateCodeBlockPreview(node)
+		return generateCodeBlockPreview(node)
 	case adf_types.NodeTypeTable:
-		return m.generateTablePreview(node)
+		return generateTablePreview(node)
 	case adf_types.NodeTypePanel:
-		return m.generatePanelPreview(node)
+		return generatePanelPreview(node)
 	case adf_types.NodeTypeBlockquote:
-		return m.generateBlockquotePreview(node)
+		return generateBlockquotePreview(node)
 	case adf_types.NodeTypeRule:
 		return "Horizontal Rule"
 	case adf_types.NodeTypeMediaSingle:
-		return m.generateMediaPreview(node)
+		return generateMediaPreview(node)
 	case adf_types.NodeTypeMediaInline:
-		return m.generateMediaPreview(node)
+		return generateMediaPreview(node)
 	case adf_types.NodeTypeMention:
-		return m.generateMentionPreview(node)
+		return generateMentionPreview(node)
 	case adf_types.NodeTypeDate:
-		return m.generateDatePreview(node)
+		return generateDatePreview(node)
 	case adf_types.NodeTypeEmoji:
-		return m.generateEmojiPreview(node)
+		return generateEmojiPreview(node)
 	case adf_types.NodeTypeStatus:
-		return m.generateStatusPreview(node)
+		return generateStatusPreview(node)
 	case adf_types.NodeTypeInlineCard:
 		return "InlineCard (data object)"
 	default:
@@ -125,7 +131,7 @@ func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
 }
 
 // generateCodeBlockPreview creates a preview for code blocks
-func (m *DefaultManager) generateCodeBlockPreview(node adf_types.ADFNode) string {
+func generateCodeBlockPreview(node adf_types.ADFNode) string {
 	language := "text"
 	if node.Attrs != nil {
 		if lang, ok := node.Attrs["language"].(string); ok && lang != "" {
@@ -154,7 +160,7 @@ func (m *DefaultManager) generateCodeBlockPreview(node adf_types.ADFNode) string
 }
 
 // generateTablePreview creates a preview for tables
-func (m *DefaultManager) generateTablePreview(node adf_types.ADFNode) string {
+func generateTablePreview(node adf_types.ADFNode) string {
 	rows := 0
 	cols := 0
 
@@ -186,7 +192,7 @@ func (m *DefaultManager) generateTablePreview(node adf_types.ADFNode) string {
 }
 
 // generatePanelPreview creates a preview for info/warning/error panels
-func (m *DefaultManager) generatePanelPreview(node adf_types.ADFNode) string {
+func generatePanelPreview(node adf_types.ADFNode) string {
 	panelType := "info"
 	if node.Attrs != nil {
 		if pType, ok := node.Attrs["panelType"].(string); ok && pType != "" {
@@ -207,7 +213,7 @@ func (m *DefaultManager) generatePanelPreview(node adf_types.ADFNode) string {
 }
 
 // generateBlockquotePreview creates a preview for blockquotes
-func (m *DefaultManager) generateBlockquotePreview(node adf_types.ADFNode) string {
+func generateBlockquotePreview(node adf_types.ADFNode) string {
 	text := extractTextContent(node)
 	if text != "" {
 		text = strings.ReplaceAll(text, "\n", " ")
@@ -240,7 +246,7 @@ func mediaIDKey(node adf_types.ADFNode) string {
 }
 
 // generateMediaPreview creates a preview for media content
-func (m *DefaultManager) generateMediaPreview(node adf_types.ADFNode) string {
+func generateMediaPreview(node adf_types.ADFNode) string {
 	var mediaAttrs map[string]interface{}
 	var layout string
 
@@ -284,7 +290,7 @@ func (m *DefaultManager) generateMediaPreview(node adf_types.ADFNode) string {
 }
 
 // generateMentionPreview creates a preview for user mentions
-func (m *DefaultManager) generateMentionPreview(node adf_types.ADFNode) string {
+func generateMentionPreview(node adf_types.ADFNode) string {
 	if node.Attrs != nil {
 		if text, ok := node.Attrs["text"].(string); ok && text != "" {
 			return fmt.Sprintf("Mention: %s", text)
@@ -294,7 +300,7 @@ func (m *DefaultManager) generateMentionPreview(node adf_types.ADFNode) string {
 }
 
 // generateDatePreview creates a preview for date nodes
-func (m *DefaultManager) generateDatePreview(node adf_types.ADFNode) string {
+func generateDatePreview(node adf_types.ADFNode) string {
 	if node.Attrs != nil {
 		if timestamp, ok := node.Attrs["timestamp"].(string); ok && timestamp != "" {
 			return fmt.Sprintf("Date: %s", timestamp)
@@ -304,7 +310,7 @@ func (m *DefaultManager) generateDatePreview(node adf_types.ADFNode) string {
 }
 
 // generateStatusPreview creates a preview for status nodes
-func (m *DefaultManager) generateStatusPreview(node adf_types.ADFNode) string {
+func generateStatusPreview(node adf_types.ADFNode) string {
 	if node.Attrs != nil {
 		if text, ok := node.Attrs["text"].(string); ok && text != "" {
 			return fmt.Sprintf("Status: %s", text)
@@ -314,7 +320,7 @@ func (m *DefaultManager) generateStatusPreview(node adf_types.ADFNode) string {
 }
 
 // generateEmojiPreview creates a preview for emoji nodes
-func (m *DefaultManager) generateEmojiPreview(node adf_types.ADFNode) string {
+func generateEmojiPreview(node adf_types.ADFNode) string {
 	if node.Attrs != nil {
 		if shortName, ok := node.Attrs["shortName"].(string); ok && shortName != "" {
 			return fmt.Sprintf("Emoji: %s", shortName)
