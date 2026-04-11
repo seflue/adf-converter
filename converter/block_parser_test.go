@@ -3,8 +3,8 @@ package converter_test
 import (
 	"testing"
 
-	"adf-converter/converter"
-	"adf-converter/converter/elements"
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/elements"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

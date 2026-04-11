@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 // Helper function to parse ADF payload from JSON string

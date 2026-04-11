@@ -1,6 +1,6 @@
 package converter
 
-import "adf-converter/adf_types"
+import "github.com/seflue/adf-converter/adf_types"
 
 // ElementConverter defines the interface for bidirectional conversion of ADF elements
 //

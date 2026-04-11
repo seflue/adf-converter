@@ -3,8 +3,8 @@ package converter
 import (
 	"fmt"
 
-	"adf-converter/adf_types"
-	"adf-converter/placeholder"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/placeholder"
 )
 
 // DeletionSummary tracks which placeholders were deleted during markdown → ADF conversion

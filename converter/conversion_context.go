@@ -1,6 +1,6 @@
 package converter
 
-import "adf-converter/adf_types"
+import "github.com/seflue/adf-converter/adf_types"
 
 // ConversionContextManager manages conversion context during processing
 type ConversionContextManager struct {

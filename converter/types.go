@@ -1,6 +1,6 @@
 package converter
 
-import "adf-converter/converter/internal"
+import "github.com/seflue/adf-converter/converter/internal"
 
 // Re-export types from internal package for backward compatibility
 type (

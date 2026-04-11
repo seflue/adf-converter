@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"adf-converter/adf_types"
-	"adf-converter/placeholder"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/placeholder"
 )
 
 // Global converter registry for incremental migration
@@ -73,7 +73,7 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 //
 // Use this to register converters from test setup or application code:
 //
-//	import "adf-converter/converter/elements"
+//	import "github.com/seflue/adf-converter/converter/elements"
 //	converter.GetGlobalRegistry().Register(adf_types.NodeTypeText, elements.NewTextConverter())
 func GetGlobalRegistry() *ConverterRegistry {
 	return globalRegistry

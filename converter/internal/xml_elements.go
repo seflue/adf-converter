@@ -3,7 +3,7 @@ package internal
 import (
 	"encoding/xml"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 // XML element structures for ADF-specific nodes

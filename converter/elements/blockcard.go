@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 )
 
 // blockCardRegex matches <div data-adf-type="blockCard">[url](url)</div> or bare url

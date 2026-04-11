@@ -3,8 +3,8 @@ package elements
 import (
 	"fmt"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 )
 
 // StatusConverter handles conversion of ADF status nodes to/from markdown

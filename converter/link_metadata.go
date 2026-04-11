@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 // LinkMetadata encapsulates link URL and all associated metadata

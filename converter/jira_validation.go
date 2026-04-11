@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 // ValidateJiraADFCompliance validates ADF structures for Jira API compliance

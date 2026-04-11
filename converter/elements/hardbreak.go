@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 )
 
 // HardBreakConverter handles bidirectional conversion of hard break nodes

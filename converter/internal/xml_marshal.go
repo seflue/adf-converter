@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 // XMLMarshaler handles XML encoding/decoding for ADF-specific elements

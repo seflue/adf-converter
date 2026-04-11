@@ -5,10 +5,10 @@ import (
 	"sort"
 	"strings"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter/elements/inline"
-	"adf-converter/converter/elements/tables"
-	"adf-converter/converter/internal"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter/elements/inline"
+	"github.com/seflue/adf-converter/converter/elements/tables"
+	"github.com/seflue/adf-converter/converter/internal"
 )
 
 // TableConverter implements markdown table conversion for ADF table nodes

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter"
-	"adf-converter/converter/elements/lists"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/elements/lists"
 )
 
 // BulletListConverter handles conversion of ADF bullet list nodes to/from markdown

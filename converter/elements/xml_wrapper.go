@@ -3,7 +3,7 @@ package elements
 import (
 	"fmt"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 // XMLPreservedConverter handles ADF-specific elements via XML encoding

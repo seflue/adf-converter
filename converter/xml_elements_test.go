@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"adf-converter/converter/internal"
+	"github.com/seflue/adf-converter/converter/internal"
 )
 
 // ========== XML ELEMENT EDGE CASES ==========

@@ -1,6 +1,6 @@
 package converter
 
-import "adf-converter/adf_types"
+import "github.com/seflue/adf-converter/adf_types"
 
 // ContentClassifier determines how different ADF node types should be handled
 type ContentClassifier interface {

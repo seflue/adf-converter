@@ -3,7 +3,7 @@ package converter
 import (
 	"fmt"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 // ADFStructureValidator provides utility functions to validate ADF structure compliance

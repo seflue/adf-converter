@@ -1,6 +1,6 @@
 package converter
 
-import "adf-converter/adf_types"
+import "github.com/seflue/adf-converter/adf_types"
 
 // ADFNodeType represents the type of ADF node for classification
 type ADFNodeType string

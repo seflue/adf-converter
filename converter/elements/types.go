@@ -1,6 +1,6 @@
 package elements
 
-import "adf-converter/converter"
+import "github.com/seflue/adf-converter/converter"
 
 // Type aliases for converter package types
 type (

@@ -3,8 +3,8 @@ package converter
 import (
 	"testing"
 
-	"adf-converter/adf_types"
-	"adf-converter/placeholder"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/placeholder"
 )
 
 func TestDefaultClassifier_MentionIsEditable(t *testing.T) {

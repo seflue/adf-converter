@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"adf-converter/placeholder"
+	"github.com/seflue/adf-converter/placeholder"
 )
 
 // BlockParserEntry pairs a node type with its BlockParser for ordered dispatch.

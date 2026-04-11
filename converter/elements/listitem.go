@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 )
 
 // ListItemConverter handles conversion of ADF list item nodes to/from markdown

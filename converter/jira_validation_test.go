@@ -3,7 +3,7 @@ package converter
 import (
 	"testing"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 func TestJiraValidation_InlineCardWithData(t *testing.T) {

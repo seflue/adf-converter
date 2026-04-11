@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 )
 
 // DateConverter handles conversion of ADF date nodes to/from markdown

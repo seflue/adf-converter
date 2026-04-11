@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 )
 
 func TestInlineCard_DataAttributeIsValid(t *testing.T) {

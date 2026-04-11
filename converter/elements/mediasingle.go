@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter"
-	"adf-converter/placeholder"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/placeholder"
 )
 
 // mediaSingleRegex parses Markdown image syntax with optional layout title:

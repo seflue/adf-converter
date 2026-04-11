@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter/internal"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter/internal"
 )
 
 // TaskListConverter implements markdown checkbox conversion for ADF taskList nodes

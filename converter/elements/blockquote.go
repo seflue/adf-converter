@@ -8,10 +8,10 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
 
-	"adf-converter/adf_types"
-	"adf-converter/converter/elements/inline"
-	"adf-converter/converter/elements/lists"
-	"adf-converter/converter/internal"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter/elements/inline"
+	"github.com/seflue/adf-converter/converter/elements/lists"
+	"github.com/seflue/adf-converter/converter/internal"
 )
 
 // BlockquoteConverter implements markdown blockquote conversion for ADF blockquote nodes

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"adf-converter/adf_types"
+	"github.com/seflue/adf-converter/adf_types"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
