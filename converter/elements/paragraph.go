@@ -37,10 +37,15 @@ func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 
 	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
-	// Separate preserved nodes into placeholders, pass rest to inline renderer
+	// Separate preserved nodes into placeholders, pass rest to inline renderer.
+	// Unknown inline types (anything IsInlineNode does not recognize) also take
+	// the placeholder path so their attrs/nesting survive roundtrip — otherwise
+	// the inline renderer would either drop them or fail hard.
 	var renderableContent []adf_types.ADFNode
 	for _, child := range node.Content {
-		if context.Classifier != nil && context.Classifier.IsPreserved(child.Type) {
+		isUnknownInline := !adf_types.IsInlineNode(child.Type)
+		shouldPreserve := context.Classifier != nil && context.Classifier.IsPreserved(child.Type)
+		if shouldPreserve || isUnknownInline {
 			var err error
 			renderableContent, err = appendPreservedChild(child, renderableContent, context, builder)
 			if err != nil {
@@ -140,20 +145,14 @@ func appendPreservedChild(
 		builder.AppendContent(rendered)
 	}
 
+	// appendPreservedChild is only called from ParagraphConverter, so every
+	// child is inline by construction — even if IsInlineNode does not yet
+	// recognize its type (unknown inline nodes, ac-0073).
 	if placeholderID == "" {
-		// Display mode: preview text only, no comment wrapper
-		if adf_types.IsInlineNode(child.Type) {
-			builder.AppendContent(preview)
-		} else {
-			builder.AppendContent(preview + "\n\n")
-		}
+		builder.AppendContent(preview)
 	} else {
 		comment := placeholder.GeneratePlaceholderComment(placeholderID, preview)
-		if adf_types.IsInlineNode(child.Type) {
-			builder.AppendContent(comment)
-		} else {
-			builder.AppendContent(comment + "\n\n")
-		}
+		builder.AppendContent(comment)
 	}
 
 	return nil, nil
