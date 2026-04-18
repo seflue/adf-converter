@@ -80,37 +80,3 @@ func (c *Classifier) IsPreserved(nodeType string) bool {
 func (c *Classifier) IsInlineFormattable(nodeType string) bool {
 	return c.inlineFormatTypes[nodeType]
 }
-
-// ContentStrategy identifies the recommended strategy for handling a node.
-type ContentStrategy int
-
-const (
-	StrategyEdit ContentStrategy = iota
-	StrategyPreserve
-	StrategyUnknown
-)
-
-// GetContentStrategy determines the best strategy for handling a specific node.
-func (c *Classifier) GetContentStrategy(nodeType string) ContentStrategy {
-	if c.IsEditable(nodeType) {
-		return StrategyEdit
-	}
-	if c.IsPreserved(nodeType) {
-		return StrategyPreserve
-	}
-	return StrategyUnknown
-}
-
-// String returns a human-readable description of the content strategy.
-func (s ContentStrategy) String() string {
-	switch s {
-	case StrategyEdit:
-		return "edit"
-	case StrategyPreserve:
-		return "preserve"
-	case StrategyUnknown:
-		return "unknown"
-	default:
-		return "invalid"
-	}
-}
