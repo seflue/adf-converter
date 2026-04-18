@@ -1,6 +1,9 @@
 package elements
 
-import "github.com/seflue/adf-converter/converter"
+import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
+)
 
 // Type aliases for converter package types
 type (
@@ -24,9 +27,9 @@ const (
 	NodePanel      = converter.ADFNodeType("panel")
 )
 
-// Functions from converter package
+// Helpers from internal convresult package
 var (
-	NewEnhancedConversionResultBuilder = converter.NewEnhancedConversionResultBuilder
-	CreateErrorResult                  = converter.CreateErrorResult
-	CreateSuccessResult                = converter.CreateSuccessResult
+	NewEnhancedConversionResultBuilder = convresult.NewEnhancedConversionResultBuilder
+	CreateErrorResult                  = convresult.CreateErrorResult
+	CreateSuccessResult                = convresult.CreateSuccessResult
 )

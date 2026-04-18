@@ -5,6 +5,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // EmojiConverter handles conversion of ADF emoji nodes to/from markdown
@@ -37,7 +38,7 @@ func (c *EmojiConverter) ToMarkdown(node adf_types.ADFNode, context converter.Co
 	}
 
 	// Return the unicode character directly (no placeholder needed)
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent(emojiChar)
 	builder.IncrementConverted()
 	return builder.Build(), nil

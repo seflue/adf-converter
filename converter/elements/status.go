@@ -5,6 +5,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // StatusConverter handles conversion of ADF status nodes to/from markdown
@@ -30,7 +31,7 @@ func (sc *StatusConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 		return converter.EnhancedConversionResult{}, fmt.Errorf("status node missing color attribute")
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent(fmt.Sprintf("[status:%s|%s]", text, color))
 	builder.IncrementConverted()
 	return builder.Build(), nil

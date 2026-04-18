@@ -6,6 +6,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // HardBreakConverter handles bidirectional conversion of hard break nodes
@@ -34,7 +35,7 @@ func (hc *HardBreakConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	}
 
 	// Hard break is simply a newline character
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent("\n")
 	builder.IncrementConverted()
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 )
 
@@ -27,7 +28,7 @@ func (hc *HeadingConverter) ToMarkdown(node adf_types.ADFNode, context converter
 		level = 1 // Default to h1 for invalid levels
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	prefix := strings.Repeat("#", level) + " "
 	builder.AppendContent(prefix)

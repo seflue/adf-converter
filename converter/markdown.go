@@ -79,8 +79,8 @@ func GetGlobalRegistry() *ConverterRegistry {
 	return globalRegistry
 }
 
-// MarkdownConversionContext tracks state during ADF to Markdown conversion
-type MarkdownConversionContext struct {
+// markdownConversionContext tracks state during ADF to Markdown conversion
+type markdownConversionContext struct {
 	ListDepth int // Current nesting depth for lists (0 = top level)
 }
 
@@ -91,7 +91,7 @@ func ToMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager
 	}
 
 	var result strings.Builder
-	ctx := &MarkdownConversionContext{ListDepth: 0}
+	ctx := &markdownConversionContext{ListDepth: 0}
 
 	for _, node := range doc.Content {
 		markdown, err := convertNodeToMarkdownWithContext(node, ctx, classifier, manager)
@@ -106,7 +106,7 @@ func ToMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager
 }
 
 // convertNodeToMarkdownWithContext recursively converts an ADF node to Markdown with context
-func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *MarkdownConversionContext, classifier ContentClassifier, manager placeholder.Manager) (string, error) {
+func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *markdownConversionContext, classifier ContentClassifier, manager placeholder.Manager) (string, error) {
 	// Check if this node should be preserved as a placeholder
 	if classifier.IsPreserved(node.Type) {
 		placeholderID, preview, err := manager.Store(node)
@@ -134,7 +134,7 @@ func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *MarkdownConve
 	// As converters are registered, they take precedence over the switch statement.
 	nodeType := ADFNodeType(node.Type)
 	if converter := globalRegistry.GetConverter(nodeType); converter != nil {
-		// Adapt context from legacy MarkdownConversionContext to ConversionContext
+		// Adapt context from legacy markdownConversionContext to ConversionContext
 		conversionCtx := adaptContext(ctx, classifier, manager, nodeType)
 
 		// Use registered converter

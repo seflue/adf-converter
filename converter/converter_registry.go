@@ -153,13 +153,13 @@ func RegisterGlobal(nodeType ADFNodeType, converter ElementConverter) {
 	globalRegistry.Register(nodeType, converter)
 }
 
-// adaptContext adapts MarkdownConversionContext to ConversionContext for registry converters
+// adaptContext adapts markdownConversionContext to ConversionContext for registry converters
 //
 // This adapter bridges the legacy context structure used in the switch-based dispatch
 // with the new ConversionContext structure expected by ElementConverter implementations.
 //
 // During incremental migration, both context types coexist:
-// - MarkdownConversionContext: Used by legacy switch-based conversion functions
+// - markdownConversionContext: Used by legacy switch-based conversion functions
 // - ConversionContext: Used by new ElementConverter implementations
 //
 // Parameters:
@@ -169,7 +169,7 @@ func RegisterGlobal(nodeType ADFNodeType, converter ElementConverter) {
 //
 // Returns:
 //   - ConversionContext with appropriate strategy and settings
-func adaptContext(ctx *MarkdownConversionContext, classifier ContentClassifier, manager placeholder.Manager, nodeType ADFNodeType) ConversionContext {
+func adaptContext(ctx *markdownConversionContext, classifier ContentClassifier, manager placeholder.Manager, nodeType ADFNodeType) ConversionContext {
 	// Determine strategy based on classifier
 	var strategy ConversionStrategy
 	nodeTypeStr := string(nodeType)

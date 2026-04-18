@@ -6,6 +6,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 )
 
@@ -17,7 +18,7 @@ func NewBulletListConverter() converter.ElementConverter {
 }
 
 func (blc *BulletListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	childContext := converter.ConversionContext{
 		Strategy:           context.Strategy,

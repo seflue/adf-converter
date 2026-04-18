@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"errors"
+
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/placeholder"
 )
@@ -186,19 +188,18 @@ func CreateErrorRecoveryContext(parent ConversionContext) ConversionContext {
 func ValidateContext(context ConversionContext) error {
 	// Check for reasonable nesting depth
 	if context.NestedLevel > 20 {
-		return NewEnhancedConverterError("nesting level too deep")
+		return errors.New("nesting level too deep")
 	}
 
-	// Validate strategy compatibility with parent
 	if context.NestedLevel > 0 {
 		switch context.ParentNodeType {
 		case NodeTable:
 			if context.Strategy != MarkdownTable && context.Strategy != StandardMarkdown {
-				return NewEnhancedConverterError("invalid strategy for table context")
+				return errors.New("invalid strategy for table context")
 			}
 		case NodeTaskList:
 			if context.Strategy != MarkdownTaskList && context.Strategy != StandardMarkdown {
-				return NewEnhancedConverterError("invalid strategy for task list context")
+				return errors.New("invalid strategy for task list context")
 			}
 		}
 	}

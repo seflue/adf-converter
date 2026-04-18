@@ -7,6 +7,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // DateConverter handles conversion of ADF date nodes to/from markdown
@@ -32,7 +33,7 @@ func (dc *DateConverter) ToMarkdown(node adf_types.ADFNode, context converter.Co
 		return converter.EnhancedConversionResult{}, fmt.Errorf("parsing date timestamp %q: %w", timestamp, err)
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent(fmt.Sprintf("[date:%s]", dateStr))
 	builder.IncrementConverted()
 	return builder.Build(), nil

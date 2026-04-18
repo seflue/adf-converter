@@ -7,6 +7,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // blockCardRegex matches <div data-adf-type="blockCard">[url](url)</div> or bare url
@@ -25,7 +26,7 @@ func NewBlockCardConverter() converter.ElementConverter {
 }
 
 func (bc *BlockCardConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	url, _ := node.Attrs["url"].(string)
 	if url == "" {

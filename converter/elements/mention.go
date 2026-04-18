@@ -6,6 +6,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // MentionConverter handles conversion of ADF mention nodes to/from markdown
@@ -37,7 +38,7 @@ func (mc *MentionConverter) ToMarkdown(node adf_types.ADFNode, context converter
 		destination += "?" + query
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent(fmt.Sprintf("[%s](%s)", text, destination))
 	builder.IncrementConverted()
 	return builder.Build(), nil

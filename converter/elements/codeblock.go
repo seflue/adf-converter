@@ -10,6 +10,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // CodeBlockConverter handles conversion of ADF codeBlock nodes to/from markdown
@@ -20,7 +21,7 @@ func NewCodeBlockConverter() converter.ElementConverter {
 }
 
 func (c *CodeBlockConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := converter.NewEnhancedConversionResultBuilder(converter.MarkdownCodeBlock)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownCodeBlock)
 
 	// Extract code text
 	var text string

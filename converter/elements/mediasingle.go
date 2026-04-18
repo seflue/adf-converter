@@ -7,6 +7,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -117,7 +118,7 @@ func (mc *MediaSingleConverter) externalToMarkdown(node adf_types.ADFNode) (conv
 	alt, _ := media.Attrs["alt"].(string)
 	layout, _ := node.Attrs["layout"].(string)
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	if layout == "" || layout == "center" {
 		builder.AppendContent(fmt.Sprintf("![%s](%s)\n\n", alt, url))
@@ -131,7 +132,7 @@ func (mc *MediaSingleConverter) externalToMarkdown(node adf_types.ADFNode) (conv
 
 func (mc *MediaSingleConverter) internalToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if context.PlaceholderManager == nil {
-		builder := converter.NewEnhancedConversionResultBuilder(converter.Placeholder)
+		builder := convresult.NewEnhancedConversionResultBuilder(converter.Placeholder)
 		builder.AppendContent("<!-- mediaSingle: preserved -->\n\n")
 		return builder.Build(), nil
 	}
@@ -141,7 +142,7 @@ func (mc *MediaSingleConverter) internalToMarkdown(node adf_types.ADFNode, conte
 		return converter.EnhancedConversionResult{}, fmt.Errorf("storing mediaSingle placeholder: %w", err)
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.Placeholder)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.Placeholder)
 	if placeholderID == "" {
 		builder.AppendContent(preview + "\n\n")
 	} else {

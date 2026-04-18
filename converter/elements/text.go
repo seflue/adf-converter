@@ -6,6 +6,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // TextConverter handles bidirectional conversion of text nodes with marks (formatting)
@@ -38,7 +39,7 @@ func (tc *TextConverter) ToMarkdown(node adf_types.ADFNode, context converter.Co
 		text = tc.applyMarkToText(text, mark)
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent(text)
 	builder.IncrementConverted()
 

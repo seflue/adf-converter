@@ -7,6 +7,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // admonitionRegex matches GitHub-style admonition headers: > [!TYPE]
@@ -23,7 +24,7 @@ func NewPanelConverter() converter.ElementConverter {
 }
 
 func (pc *PanelConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := converter.NewEnhancedConversionResultBuilder(converter.MarkdownPanel)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownPanel)
 
 	panelType := pc.extractPanelType(node)
 

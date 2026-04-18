@@ -9,6 +9,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // RuleConverter handles bidirectional conversion of horizontal rule nodes
@@ -26,7 +27,7 @@ func (rc *RuleConverter) ToMarkdown(node adf_types.ADFNode, context converter.Co
 		return converter.EnhancedConversionResult{}, err
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent("---\n\n")
 	builder.IncrementConverted()
 

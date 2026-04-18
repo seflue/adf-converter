@@ -6,6 +6,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -53,7 +54,7 @@ func buildComplexMetadataHTML(attrs map[string]interface{}, linkURL string) stri
 
 func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
-		builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+		builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 		builder.AppendContent("[InlineCard]")
 		return builder.Build(), nil
 	}
@@ -67,7 +68,7 @@ func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 		}
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	if hasComplexMetadata(node.Attrs) {
 		builder.AppendContent(buildComplexMetadataHTML(node.Attrs, linkURL))
@@ -88,7 +89,7 @@ func (ic *InlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, contex
 		if err != nil {
 			return converter.EnhancedConversionResult{}, fmt.Errorf("storing inlineCard placeholder: %w", err)
 		}
-		builder := converter.NewEnhancedConversionResultBuilder(converter.Placeholder)
+		builder := convresult.NewEnhancedConversionResultBuilder(converter.Placeholder)
 		if placeholderID == "" {
 			builder.AppendContent(preview)
 		} else {
@@ -98,7 +99,7 @@ func (ic *InlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, contex
 	}
 
 	// No PlaceholderManager available — lossy fallback
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 	builder.AppendContent("[InlineCard]")
 	return builder.Build(), nil
 }

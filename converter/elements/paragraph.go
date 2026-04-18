@@ -6,6 +6,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 	"github.com/seflue/adf-converter/placeholder"
 )
@@ -30,12 +31,12 @@ func NewParagraphConverter() converter.ElementConverter {
 
 func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if len(node.Content) == 0 {
-		builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+		builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 		builder.AppendContent("\n")
 		return builder.Build(), nil
 	}
 
-	builder := converter.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	// Separate preserved nodes into placeholders, pass rest to inline renderer.
 	// Unknown inline types (anything IsInlineNode does not recognize) also take
@@ -130,7 +131,7 @@ func appendPreservedChild(
 	child adf_types.ADFNode,
 	pending []adf_types.ADFNode,
 	context converter.ConversionContext,
-	builder *converter.EnhancedConversionResultBuilder,
+	builder *convresult.EnhancedConversionResultBuilder,
 ) ([]adf_types.ADFNode, error) {
 	placeholderID, preview, err := context.PlaceholderManager.Store(child)
 	if err != nil {
