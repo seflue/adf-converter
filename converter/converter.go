@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/placeholder"
@@ -110,7 +111,30 @@ func (c *DefaultConverter) ToMarkdown(doc adf_types.ADFDocument) (string, *place
 
 // FromMarkdown converts edited Markdown back to ADF with deletion tracking
 func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.EditSession) (ConversionResult, error) {
-	return FromMarkdownWithTracking(markdown, session, c.manager)
+	if session == nil {
+		return ConversionResult{}, fmt.Errorf("session cannot be nil")
+	}
+
+	deletionTracker := newDeletionTracker(session, c.manager)
+
+	lines := strings.Split(markdown, "\n")
+
+	parser := NewMarkdownParser(session, c.manager)
+	nodes, err := parser.ParseMarkdownToADFNodes(lines)
+	if err != nil {
+		return ConversionResult{}, fmt.Errorf("failed to parse markdown: %w", err)
+	}
+
+	doc := adf_types.ADFDocument{
+		Version: 1,
+		Type:    "doc",
+		Content: nodes,
+	}
+
+	return ConversionResult{
+		Document:  doc,
+		Deletions: deletionTracker.GetSummary(),
+	}, nil
 }
 
 // GetClassifier returns the content classifier used by this converter

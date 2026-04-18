@@ -62,41 +62,6 @@ func (dt *deletionTracker) GetSummary() *DeletionSummary {
 	}
 }
 
-// FromMarkdownWithTracking converts edited Markdown back to ADF with deletion tracking
-func FromMarkdownWithTracking(markdown string, session *placeholder.EditSession, manager placeholder.Manager) (ConversionResult, error) {
-	if session == nil {
-		return ConversionResult{}, fmt.Errorf("session cannot be nil")
-	}
-
-	// Track deletions during parsing
-	deletionTracker := newDeletionTracker(session, manager)
-
-	// Split markdown into lines for processing
-	lines := strings.Split(markdown, "\n")
-
-	// Parse the markdown into ADF nodes
-	parser := NewMarkdownParser(session, manager)
-	nodes, err := parser.ParseMarkdownToADFNodes(lines)
-	if err != nil {
-		return ConversionResult{}, fmt.Errorf("failed to parse markdown: %w", err)
-	}
-
-	// Create the ADF document
-	doc := adf_types.ADFDocument{
-		Version: 1,
-		Type:    "doc",
-		Content: nodes,
-	}
-
-	// Generate deletion summary
-	deletionSummary := deletionTracker.GetSummary()
-
-	return ConversionResult{
-		Document:  doc,
-		Deletions: deletionSummary,
-	}, nil
-}
-
 // FromMarkdown converts edited Markdown back to ADF, restoring preserved content from placeholders
 func FromMarkdown(markdown string, session *placeholder.EditSession, manager placeholder.Manager) (adf_types.ADFDocument, error) {
 	// PHASE 5: Comprehensive error handling with recovery
@@ -123,8 +88,9 @@ func FromMarkdown(markdown string, session *placeholder.EditSession, manager pla
 		slog.Warn("FromMarkdown: processing extremely large document", "lineCount", len(lines))
 	}
 
-	// Parse the markdown into ADF nodes with error recovery
-	nodes, err := parseMarkdownToADFNodesWithRecovery(lines, session, manager)
+	// Parse the markdown into ADF nodes
+	parser := NewMarkdownParser(session, manager)
+	nodes, err := parser.ParseMarkdownToADFNodes(lines)
 	if err != nil {
 		return adf_types.ADFDocument{}, fmt.Errorf("failed to parse markdown: %w", err)
 	}
@@ -137,19 +103,6 @@ func FromMarkdown(markdown string, session *placeholder.EditSession, manager pla
 	}
 
 	return doc, nil
-}
-
-// parseMarkdownToADFNodesWithRecovery wraps the markdown parser with error recovery
-func parseMarkdownToADFNodesWithRecovery(lines []string, session *placeholder.EditSession, manager placeholder.Manager) ([]adf_types.ADFNode, error) {
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("parseMarkdownToADFNodes: critical parsing error recovered", "error", r, "lineCount", len(lines))
-		}
-	}()
-
-	// Use new streaming parser to eliminate infinite recursion
-	parser := NewMarkdownParser(session, manager)
-	return parser.ParseMarkdownToADFNodes(lines)
 }
 
 // parsePlaceholderNode restores preserved content from placeholder comments
