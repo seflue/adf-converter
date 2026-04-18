@@ -12,7 +12,7 @@ import (
 	east "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
 
-	"github.com/seflue/adf-converter/converter/elements/tables"
+	"github.com/seflue/adf-converter/converter/elements/internal/tables"
 )
 
 // ============================================================================

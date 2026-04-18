@@ -280,8 +280,8 @@ func TestBlockParserDispatchOrder(t *testing.T) {
 // TestParagraphIsNotBlockParser verifies that ParagraphConverter does not implement
 // BlockParser — it is always the fallback.
 func TestParagraphIsNotBlockParser(t *testing.T) {
-	var conv converter.ElementConverter = elements.NewParagraphConverter()
-	_, ok := conv.(converter.BlockParser)
+	conv := elements.NewParagraphConverter()
+	_, ok := interface{}(conv).(converter.BlockParser)
 	assert.False(t, ok, "ParagraphConverter must NOT implement BlockParser")
 }
 

@@ -268,7 +268,7 @@ func TestRuleConverter_Roundtrip(t *testing.T) {
 		},
 	}
 
-	md, restored, err := conv.ConvertRoundTrip(doc)
+	md, restored, err := converter.ConvertRoundTrip(conv, doc)
 	require.NoError(t, err)
 
 	assert.Contains(t, md, "---")
@@ -342,7 +342,7 @@ func TestRuleConverter_EdgeCases(t *testing.T) {
 				Content: tt.content,
 			}
 
-			md, restored, err := conv.ConvertRoundTrip(doc)
+			md, restored, err := converter.ConvertRoundTrip(conv, doc)
 			require.NoError(t, err)
 			assert.Contains(t, md, "---")
 			require.Len(t, restored.Content, tt.numNodes)

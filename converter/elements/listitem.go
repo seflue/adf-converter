@@ -11,7 +11,7 @@ import (
 // ListItemConverter handles conversion of ADF list item nodes to/from markdown
 type ListItemConverter struct{}
 
-func NewListItemConverter() *ListItemConverter {
+func NewListItemConverter() converter.ElementConverter {
 	return &ListItemConverter{}
 }
 

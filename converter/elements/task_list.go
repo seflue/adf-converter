@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/converter/internal"
 )
 
 // TaskListConverter implements markdown checkbox conversion for ADF taskList nodes
 type TaskListConverter struct{}
 
-func NewTaskListConverter() *TaskListConverter {
+func NewTaskListConverter() converter.ElementConverter {
 	return &TaskListConverter{}
 }
 

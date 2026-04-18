@@ -22,7 +22,7 @@ import (
 type HardBreakConverter struct{}
 
 // NewHardBreakConverter creates a new hard break converter instance
-func NewHardBreakConverter() *HardBreakConverter {
+func NewHardBreakConverter() converter.ElementConverter {
 	return &HardBreakConverter{}
 }
 

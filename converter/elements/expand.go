@@ -21,7 +21,7 @@ var (
 // top-level <details> → expand, nested <details> (NestedLevel > 0) → nestedExpand.
 type ExpandConverter struct{}
 
-func NewExpandConverter() *ExpandConverter {
+func NewExpandConverter() converter.ElementConverter {
 	return &ExpandConverter{}
 }
 

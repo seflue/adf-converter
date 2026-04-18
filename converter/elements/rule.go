@@ -17,7 +17,7 @@ import (
 // In Markdown: "---" (thematic break)
 type RuleConverter struct{}
 
-func NewRuleConverter() *RuleConverter {
+func NewRuleConverter() converter.ElementConverter {
 	return &RuleConverter{}
 }
 

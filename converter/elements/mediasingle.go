@@ -26,7 +26,7 @@ var mediaSingleRegex = regexp.MustCompile(`^!\[([^\]]*)\]\(([^)\s"]+)(?:\s+"layo
 // Internal media (media[type=file/link] with id+collection) are preserved as placeholders.
 type MediaSingleConverter struct{}
 
-func NewMediaSingleConverter() *MediaSingleConverter {
+func NewMediaSingleConverter() converter.ElementConverter {
 	return &MediaSingleConverter{}
 }
 

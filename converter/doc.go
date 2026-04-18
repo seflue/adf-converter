@@ -52,7 +52,7 @@
 // ## Basic Round-Trip Conversion
 //
 //	converter := NewDefaultConverter()
-//	markdown, restored, err := converter.ConvertRoundTrip(adfDocument)
+//	markdown, restored, err := ConvertRoundTrip(converter, adfDocument)
 //	if err != nil {
 //		return err
 //	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/elements/inline"
+	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -24,7 +24,7 @@ func isBlockBoundary(trimmed string) bool {
 // ParagraphConverter handles conversion of ADF paragraph nodes to/from markdown
 type ParagraphConverter struct{}
 
-func NewParagraphConverter() *ParagraphConverter {
+func NewParagraphConverter() converter.ElementConverter {
 	return &ParagraphConverter{}
 }
 

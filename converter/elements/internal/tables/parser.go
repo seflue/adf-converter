@@ -11,7 +11,7 @@ import (
 	"github.com/yuin/goldmark/text"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter/elements/inline"
+	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 )
 
 // ParseTable parses a markdown table string into an ADF table node.

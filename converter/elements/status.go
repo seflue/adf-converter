@@ -11,7 +11,7 @@ import (
 // Format: [status:Text|color]
 type StatusConverter struct{}
 
-func NewStatusConverter() *StatusConverter {
+func NewStatusConverter() converter.ElementConverter {
 	return &StatusConverter{}
 }
 

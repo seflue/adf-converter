@@ -12,7 +12,7 @@ import (
 // InlineCardConverter handles conversion of ADF inlineCard nodes to/from markdown
 type InlineCardConverter struct{}
 
-func NewInlineCardConverter() *InlineCardConverter {
+func NewInlineCardConverter() converter.ElementConverter {
 	return &InlineCardConverter{}
 }
 

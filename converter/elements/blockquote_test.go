@@ -664,7 +664,7 @@ func TestBlockquoteConverter_Roundtrip_BulletList(t *testing.T) {
 }
 
 func TestBlockquoteConverter_shouldPreserveAttrs(t *testing.T) {
-	bc := NewBlockquoteConverter()
+	bc := &BlockquoteConverter{}
 
 	tests := []struct {
 		name string

@@ -7,7 +7,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/elements/lists"
+	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 )
 
 var orderedListLinePattern = regexp.MustCompile(`^\s*\d+\.\s`)
@@ -15,7 +15,7 @@ var orderedListLinePattern = regexp.MustCompile(`^\s*\d+\.\s`)
 // OrderedListConverter handles conversion of ADF ordered list nodes to/from markdown
 type OrderedListConverter struct{}
 
-func NewOrderedListConverter() *OrderedListConverter {
+func NewOrderedListConverter() converter.ElementConverter {
 	return &OrderedListConverter{}
 }
 

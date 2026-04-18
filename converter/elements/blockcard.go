@@ -20,7 +20,7 @@ var blockCardRegex = regexp.MustCompile(`^<div data-adf-type="blockCard">(?:\[([
 //	<div data-adf-type="blockCard">https://example.com</div>
 type BlockCardConverter struct{}
 
-func NewBlockCardConverter() *BlockCardConverter {
+func NewBlockCardConverter() converter.ElementConverter {
 	return &BlockCardConverter{}
 }
 

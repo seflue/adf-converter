@@ -568,7 +568,7 @@ func TestHeadingConverter_CanHandle(t *testing.T) {
 }
 
 func TestHeadingConverter_CanParseLine(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := &HeadingConverter{}
 
 	tests := []struct {
 		line     string

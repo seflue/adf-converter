@@ -11,7 +11,7 @@ import (
 type EmojiConverter struct{}
 
 // NewEmojiConverter creates a new emoji converter
-func NewEmojiConverter() *EmojiConverter {
+func NewEmojiConverter() converter.ElementConverter {
 	return &EmojiConverter{}
 }
 

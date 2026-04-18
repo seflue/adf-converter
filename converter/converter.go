@@ -81,7 +81,7 @@ type DefaultConverter struct {
 }
 
 // NewConverter creates a new DefaultConverter with the provided classifier and manager
-func NewConverter(classifier ContentClassifier, manager placeholder.Manager) *DefaultConverter {
+func NewConverter(classifier ContentClassifier, manager placeholder.Manager) Converter {
 	return &DefaultConverter{
 		classifier: classifier,
 		manager:    manager,
@@ -89,7 +89,7 @@ func NewConverter(classifier ContentClassifier, manager placeholder.Manager) *De
 }
 
 // NewDefaultConverter creates a DefaultConverter with default implementations
-func NewDefaultConverter() *DefaultConverter {
+func NewDefaultConverter() Converter {
 	return &DefaultConverter{
 		classifier: NewDefaultClassifier(),
 		manager:    placeholder.NewManager(),
@@ -99,7 +99,7 @@ func NewDefaultConverter() *DefaultConverter {
 // NewDisplayConverter creates a converter for read-only display mode.
 // Uses a NullManager that produces preview text instead of placeholder comments.
 // FromMarkdown is still available but not useful in display context.
-func NewDisplayConverter() *DefaultConverter {
+func NewDisplayConverter() Converter {
 	return &DefaultConverter{
 		classifier: NewDefaultClassifier(),
 		manager:    placeholder.NewNullManager(),
@@ -132,15 +132,14 @@ func (c *DefaultConverter) GetManager() placeholder.Manager {
 }
 
 // ConvertRoundTrip performs a full round-trip conversion for testing
-// ADF → Markdown → ADF and returns both the intermediate markdown and final ADF
-func (c *DefaultConverter) ConvertRoundTrip(original adf_types.ADFDocument) (markdown string, restored adf_types.ADFDocument, err error) {
-	// Convert to markdown
+// ADF → Markdown → ADF and returns both the intermediate markdown and final ADF.
+// This is a free function over the Converter interface.
+func ConvertRoundTrip(c Converter, original adf_types.ADFDocument) (markdown string, restored adf_types.ADFDocument, err error) {
 	markdown, session, err := c.ToMarkdown(original)
 	if err != nil {
 		return "", adf_types.ADFDocument{}, err
 	}
 
-	// Convert back to ADF
 	result, err := c.FromMarkdown(markdown, session)
 	if err != nil {
 		return markdown, adf_types.ADFDocument{}, err

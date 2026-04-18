@@ -6,15 +6,16 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter/elements/inline"
-	"github.com/seflue/adf-converter/converter/elements/tables"
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/elements/internal/inline"
+	"github.com/seflue/adf-converter/converter/elements/internal/tables"
 	"github.com/seflue/adf-converter/converter/internal"
 )
 
 // TableConverter implements markdown table conversion for ADF table nodes
 type TableConverter struct{}
 
-func NewTableConverter() *TableConverter {
+func NewTableConverter() converter.ElementConverter {
 	return &TableConverter{}
 }
 

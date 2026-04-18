@@ -10,13 +10,13 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/elements/inline"
+	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 )
 
 // HeadingConverter handles conversion of ADF heading nodes to/from markdown
 type HeadingConverter struct{}
 
-func NewHeadingConverter() *HeadingConverter {
+func NewHeadingConverter() converter.ElementConverter {
 	return &HeadingConverter{}
 }
 

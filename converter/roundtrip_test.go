@@ -35,7 +35,7 @@ func TestRoundTripConversion_BasicDocument(t *testing.T) {
 	converter := NewDefaultConverter()
 
 	// Perform round-trip conversion
-	markdown, restored, err := converter.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(converter, original)
 	if err != nil {
 		t.Fatalf("Round-trip conversion failed: %v", err)
 	}
@@ -98,7 +98,7 @@ func TestRoundTripConversion_FormattedText(t *testing.T) {
 	converter := NewDefaultConverter()
 
 	// Perform round-trip conversion
-	markdown, restored, err := converter.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(converter, original)
 	if err != nil {
 		t.Fatalf("Round-trip conversion failed: %v", err)
 	}
@@ -159,7 +159,7 @@ func TestRoundTripConversion_MultipleHeadings(t *testing.T) {
 	converter := NewDefaultConverter()
 
 	// Perform round-trip conversion
-	markdown, restored, err := converter.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(converter, original)
 	if err != nil {
 		t.Fatalf("Round-trip conversion failed: %v", err)
 	}
@@ -208,7 +208,7 @@ func TestRoundTripConversion_UnderlineText(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	markdown, restored, err := conv.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "This is <u>underlined</u> text\n\n", markdown)
@@ -244,7 +244,7 @@ func TestRoundTripConversion_UnderlineBoldText(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	markdown, restored, err := conv.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "**<u>bold underlined</u>**\n\n", markdown)
@@ -302,7 +302,7 @@ func TestRoundTripConversion_TextColorText(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	markdown, restored, err := conv.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "This is <span style=\"color: #ff0000\">red text</span> here\n\n", markdown)
@@ -333,7 +333,7 @@ func TestRoundTripConversion_TextColorBoldText(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	markdown, restored, err := conv.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "**<span style=\"color: #ff0000\">bold red</span>**\n\n", markdown)
@@ -398,7 +398,7 @@ func TestRoundTripConversion_SubscriptText(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	markdown, restored, err := conv.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "H<sub>2</sub>O\n\n", markdown)
@@ -435,7 +435,7 @@ func TestRoundTripConversion_SuperscriptText(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	markdown, restored, err := conv.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "x<sup>2</sup>\n\n", markdown)
@@ -473,7 +473,7 @@ func TestRoundTripConversion_BoldSubscriptText(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	markdown, restored, err := conv.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "**<sub>important</sub>**\n\n", markdown)
@@ -1350,7 +1350,7 @@ func TestRoundTrip_OrderedList_StartNumber(t *testing.T) {
 				},
 			}
 
-			md, restored, err := conv.ConvertRoundTrip(doc)
+			md, restored, err := ConvertRoundTrip(conv, doc)
 			require.NoError(t, err)
 
 			// Markdown contains correct start number
@@ -1416,7 +1416,7 @@ func TestRoundTrip_Table_PlainTable(t *testing.T) {
 		},
 	}
 
-	md, restored, err := conv.ConvertRoundTrip(doc)
+	md, restored, err := ConvertRoundTrip(conv, doc)
 	require.NoError(t, err)
 
 	// Should render as markdown table, not placeholder
@@ -1481,7 +1481,7 @@ func TestRoundTrip_Table_WithFormattedContent(t *testing.T) {
 		},
 	}
 
-	md, restored, err := conv.ConvertRoundTrip(doc)
+	md, restored, err := ConvertRoundTrip(conv, doc)
 	require.NoError(t, err)
 
 	// Bold header should appear in markdown
@@ -1524,7 +1524,7 @@ func TestRoundTripConversion_InlineCardDataOnly(t *testing.T) {
 	}
 
 	converter := NewDefaultConverter()
-	markdown, restored, err := converter.ConvertRoundTrip(original)
+	markdown, restored, err := ConvertRoundTrip(converter, original)
 	require.NoError(t, err)
 
 	// Markdown must contain placeholder comment
@@ -1575,7 +1575,7 @@ func TestRoundTrip_MediaInline_InParagraph(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	md, restored, err := conv.ConvertRoundTrip(original)
+	md, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	// Markdown should contain placeholder comment (inline, no double newline)
@@ -1628,7 +1628,7 @@ func TestRoundTrip_MediaInline_StandaloneInParagraph(t *testing.T) {
 	}
 
 	conv := NewDefaultConverter()
-	_, restored, err := conv.ConvertRoundTrip(original)
+	_, restored, err := ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	// Paragraph wrapper preserved, mediaInline restored inside

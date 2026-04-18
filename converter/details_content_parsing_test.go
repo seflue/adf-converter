@@ -81,7 +81,7 @@ func TestDetailsContentParsingRegression(t *testing.T) {
 	conv := NewDefaultConverter()
 
 	// Convert to markdown and back
-	markdown, restoredADF, err := conv.ConvertRoundTrip(originalADF)
+	markdown, restoredADF, err := ConvertRoundTrip(conv, originalADF)
 	require.NoError(t, err, "Round trip conversion should succeed")
 
 	t.Logf("Generated Markdown:\n%s", markdown)
@@ -192,7 +192,7 @@ func TestDetailsContentParsingEdgeCases(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			conv := NewDefaultConverter()
 
-			_, restored, err := conv.ConvertRoundTrip(tc.inputADF)
+			_, restored, err := ConvertRoundTrip(conv, tc.inputADF)
 
 			if tc.expectError {
 				assert.Error(t, err)

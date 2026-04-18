@@ -12,7 +12,7 @@ import (
 // Format: [@DisplayName](accountid:id?accessLevel=X&userType=Y)
 type MentionConverter struct{}
 
-func NewMentionConverter() *MentionConverter {
+func NewMentionConverter() converter.ElementConverter {
 	return &MentionConverter{}
 }
 

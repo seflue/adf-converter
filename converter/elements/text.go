@@ -23,7 +23,7 @@ import (
 // handled by container converters that call parseInlineContent().
 type TextConverter struct{}
 
-func NewTextConverter() *TextConverter {
+func NewTextConverter() converter.ElementConverter {
 	return &TextConverter{}
 }
 

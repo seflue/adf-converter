@@ -267,7 +267,7 @@ func TestMediaSingleConverter_CanParseLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.line, func(t *testing.T) {
-			mc := NewMediaSingleConverter()
+			mc := &MediaSingleConverter{}
 			assert.Equal(t, tt.want, mc.CanParseLine(tt.line))
 		})
 	}

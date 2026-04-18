@@ -6,13 +6,13 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/elements/lists"
+	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 )
 
 // BulletListConverter handles conversion of ADF bullet list nodes to/from markdown
 type BulletListConverter struct{}
 
-func NewBulletListConverter() *BulletListConverter {
+func NewBulletListConverter() converter.ElementConverter {
 	return &BulletListConverter{}
 }
 

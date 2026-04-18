@@ -13,7 +13,7 @@ import (
 // Format: [date:2025-04-04]
 type DateConverter struct{}
 
-func NewDateConverter() *DateConverter {
+func NewDateConverter() converter.ElementConverter {
 	return &DateConverter{}
 }
 

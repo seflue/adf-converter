@@ -15,7 +15,7 @@ import (
 // CodeBlockConverter handles conversion of ADF codeBlock nodes to/from markdown
 type CodeBlockConverter struct{}
 
-func NewCodeBlockConverter() *CodeBlockConverter {
+func NewCodeBlockConverter() converter.ElementConverter {
 	return &CodeBlockConverter{}
 }
 

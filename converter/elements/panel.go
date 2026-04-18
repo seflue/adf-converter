@@ -18,7 +18,7 @@ var admonitionRegex = regexp.MustCompile(`(?i)^>\s*\[!(INFO|WARNING|ERROR|SUCCES
 // Input (MD -> ADF): Fenced-div AND GitHub Admonition (> [!TYPE])
 type PanelConverter struct{}
 
-func NewPanelConverter() *PanelConverter {
+func NewPanelConverter() converter.ElementConverter {
 	return &PanelConverter{}
 }
 
