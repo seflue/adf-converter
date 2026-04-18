@@ -53,21 +53,6 @@ func (cs ConversionStrategy) String() string {
 	}
 }
 
-// GetStrategyForLinkType returns the appropriate conversion strategy for a given link type
-func GetStrategyForLinkType(linkType LinkType) ConversionStrategy {
-	switch linkType {
-	case WebLink:
-		return StandardMarkdown
-	case SimpleInternalLink:
-		return StandardMarkdown
-	case ComplexInternalLink:
-		return HTMLWrapped
-	default:
-		// Default to placeholder for unknown types
-		return Placeholder
-	}
-}
-
 // IsMarkdownReadable returns true if the strategy produces readable markdown
 func (cs ConversionStrategy) IsMarkdownReadable() bool {
 	switch cs {
@@ -110,35 +95,3 @@ func (cs ConversionStrategy) SupportsAttributes() bool {
 	}
 }
 
-// ConversionStrategyMapping defines the complete mapping from link characteristics to strategy
-type ConversionStrategyMapping struct {
-	IsInternal   bool
-	HasMetadata  bool
-	MetadataKeys []string
-}
-
-// DetermineStrategy analyzes link characteristics and returns the appropriate strategy
-// This is the main entry point for strategy determination logic
-func (csm *ConversionStrategyMapping) DetermineStrategy() ConversionStrategy {
-	// Web links (not internal) always use standard markdown
-	if !csm.IsInternal {
-		return StandardMarkdown
-	}
-
-	// Internal links without significant metadata use standard markdown
-	if !csm.HasMetadata || len(csm.MetadataKeys) == 0 {
-		return StandardMarkdown
-	}
-
-	// Internal links with metadata use HTML wrapper
-	return HTMLWrapped
-}
-
-// CreateMappingFromClassification creates a strategy mapping from a link classification
-func CreateMappingFromClassification(classification LinkClassification) ConversionStrategyMapping {
-	return ConversionStrategyMapping{
-		IsInternal:   classification.IsInternal,
-		HasMetadata:  classification.HasMetadata,
-		MetadataKeys: classification.MetadataKeys,
-	}
-}

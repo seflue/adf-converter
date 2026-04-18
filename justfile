@@ -1,5 +1,9 @@
 # adf-converter — Go-Library fuer ADF-Roundtrip-Konvertierung
 
+# Tooling selbstkontainiert gegen die lokale go.mod fahren,
+# unabhaengig vom Parent-Workspace (atlassian-tools/go.work).
+export GOWORK := "off"
+
 # Default: alles pruefen
 default: check
 
@@ -25,3 +29,11 @@ fix:
 
 # Alles pruefen (fail fast: billigstes zuerst)
 check: build lint test
+
+# Release tagging und GitHub Release erstellen
+release VERSION:
+    @git diff-index --quiet HEAD -- || { echo "working tree not clean"; exit 1; }
+    just check
+    git tag -a {{VERSION}} -m "Release {{VERSION}}"
+    git push origin {{VERSION}}
+    gh release create {{VERSION}} --generate-notes
