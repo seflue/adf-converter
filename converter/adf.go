@@ -75,7 +75,8 @@ func FromMarkdownWithTracking(markdown string, session *placeholder.EditSession,
 	lines := strings.Split(markdown, "\n")
 
 	// Parse the markdown into ADF nodes
-	nodes, err := parseMarkdownToADFNodesWithTracking(lines, session, manager, deletionTracker)
+	parser := NewMarkdownParser(session, manager)
+	nodes, err := parser.ParseMarkdownToADFNodes(lines)
 	if err != nil {
 		return ConversionResult{}, fmt.Errorf("failed to parse markdown: %w", err)
 	}
@@ -138,16 +139,7 @@ func FromMarkdown(markdown string, session *placeholder.EditSession, manager pla
 	return doc, nil
 }
 
-// parseMarkdownToADFNodes converts markdown lines to ADF nodes
-//
-//nolint:unused // Called by parseMarkdownToADFNodesWithTracking
-func parseMarkdownToADFNodes(lines []string, session *placeholder.EditSession, manager placeholder.Manager) ([]adf_types.ADFNode, error) {
-	// Use new streaming parser to eliminate infinite recursion risk
-	parser := NewMarkdownParser(session, manager)
-	return parser.ParseMarkdownToADFNodes(lines)
-}
-
-// parseMarkdownToADFNodesWithRecovery wraps parseMarkdownToADFNodes with error recovery
+// parseMarkdownToADFNodesWithRecovery wraps the markdown parser with error recovery
 func parseMarkdownToADFNodesWithRecovery(lines []string, session *placeholder.EditSession, manager placeholder.Manager) ([]adf_types.ADFNode, error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -160,15 +152,8 @@ func parseMarkdownToADFNodesWithRecovery(lines []string, session *placeholder.Ed
 	return parser.ParseMarkdownToADFNodes(lines)
 }
 
-// parseMarkdownToADFNodesWithTracking converts markdown lines to ADF nodes with deletion tracking
-func parseMarkdownToADFNodesWithTracking(lines []string, session *placeholder.EditSession, manager placeholder.Manager, tracker *deletionTracker) ([]adf_types.ADFNode, error) {
-	// Use new streaming parser to eliminate infinite recursion
-	parser := NewMarkdownParser(session, manager)
-	return parser.ParseMarkdownToADFNodes(lines)
-}
-
 // parsePlaceholderNode restores preserved content from placeholder comments
-func parsePlaceholderNode(lines []string, session *placeholder.EditSession, manager placeholder.Manager) (*adf_types.ADFNode, int, error) {
+func parsePlaceholderNode(lines []string, manager placeholder.Manager) (*adf_types.ADFNode, int, error) {
 	if len(lines) == 0 {
 		return nil, 1, nil
 	}

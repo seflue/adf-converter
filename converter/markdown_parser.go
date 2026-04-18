@@ -96,7 +96,7 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 
 	// Placeholder: infrastructure special case, no converter
 	if strings.HasPrefix(line, "<!--") {
-		return parsePlaceholderNode(lines, p.session, p.manager)
+		return parsePlaceholderNode(lines, p.manager)
 	}
 
 	// Block parser dispatch (first match wins, order from RegisterDefaultConverters)
