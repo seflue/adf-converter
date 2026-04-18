@@ -10,6 +10,7 @@ import (
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 	"github.com/seflue/adf-converter/converter/elements/internal/tables"
 	"github.com/seflue/adf-converter/converter/internal"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // tableConverter implements markdown table conversion for ADF table nodes
@@ -19,9 +20,9 @@ func NewTableConverter() converter.ElementConverter {
 	return &tableConverter{}
 }
 
-func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
+func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Type != "table" {
-		return EnhancedConversionResult{}, fmt.Errorf("table converter can only handle table nodes, got: %s", node.Type)
+		return converter.EnhancedConversionResult{}, fmt.Errorf("table converter can only handle table nodes, got: %s", node.Type)
 	}
 
 	var markdown strings.Builder
@@ -91,7 +92,7 @@ func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 	if context.PreserveAttrs && len(nonDefaultAttrs) > 0 {
 		wrappedMarkdown, err := tc.wrapTableWithXML(markdown.String(), nonDefaultAttrs)
 		if err != nil {
-			return CreateErrorResult(err.Error(), MarkdownTable), err
+			return convresult.CreateErrorResult(err.Error(), converter.MarkdownTable), err
 		}
 		finalMarkdown = wrappedMarkdown
 	} else {
@@ -107,7 +108,7 @@ func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 		}
 	}
 
-	result := CreateSuccessResult(finalMarkdown, MarkdownTable)
+	result := convresult.CreateSuccessResult(finalMarkdown, converter.MarkdownTable)
 	result.ElementsConverted = 1
 
 	// Preserve ADF attributes for round-trip fidelity
@@ -304,13 +305,13 @@ func (tc *tableConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<table") || strings.HasPrefix(line, "|")
 }
 
-func (tc *tableConverter) CanHandle(nodeType ADFNodeType) bool {
-	return nodeType == NodeTable
+func (tc *tableConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+	return nodeType == converter.NodeTable
 }
 
 // GetStrategy returns the conversion strategy this converter implements
 func (tc *tableConverter) GetStrategy() converter.ConversionStrategy {
-	return MarkdownTable
+	return converter.MarkdownTable
 }
 
 // ValidateInput validates that the input can be processed

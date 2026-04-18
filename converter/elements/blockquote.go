@@ -11,6 +11,7 @@ import (
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 	"github.com/seflue/adf-converter/converter/internal"
 )
@@ -22,12 +23,12 @@ func NewBlockquoteConverter() converter.ElementConverter {
 	return &blockquoteConverter{}
 }
 
-func (bc *blockquoteConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
+func (bc *blockquoteConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Type != "blockquote" {
-		return EnhancedConversionResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
+		return converter.EnhancedConversionResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
 	}
 
-	builder := NewEnhancedConversionResultBuilder(MarkdownBlockquote)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownBlockquote)
 
 	if bc.shouldPreserveAttrs(context, node) {
 		builder.PreserveAttributes(node.Attrs)
@@ -254,12 +255,12 @@ func (bc *blockquoteConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<blockquote") || strings.HasPrefix(line, ">")
 }
 
-func (bc *blockquoteConverter) CanHandle(nodeType ADFNodeType) bool {
-	return nodeType == NodeBlockquote
+func (bc *blockquoteConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+	return nodeType == converter.NodeBlockquote
 }
 
 func (bc *blockquoteConverter) GetStrategy() converter.ConversionStrategy {
-	return MarkdownBlockquote
+	return converter.MarkdownBlockquote
 }
 
 func (bc *blockquoteConverter) ValidateInput(input interface{}) error {

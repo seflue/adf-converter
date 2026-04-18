@@ -291,16 +291,16 @@ func TestBlockquoteConverter_ValidateInput(t *testing.T) {
 func TestBlockquoteConverter_CanHandle(t *testing.T) {
 	conv := NewBlockquoteConverter()
 
-	assert.True(t, conv.CanHandle(NodeBlockquote))
-	assert.False(t, conv.CanHandle(NodeParagraph))
-	assert.False(t, conv.CanHandle(NodeHeading))
+	assert.True(t, conv.CanHandle(converter.NodeBlockquote))
+	assert.False(t, conv.CanHandle(converter.NodeParagraph))
+	assert.False(t, conv.CanHandle(converter.NodeHeading))
 }
 
 func TestBlockquoteConverter_GetStrategy(t *testing.T) {
 	conv := NewBlockquoteConverter()
 
 	strategy := conv.GetStrategy()
-	assert.Equal(t, MarkdownBlockquote, strategy)
+	assert.Equal(t, converter.MarkdownBlockquote, strategy)
 }
 
 func TestParseMarkdownBlockquote(t *testing.T) {

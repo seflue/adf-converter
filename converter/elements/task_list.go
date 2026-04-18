@@ -8,6 +8,7 @@ import (
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/converter/internal"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // taskListConverter implements markdown checkbox conversion for ADF taskList nodes
@@ -17,12 +18,12 @@ func NewTaskListConverter() converter.ElementConverter {
 	return &taskListConverter{}
 }
 
-func (tc *taskListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
+func (tc *taskListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Type != "taskList" {
-		return EnhancedConversionResult{}, fmt.Errorf("task list converter can only handle taskList nodes, got: %s", node.Type)
+		return converter.EnhancedConversionResult{}, fmt.Errorf("task list converter can only handle taskList nodes, got: %s", node.Type)
 	}
 
-	builder := NewEnhancedConversionResultBuilder(MarkdownTaskList)
+	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownTaskList)
 
 	for _, item := range node.Content {
 		if item.Type != "taskItem" {
@@ -248,12 +249,12 @@ func (tc *taskListConverter) CanParseLine(line string) bool {
 		strings.HasPrefix(line, "- [X]")
 }
 
-func (tc *taskListConverter) CanHandle(nodeType ADFNodeType) bool {
-	return nodeType == NodeTaskList
+func (tc *taskListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+	return nodeType == converter.NodeTaskList
 }
 
 func (tc *taskListConverter) GetStrategy() converter.ConversionStrategy {
-	return MarkdownTaskList
+	return converter.MarkdownTaskList
 }
 
 func (tc *taskListConverter) ValidateInput(input interface{}) error {

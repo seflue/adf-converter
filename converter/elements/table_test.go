@@ -273,7 +273,7 @@ func TestTableConverter_ToMarkdown_PlainTable(t *testing.T) {
 
 	result, err := tc.ToMarkdown(node, ctx)
 	require.NoError(t, err)
-	assert.Equal(t, MarkdownTable, result.Strategy)
+	assert.Equal(t, converter.MarkdownTable, result.Strategy)
 	assert.Equal(t, 1, result.ElementsConverted)
 	assert.Contains(t, result.Content, "Header 1")
 	assert.Contains(t, result.Content, "Cell 1")
@@ -820,13 +820,13 @@ func TestTableConverter_FromMarkdown_EmptyCellContent(t *testing.T) {
 
 func TestTableConverter_CanHandle(t *testing.T) {
 	tc := NewTableConverter()
-	assert.True(t, tc.CanHandle(NodeTable))
+	assert.True(t, tc.CanHandle(converter.NodeTable))
 	assert.False(t, tc.CanHandle("paragraph"))
 }
 
 func TestTableConverter_GetStrategy(t *testing.T) {
 	tc := NewTableConverter()
-	assert.Equal(t, MarkdownTable, tc.GetStrategy())
+	assert.Equal(t, converter.MarkdownTable, tc.GetStrategy())
 }
 
 func TestTableConverter_ValidateInput(t *testing.T) {
