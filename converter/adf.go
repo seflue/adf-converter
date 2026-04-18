@@ -9,8 +9,8 @@ import (
 	"github.com/seflue/adf-converter/placeholder"
 )
 
-// DeletionTracker tracks which placeholders are requested vs successfully restored during conversion
-type DeletionTracker struct {
+// deletionTracker tracks which placeholders are requested vs successfully restored during conversion
+type deletionTracker struct {
 	originalCount         int
 	requestedPlaceholders map[string]bool
 	restoredPlaceholders  map[string]bool
@@ -18,9 +18,9 @@ type DeletionTracker struct {
 	manager               placeholder.Manager
 }
 
-// NewDeletionTracker creates a new deletion tracker
-func NewDeletionTracker(session *placeholder.EditSession, manager placeholder.Manager) *DeletionTracker {
-	return &DeletionTracker{
+// newDeletionTracker creates a new deletion tracker
+func newDeletionTracker(session *placeholder.EditSession, manager placeholder.Manager) *deletionTracker {
+	return &deletionTracker{
 		originalCount:         len(session.Preserved),
 		requestedPlaceholders: make(map[string]bool),
 		restoredPlaceholders:  make(map[string]bool),
@@ -30,17 +30,17 @@ func NewDeletionTracker(session *placeholder.EditSession, manager placeholder.Ma
 }
 
 // RecordPlaceholderRequest tracks that a placeholder was requested from the markdown
-func (dt *DeletionTracker) RecordPlaceholderRequest(placeholderID string) {
+func (dt *deletionTracker) RecordPlaceholderRequest(placeholderID string) {
 	dt.requestedPlaceholders[placeholderID] = true
 }
 
 // RecordPlaceholderRestored tracks that a placeholder was successfully restored
-func (dt *DeletionTracker) RecordPlaceholderRestored(placeholderID string) {
+func (dt *deletionTracker) RecordPlaceholderRestored(placeholderID string) {
 	dt.restoredPlaceholders[placeholderID] = true
 }
 
 // GetSummary generates the final deletion summary
-func (dt *DeletionTracker) GetSummary() *DeletionSummary {
+func (dt *deletionTracker) GetSummary() *DeletionSummary {
 	var deletedIDs []string
 
 	// Find placeholders that were in the original session but never restored
@@ -69,7 +69,7 @@ func FromMarkdownWithTracking(markdown string, session *placeholder.EditSession,
 	}
 
 	// Track deletions during parsing
-	deletionTracker := NewDeletionTracker(session, manager)
+	deletionTracker := newDeletionTracker(session, manager)
 
 	// Split markdown into lines for processing
 	lines := strings.Split(markdown, "\n")
@@ -161,7 +161,7 @@ func parseMarkdownToADFNodesWithRecovery(lines []string, session *placeholder.Ed
 }
 
 // parseMarkdownToADFNodesWithTracking converts markdown lines to ADF nodes with deletion tracking
-func parseMarkdownToADFNodesWithTracking(lines []string, session *placeholder.EditSession, manager placeholder.Manager, tracker *DeletionTracker) ([]adf_types.ADFNode, error) {
+func parseMarkdownToADFNodesWithTracking(lines []string, session *placeholder.EditSession, manager placeholder.Manager, tracker *deletionTracker) ([]adf_types.ADFNode, error) {
 	// Use new streaming parser to eliminate infinite recursion
 	parser := NewMarkdownParser(session, manager)
 	return parser.ParseMarkdownToADFNodes(lines)
