@@ -8,6 +8,7 @@ import (
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
+	"github.com/seflue/adf-converter/converter/elements/internal/dedent"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 )
 
@@ -96,7 +97,7 @@ func (olc *orderedListConverter) FromMarkdown(lines []string, startIndex int, co
 	// Parse only the list lines, but strip common indentation to prevent goldmark from treating it as code block
 	// Preserve relative indentation for nesting and multi-line items
 	listLines := lines[startIndex : startIndex+listLineCount]
-	dedentedLines := DedentLines(listLines)
+	dedentedLines := dedent.DedentLines(listLines)
 	markdown := strings.Join(dedentedLines, "\n")
 	node, err := lists.ParseOrderedList(markdown, context.PlaceholderManager)
 	if err != nil {

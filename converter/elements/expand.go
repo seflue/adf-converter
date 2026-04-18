@@ -7,6 +7,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/elements/internal/dedent"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -140,7 +141,7 @@ func (ec *expandConverter) FromMarkdown(lines []string, startIndex int, context 
 	var contentNodes []adf_types.ADFNode
 	if detailsEndIdx > summaryEndIdx+1 {
 		contentLines := lines[summaryEndIdx+1 : detailsEndIdx]
-		cleanedLines := DedentLines(contentLines)
+		cleanedLines := dedent.DedentLines(contentLines)
 
 		innerContext := context
 		innerContext.NestedLevel++
