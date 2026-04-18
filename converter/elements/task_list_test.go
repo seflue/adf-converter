@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,8 +35,8 @@ func stripLocalIds(node adf_types.ADFNode) adf_types.ADFNode {
 }
 
 func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
-	converter := NewTaskListConverter()
-	ctx := ConversionContext{}
+	conv := NewTaskListConverter()
+	ctx := converter.ConversionContext{}
 
 	tests := []struct {
 		name             string
@@ -165,7 +166,7 @@ func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
+			got, consumed, err := conv.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedConsumed, consumed)
 			assert.Equal(t, tt.want, stripLocalIds(got))
@@ -174,8 +175,8 @@ func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 }
 
 func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
-	converter := NewTaskListConverter()
-	ctx := ConversionContext{}
+	conv := NewTaskListConverter()
+	ctx := converter.ConversionContext{}
 
 	tests := []struct {
 		name             string
@@ -332,7 +333,7 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
+			got, consumed, err := conv.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedConsumed, consumed)
 			assert.Equal(t, tt.want, got)
@@ -341,8 +342,8 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 }
 
 func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
-	converter := NewTaskListConverter()
-	ctx := ConversionContext{}
+	conv := NewTaskListConverter()
+	ctx := converter.ConversionContext{}
 
 	tests := []struct {
 		name             string
@@ -410,7 +411,7 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, consumed, err := converter.FromMarkdown(tt.lines, tt.startIndex, ctx)
+			got, consumed, err := conv.FromMarkdown(tt.lines, tt.startIndex, ctx)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedConsumed, consumed)
 			assert.Equal(t, tt.want, stripLocalIds(got))
@@ -419,8 +420,8 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 }
 
 func TestTaskListConverter_RoundTrip(t *testing.T) {
-	converter := NewTaskListConverter()
-	ctx := ConversionContext{}
+	conv := NewTaskListConverter()
+	ctx := converter.ConversionContext{}
 
 	tests := []struct {
 		name     string
@@ -465,12 +466,12 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Convert ADF -> Markdown
-			mdResult, err := converter.ToMarkdown(tt.original, ctx)
+			mdResult, err := conv.ToMarkdown(tt.original, ctx)
 			require.NoError(t, err)
 
 			// Convert Markdown -> ADF
 			lines := strings.Split(mdResult.Content, "\n")
-			roundtrip, consumed, err := converter.FromMarkdown(lines, 0, ctx)
+			roundtrip, consumed, err := conv.FromMarkdown(lines, 0, ctx)
 			require.NoError(t, err)
 			assert.Greater(t, consumed, 0)
 
@@ -491,11 +492,11 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 func TestTaskListConverter_FromMarkdown_Plain_GeneratesLocalId(t *testing.T) {
 	// Jira requires localId on taskList and taskItem nodes.
 	// Plain markdown (no XML wrapper) must auto-generate UUIDs.
-	converter := NewTaskListConverter()
-	ctx := ConversionContext{}
+	conv := NewTaskListConverter()
+	ctx := converter.ConversionContext{}
 
 	lines := []string{"- [ ] Task 1", "- [x] Task 2"}
-	node, consumed, err := converter.FromMarkdown(lines, 0, ctx)
+	node, consumed, err := conv.FromMarkdown(lines, 0, ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 2, consumed)
 
@@ -514,7 +515,7 @@ func TestTaskListConverter_FromMarkdown_Plain_GeneratesLocalId(t *testing.T) {
 func TestTaskListConverter_ToMarkdown_TrailingNewline(t *testing.T) {
 	// Block-level elements must end with \n\n so the next element starts on its own line.
 	// Without this, the heading following a taskList ends up on the same line as </taskList>.
-	converter := NewTaskListConverter()
+	conv := NewTaskListConverter()
 
 	node := adf_types.ADFNode{
 		Type: "taskList",
@@ -527,7 +528,7 @@ func TestTaskListConverter_ToMarkdown_TrailingNewline(t *testing.T) {
 	}
 
 	t.Run("plain (no preserve attrs)", func(t *testing.T) {
-		result, err := converter.ToMarkdown(node, ConversionContext{PreserveAttrs: false})
+		result, err := conv.ToMarkdown(node, converter.ConversionContext{PreserveAttrs: false})
 		require.NoError(t, err)
 		assert.True(t, strings.HasSuffix(result.Content, "\n\n"),
 			"plain task list output must end with \\n\\n, got: %q", result.Content)

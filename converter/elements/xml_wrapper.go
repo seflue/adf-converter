@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/converter/internal"
 )
 
@@ -18,7 +19,7 @@ func NewXMLPreservedConverter() *XMLPreservedConverter {
 	}
 }
 
-func (xpc *XMLPreservedConverter) ToMarkdown(node adf_types.ADFNode, context ConversionContext) (EnhancedConversionResult, error) {
+func (xpc *XMLPreservedConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
 	xmlData, err := xpc.marshaler.MarshalToXML(node)
 	if err != nil {
 		return EnhancedConversionResult{}, fmt.Errorf("failed to marshal node to XML: %w", err)
@@ -32,7 +33,7 @@ func (xpc *XMLPreservedConverter) ToMarkdown(node adf_types.ADFNode, context Con
 	}, nil
 }
 
-func (xpc *XMLPreservedConverter) FromMarkdown(markdown string, context ConversionContext) (adf_types.ADFNode, error) {
+func (xpc *XMLPreservedConverter) FromMarkdown(markdown string, context converter.ConversionContext) (adf_types.ADFNode, error) {
 	nodeType := string(context.ParentNodeType)
 	return xpc.marshaler.UnmarshalFromXML([]byte(markdown), nodeType)
 }
@@ -50,7 +51,7 @@ func (xpc *XMLPreservedConverter) CanHandle(nodeType ADFNodeType) bool {
 	return false
 }
 
-func (xpc *XMLPreservedConverter) GetStrategy() ConversionStrategy {
+func (xpc *XMLPreservedConverter) GetStrategy() converter.ConversionStrategy {
 	return XMLPreserved
 }
 

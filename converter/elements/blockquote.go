@@ -22,7 +22,7 @@ func NewBlockquoteConverter() converter.ElementConverter {
 	return &BlockquoteConverter{}
 }
 
-func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context ConversionContext) (EnhancedConversionResult, error) {
+func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
 	if node.Type != "blockquote" {
 		return EnhancedConversionResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
 	}
@@ -195,7 +195,7 @@ func (bc *BlockquoteConverter) createQuotePrefix(nestedLevel int) string {
 	return prefix.String()
 }
 
-func (bc *BlockquoteConverter) FromMarkdown(lines []string, startIndex int, context ConversionContext) (adf_types.ADFNode, int, error) {
+func (bc *BlockquoteConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	emptyNode := adf_types.ADFNode{Type: "blockquote", Content: []adf_types.ADFNode{}}
 
 	if startIndex >= len(lines) {
@@ -258,7 +258,7 @@ func (bc *BlockquoteConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeBlockquote
 }
 
-func (bc *BlockquoteConverter) GetStrategy() ConversionStrategy {
+func (bc *BlockquoteConverter) GetStrategy() converter.ConversionStrategy {
 	return MarkdownBlockquote
 }
 
@@ -283,7 +283,7 @@ func (bc *BlockquoteConverter) ValidateInput(input interface{}) error {
 	}
 }
 
-func (bc *BlockquoteConverter) shouldPreserveAttrs(context ConversionContext, node adf_types.ADFNode) bool {
+func (bc *BlockquoteConverter) shouldPreserveAttrs(context converter.ConversionContext, node adf_types.ADFNode) bool {
 	return context.PreserveAttrs && len(node.Attrs) > 0
 }
 

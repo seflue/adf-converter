@@ -4,9 +4,7 @@ import "github.com/seflue/adf-converter/converter"
 
 // Type aliases for converter package types
 type (
-	ConversionContext        = converter.ConversionContext
 	EnhancedConversionResult = converter.EnhancedConversionResult
-	ConversionStrategy       = converter.ConversionStrategy
 	ADFNodeType              = converter.ADFNodeType
 )
 

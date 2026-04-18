@@ -19,7 +19,7 @@ func NewTableConverter() converter.ElementConverter {
 	return &TableConverter{}
 }
 
-func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context ConversionContext) (EnhancedConversionResult, error) {
+func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
 	if node.Type != "table" {
 		return EnhancedConversionResult{}, fmt.Errorf("table converter can only handle table nodes, got: %s", node.Type)
 	}
@@ -162,7 +162,7 @@ func (tc *TableConverter) firstRowIsHeader(node adf_types.ADFNode) bool {
 }
 
 // extractCellText extracts text content from a table cell, preserving markdown formatting
-func (tc *TableConverter) extractCellText(cell adf_types.ADFNode, context ConversionContext) string {
+func (tc *TableConverter) extractCellText(cell adf_types.ADFNode, context converter.ConversionContext) string {
 	var text strings.Builder
 
 	for _, content := range cell.Content {
@@ -194,7 +194,7 @@ func (tc *TableConverter) extractCellText(cell adf_types.ADFNode, context Conver
 //	|----------|----------|
 //	| Cell 1   | Cell 2   |
 //	</table>
-func (tc *TableConverter) FromMarkdown(lines []string, startIndex int, context ConversionContext) (adf_types.ADFNode, int, error) {
+func (tc *TableConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, 0, nil
 	}
@@ -309,7 +309,7 @@ func (tc *TableConverter) CanHandle(nodeType ADFNodeType) bool {
 }
 
 // GetStrategy returns the conversion strategy this converter implements
-func (tc *TableConverter) GetStrategy() ConversionStrategy {
+func (tc *TableConverter) GetStrategy() converter.ConversionStrategy {
 	return MarkdownTable
 }
 

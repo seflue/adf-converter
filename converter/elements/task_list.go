@@ -17,7 +17,7 @@ func NewTaskListConverter() converter.ElementConverter {
 	return &TaskListConverter{}
 }
 
-func (tc *TaskListConverter) ToMarkdown(node adf_types.ADFNode, context ConversionContext) (EnhancedConversionResult, error) {
+func (tc *TaskListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
 	if node.Type != "taskList" {
 		return EnhancedConversionResult{}, fmt.Errorf("task list converter can only handle taskList nodes, got: %s", node.Type)
 	}
@@ -118,7 +118,7 @@ func (tc *TaskListConverter) convertParagraphToMarkdown(paragraph adf_types.ADFN
 //	- [ ] Task text
 //	- [x] Completed task
 //	</taskList>
-func (tc *TaskListConverter) FromMarkdown(lines []string, startIndex int, context ConversionContext) (adf_types.ADFNode, int, error) {
+func (tc *TaskListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	emptyNode := adf_types.ADFNode{Type: "taskList", Attrs: map[string]interface{}{}, Content: nil}
 
 	if startIndex >= len(lines) {
@@ -252,7 +252,7 @@ func (tc *TaskListConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeTaskList
 }
 
-func (tc *TaskListConverter) GetStrategy() ConversionStrategy {
+func (tc *TaskListConverter) GetStrategy() converter.ConversionStrategy {
 	return MarkdownTaskList
 }
 
