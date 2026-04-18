@@ -102,7 +102,7 @@ func TestTaskElement_StateValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			element := TaskElement{
+			element := internal.TaskElement{
 				State:   tt.state,
 				Content: tt.content,
 			}
@@ -205,7 +205,7 @@ func TestMentionElement_Attributes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			element := MentionElement{
+			element := internal.MentionElement{
 				ID:          tt.id,
 				Text:        tt.text,
 				AccessLevel: tt.accessLevel,
@@ -225,7 +225,7 @@ func TestMentionElement_Attributes(t *testing.T) {
 
 // TestHardBreakElement_XMLGeneration tests hard break element XML generation
 func TestHardBreakElement_XMLGeneration(t *testing.T) {
-	element := HardBreakElement{}
+	element := internal.HardBreakElement{}
 
 	// Test XML marshaling
 	xmlBytes, err := xml.Marshal(element)

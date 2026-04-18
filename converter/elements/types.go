@@ -8,7 +8,6 @@ type (
 	EnhancedConversionResult = converter.EnhancedConversionResult
 	ConversionStrategy       = converter.ConversionStrategy
 	ADFNodeType              = converter.ADFNodeType
-	XMLMarshaler             = converter.XMLMarshaler
 )
 
 // Constants from converter package
@@ -32,5 +31,4 @@ var (
 	NewEnhancedConversionResultBuilder = converter.NewEnhancedConversionResultBuilder
 	CreateErrorResult                  = converter.CreateErrorResult
 	CreateSuccessResult                = converter.CreateSuccessResult
-	NewDefaultXMLMarshaler             = converter.NewDefaultXMLMarshaler
 )

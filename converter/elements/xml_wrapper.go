@@ -4,16 +4,17 @@ import (
 	"fmt"
 
 	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter/internal"
 )
 
 // XMLPreservedConverter handles ADF-specific elements via XML encoding
 type XMLPreservedConverter struct {
-	marshaler XMLMarshaler
+	marshaler internal.XMLMarshaler
 }
 
 func NewXMLPreservedConverter() *XMLPreservedConverter {
 	return &XMLPreservedConverter{
-		marshaler: NewDefaultXMLMarshaler(),
+		marshaler: internal.NewDefaultXMLMarshaler(),
 	}
 }
 

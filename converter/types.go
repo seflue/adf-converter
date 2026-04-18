@@ -1,24 +1,5 @@
 package converter
 
-import "github.com/seflue/adf-converter/converter/internal"
-
-// Re-export types from internal package for backward compatibility
-type (
-	XMLMarshaler        = internal.XMLMarshaler
-	DefaultXMLMarshaler = internal.DefaultXMLMarshaler
-	XMLValidator        = internal.XMLValidator
-	ExpandElement       = internal.ExpandElement
-	MentionElement      = internal.MentionElement
-	TaskElement         = internal.TaskElement
-	HardBreakElement    = internal.HardBreakElement
-)
-
-// Re-export functions from internal package
-var (
-	NewDefaultXMLMarshaler = internal.NewDefaultXMLMarshaler
-	NewXMLValidator        = internal.NewXMLValidator
-)
-
 // EnhancedConversionResult contains the result of an enhanced conversion operation
 type EnhancedConversionResult struct {
 	Content           string
