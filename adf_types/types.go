@@ -88,29 +88,6 @@ const (
 	MarkTypeSubsup    = "subsup"
 )
 
-// IsBlockNode returns true if the node type is a block-level node
-func IsBlockNode(nodeType string) bool {
-	blockTypes := map[string]bool{
-		NodeTypeDoc:         true,
-		NodeTypeParagraph:   true,
-		NodeTypeHeading:     true,
-		NodeTypeCodeBlock:   true,
-		NodeTypeTable:       true,
-		NodeTypeTableRow:    true,
-		NodeTypeTableCell:   true,
-		NodeTypePanel:       true,
-		NodeTypeBlockquote:  true,
-		NodeTypeRule:        true,
-		NodeTypeMediaSingle: true,
-		NodeTypeOrderedList: true,
-		NodeTypeBulletList:  true,
-		NodeTypeListItem:    true,
-		NodeTypeExpand:       true,
-		NodeTypeNestedExpand: true,
-	}
-	return blockTypes[nodeType]
-}
-
 // IsInlineNode returns true if the node type is an inline node
 func IsInlineNode(nodeType string) bool {
 	inlineTypes := map[string]bool{
@@ -163,18 +140,6 @@ func NewTextNode(text string, marks ...ADFMark) ADFNode {
 func NewParagraphNode(content ...ADFNode) ADFNode {
 	return ADFNode{
 		Type:    NodeTypeParagraph,
-		Content: content,
-	}
-}
-
-// NewHeadingNode creates a heading node with the specified level (1-6)
-func NewHeadingNode(level int, content ...ADFNode) ADFNode {
-	attrs := map[string]interface{}{
-		"level": level,
-	}
-	return ADFNode{
-		Type:    NodeTypeHeading,
-		Attrs:   attrs,
 		Content: content,
 	}
 }

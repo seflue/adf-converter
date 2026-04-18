@@ -4,32 +4,6 @@ import (
 	"testing"
 )
 
-func TestIsBlockNode(t *testing.T) {
-	tests := []struct {
-		nodeType string
-		expected bool
-	}{
-		{NodeTypeParagraph, true},
-		{NodeTypeHeading, true},
-		{NodeTypeCodeBlock, true},
-		{NodeTypeTable, true},
-		{NodeTypeExpand, true},
-		{NodeTypeNestedExpand, true},
-		{NodeTypeText, false},
-		{NodeTypeHardBreak, false},
-		{"unknown", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.nodeType, func(t *testing.T) {
-			result := IsBlockNode(tt.nodeType)
-			if result != tt.expected {
-				t.Errorf("IsBlockNode(%s) = %v, want %v", tt.nodeType, result, tt.expected)
-			}
-		})
-	}
-}
-
 func TestIsInlineNode(t *testing.T) {
 	tests := []struct {
 		nodeType string
@@ -116,26 +90,6 @@ func TestNewParagraphNode(t *testing.T) {
 	}
 }
 
-func TestNewHeadingNode(t *testing.T) {
-	textNode := NewTextNode("Heading")
-	level := 2
-
-	heading := NewHeadingNode(level, textNode)
-
-	if heading.Type != NodeTypeHeading {
-		t.Errorf("NewHeadingNode() type = %s, want %s", heading.Type, NodeTypeHeading)
-	}
-
-	if len(heading.Content) != 1 {
-		t.Errorf("NewHeadingNode() content length = %d, want 1", len(heading.Content))
-	}
-
-	actualLevel := heading.GetHeadingLevel()
-	if actualLevel != level {
-		t.Errorf("NewHeadingNode() level = %d, want %d", actualLevel, level)
-	}
-}
-
 func TestGetHeadingLevel(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -143,8 +97,12 @@ func TestGetHeadingLevel(t *testing.T) {
 		expected int
 	}{
 		{
-			name:     "valid heading with level 3",
-			node:     NewHeadingNode(3, NewTextNode("Test")),
+			name: "valid heading with level 3",
+			node: ADFNode{
+				Type:    NodeTypeHeading,
+				Attrs:   map[string]interface{}{"level": 3},
+				Content: []ADFNode{NewTextNode("Test")},
+			},
 			expected: 3,
 		},
 		{
