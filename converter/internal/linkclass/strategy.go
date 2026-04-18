@@ -3,6 +3,7 @@ package linkclass
 import (
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/internal/nodeclass"
 )
 
 // ConversionStrategyMapping defines the complete mapping from link characteristics to strategy.
@@ -55,13 +56,13 @@ type StrategyClassifier interface {
 
 // DefaultStrategyClassifier implements the StrategyClassifier interface.
 type DefaultStrategyClassifier struct {
-	nodeClassifier *converter.NodeClassifier
+	nodeClassifier *nodeclass.NodeClassifier
 	linkClassifier *DefaultLinkClassifier
 }
 
 func NewDefaultStrategyClassifier() *DefaultStrategyClassifier {
 	return &DefaultStrategyClassifier{
-		nodeClassifier: converter.NewNodeClassifier(),
+		nodeClassifier: nodeclass.NewNodeClassifier(),
 		linkClassifier: &DefaultLinkClassifier{},
 	}
 }
