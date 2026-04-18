@@ -10,14 +10,14 @@ import (
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 )
 
-// BulletListConverter handles conversion of ADF bullet list nodes to/from markdown
-type BulletListConverter struct{}
+// bulletListConverter handles conversion of ADF bullet list nodes to/from markdown
+type bulletListConverter struct{}
 
 func NewBulletListConverter() converter.ElementConverter {
-	return &BulletListConverter{}
+	return &bulletListConverter{}
 }
 
-func (blc *BulletListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (blc *bulletListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	childContext := converter.ConversionContext{
@@ -51,7 +51,7 @@ func (blc *BulletListConverter) ToMarkdown(node adf_types.ADFNode, context conve
 	return builder.Build(), nil
 }
 
-func (blc *BulletListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (blc *bulletListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -111,19 +111,19 @@ func (blc *BulletListConverter) FromMarkdown(lines []string, startIndex int, con
 	return node, consumed, nil
 }
 
-func (blc *BulletListConverter) CanParseLine(line string) bool {
+func (blc *bulletListConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "- ")
 }
 
-func (blc *BulletListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (blc *bulletListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeBulletList)
 }
 
-func (blc *BulletListConverter) GetStrategy() converter.ConversionStrategy {
+func (blc *bulletListConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (blc *BulletListConverter) ValidateInput(input interface{}) error {
+func (blc *bulletListConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

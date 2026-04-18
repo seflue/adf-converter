@@ -15,18 +15,18 @@ var (
 	idAttrRegex      = regexp.MustCompile(`\sid\s*=\s*["|']([^"']*)["|']`)
 )
 
-// ExpandConverter handles conversion of ADF expand and nestedExpand nodes to/from markdown
+// expandConverter handles conversion of ADF expand and nestedExpand nodes to/from markdown
 //
 // This converter handles BOTH "expand" AND "nestedExpand" node types with a single implementation.
 // Both use plain HTML <details> elements. The node type is derived from structural context:
 // top-level <details> → expand, nested <details> (NestedLevel > 0) → nestedExpand.
-type ExpandConverter struct{}
+type expandConverter struct{}
 
 func NewExpandConverter() converter.ElementConverter {
-	return &ExpandConverter{}
+	return &expandConverter{}
 }
 
-func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (ec *expandConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	title := ""
@@ -95,7 +95,7 @@ func (ec *ExpandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 const maxExpandNestingDepth = 100
 
-func (ec *ExpandConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (ec *expandConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, nil
 	}
@@ -162,7 +162,7 @@ func (ec *ExpandConverter) FromMarkdown(lines []string, startIndex int, context 
 
 // findSummary scans for <summary>...</summary> near the opening tag.
 // Returns the line index of the summary end and the extracted title.
-func (ec *ExpandConverter) findSummary(lines []string, startIndex int) (summaryEndIdx int, title string, err error) {
+func (ec *expandConverter) findSummary(lines []string, startIndex int) (summaryEndIdx int, title string, err error) {
 	for i := startIndex; i < len(lines) && i <= startIndex+5; i++ {
 		line := lines[i]
 		summaryStart := strings.Index(line, "<summary>")
@@ -178,7 +178,7 @@ func (ec *ExpandConverter) findSummary(lines []string, startIndex int) (summaryE
 }
 
 // findClosingTag finds the matching </details> considering nested <details> elements.
-func (ec *ExpandConverter) findClosingTag(lines []string, searchStart int) (int, error) {
+func (ec *expandConverter) findClosingTag(lines []string, searchStart int) (int, error) {
 	nestingLevel := 0
 	for i := searchStart; i < len(lines); i++ {
 		line := lines[i]
@@ -216,20 +216,20 @@ func parseInnerContentWithContext(lines []string, context converter.ConversionCo
 	return parser.ParseMarkdownToADFNodes(lines)
 }
 
-func (ec *ExpandConverter) CanParseLine(line string) bool {
+func (ec *expandConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<details")
 }
 
-func (ec *ExpandConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (ec *expandConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeExpand) ||
 		nodeType == converter.ADFNodeType(adf_types.NodeTypeNestedExpand)
 }
 
-func (ec *ExpandConverter) GetStrategy() converter.ConversionStrategy {
+func (ec *expandConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (ec *ExpandConverter) ValidateInput(input interface{}) error {
+func (ec *expandConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

@@ -104,15 +104,15 @@ func TestHardBreakConverter_CanHandle(t *testing.T) {
 	hc := NewHardBreakConverter()
 
 	if !hc.CanHandle(adf_types.NodeTypeHardBreak) {
-		t.Error("HardBreakConverter should handle NodeTypeHardBreak")
+		t.Error("hardBreakConverter should handle NodeTypeHardBreak")
 	}
 
 	if hc.CanHandle(adf_types.NodeTypeText) {
-		t.Error("HardBreakConverter should not handle NodeTypeText")
+		t.Error("hardBreakConverter should not handle NodeTypeText")
 	}
 
 	if hc.CanHandle(adf_types.NodeTypeParagraph) {
-		t.Error("HardBreakConverter should not handle NodeTypeParagraph")
+		t.Error("hardBreakConverter should not handle NodeTypeParagraph")
 	}
 }
 

@@ -12,14 +12,14 @@ import (
 	"github.com/seflue/adf-converter/converter/internal"
 )
 
-// TableConverter implements markdown table conversion for ADF table nodes
-type TableConverter struct{}
+// tableConverter implements markdown table conversion for ADF table nodes
+type tableConverter struct{}
 
 func NewTableConverter() converter.ElementConverter {
-	return &TableConverter{}
+	return &tableConverter{}
 }
 
-func (tc *TableConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
+func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
 	if node.Type != "table" {
 		return EnhancedConversionResult{}, fmt.Errorf("table converter can only handle table nodes, got: %s", node.Type)
 	}
@@ -151,7 +151,7 @@ func filterDefaultTableAttrs(attrs map[string]interface{}) map[string]interface{
 }
 
 // firstRowIsHeader checks whether the first row contains tableHeader cells.
-func (tc *TableConverter) firstRowIsHeader(node adf_types.ADFNode) bool {
+func (tc *tableConverter) firstRowIsHeader(node adf_types.ADFNode) bool {
 	for _, row := range node.Content {
 		if row.Type != "tableRow" {
 			continue
@@ -162,7 +162,7 @@ func (tc *TableConverter) firstRowIsHeader(node adf_types.ADFNode) bool {
 }
 
 // extractCellText extracts text content from a table cell, preserving markdown formatting
-func (tc *TableConverter) extractCellText(cell adf_types.ADFNode, context converter.ConversionContext) string {
+func (tc *tableConverter) extractCellText(cell adf_types.ADFNode, context converter.ConversionContext) string {
 	var text strings.Builder
 
 	for _, content := range cell.Content {
@@ -194,7 +194,7 @@ func (tc *TableConverter) extractCellText(cell adf_types.ADFNode, context conver
 //	|----------|----------|
 //	| Cell 1   | Cell 2   |
 //	</table>
-func (tc *TableConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (tc *tableConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, 0, nil
 	}
@@ -222,7 +222,7 @@ func (tc *TableConverter) FromMarkdown(lines []string, startIndex int, context c
 
 // countPlainTableLines counts consecutive lines that belong to a markdown table.
 // A table line starts with |.
-func (tc *TableConverter) countPlainTableLines(lines []string, startIndex int) int {
+func (tc *tableConverter) countPlainTableLines(lines []string, startIndex int) int {
 	count := 0
 	for i := startIndex; i < len(lines); i++ {
 		trimmed := strings.TrimSpace(lines[i])
@@ -235,7 +235,7 @@ func (tc *TableConverter) countPlainTableLines(lines []string, startIndex int) i
 }
 
 // countXMLTableLines counts lines from <table...> to </table> inclusive.
-func (tc *TableConverter) countXMLTableLines(lines []string, startIndex int) int {
+func (tc *tableConverter) countXMLTableLines(lines []string, startIndex int) int {
 	for i := startIndex; i < len(lines); i++ {
 		if strings.Contains(strings.TrimSpace(lines[i]), "</table>") {
 			return i - startIndex + 1
@@ -246,7 +246,7 @@ func (tc *TableConverter) countXMLTableLines(lines []string, startIndex int) int
 }
 
 // parseXMLWrappedTable parses XML-wrapped markdown table with ADF attributes
-func (tc *TableConverter) parseXMLWrappedTable(lines []string) (adf_types.ADFNode, error) {
+func (tc *tableConverter) parseXMLWrappedTable(lines []string) (adf_types.ADFNode, error) {
 	if len(lines) == 0 {
 		return adf_types.ADFNode{}, fmt.Errorf("no lines to parse")
 	}
@@ -300,21 +300,21 @@ func (tc *TableConverter) parseXMLWrappedTable(lines []string) (adf_types.ADFNod
 }
 
 // CanHandle returns true if this converter can handle the given node type
-func (tc *TableConverter) CanParseLine(line string) bool {
+func (tc *tableConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<table") || strings.HasPrefix(line, "|")
 }
 
-func (tc *TableConverter) CanHandle(nodeType ADFNodeType) bool {
+func (tc *tableConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeTable
 }
 
 // GetStrategy returns the conversion strategy this converter implements
-func (tc *TableConverter) GetStrategy() converter.ConversionStrategy {
+func (tc *tableConverter) GetStrategy() converter.ConversionStrategy {
 	return MarkdownTable
 }
 
 // ValidateInput validates that the input can be processed
-func (tc *TableConverter) ValidateInput(input interface{}) error {
+func (tc *tableConverter) ValidateInput(input interface{}) error {
 	if input == nil {
 		return fmt.Errorf("input cannot be nil")
 	}
@@ -339,7 +339,7 @@ func (tc *TableConverter) ValidateInput(input interface{}) error {
 // Writes all attrs from the map in a stable order (localId first, then sorted).
 //
 //nolint:unparam // error return reserved for future use
-func (tc *TableConverter) wrapTableWithXML(markdownTable string, attrs map[string]interface{}) (string, error) {
+func (tc *tableConverter) wrapTableWithXML(markdownTable string, attrs map[string]interface{}) (string, error) {
 	var xmlBuilder strings.Builder
 	xmlBuilder.WriteString("<table")
 

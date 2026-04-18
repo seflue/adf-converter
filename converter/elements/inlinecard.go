@@ -10,11 +10,11 @@ import (
 	"github.com/seflue/adf-converter/placeholder"
 )
 
-// InlineCardConverter handles conversion of ADF inlineCard nodes to/from markdown
-type InlineCardConverter struct{}
+// inlineCardConverter handles conversion of ADF inlineCard nodes to/from markdown
+type inlineCardConverter struct{}
 
 func NewInlineCardConverter() converter.ElementConverter {
-	return &InlineCardConverter{}
+	return &inlineCardConverter{}
 }
 
 var complexMetadataAttrs = []string{"id", "space", "type", "version", "status", "localId", "key"}
@@ -52,7 +52,7 @@ func buildComplexMetadataHTML(attrs map[string]interface{}, linkURL string) stri
 	return b.String()
 }
 
-func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (ic *inlineCardConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
 		builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 		builder.AppendContent("[InlineCard]")
@@ -83,7 +83,7 @@ func (ic *InlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 	return builder.Build(), nil
 }
 
-func (ic *InlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (ic *inlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if context.PlaceholderManager != nil {
 		placeholderID, preview, err := context.PlaceholderManager.Store(node)
 		if err != nil {
@@ -104,19 +104,19 @@ func (ic *InlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, contex
 	return builder.Build(), nil
 }
 
-func (ic *InlineCardConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (ic *inlineCardConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, fmt.Errorf("inlineCard is an inline element and should be parsed within parent blocks")
 }
 
-func (ic *InlineCardConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (ic *inlineCardConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeInlineCard)
 }
 
-func (ic *InlineCardConverter) GetStrategy() converter.ConversionStrategy {
+func (ic *inlineCardConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (ic *InlineCardConverter) ValidateInput(input interface{}) error {
+func (ic *inlineCardConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

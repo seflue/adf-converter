@@ -15,14 +15,14 @@ import (
 	"github.com/seflue/adf-converter/converter/internal"
 )
 
-// BlockquoteConverter implements markdown blockquote conversion for ADF blockquote nodes
-type BlockquoteConverter struct{}
+// blockquoteConverter implements markdown blockquote conversion for ADF blockquote nodes
+type blockquoteConverter struct{}
 
 func NewBlockquoteConverter() converter.ElementConverter {
-	return &BlockquoteConverter{}
+	return &blockquoteConverter{}
 }
 
-func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
+func (bc *blockquoteConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (EnhancedConversionResult, error) {
 	if node.Type != "blockquote" {
 		return EnhancedConversionResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
 	}
@@ -120,7 +120,7 @@ func (bc *BlockquoteConverter) ToMarkdown(node adf_types.ADFNode, context conver
 	return result, nil
 }
 
-func (bc *BlockquoteConverter) extractTextContent(node adf_types.ADFNode) string {
+func (bc *blockquoteConverter) extractTextContent(node adf_types.ADFNode) string {
 	var content strings.Builder
 
 	switch node.Type {
@@ -141,7 +141,7 @@ func (bc *BlockquoteConverter) extractTextContent(node adf_types.ADFNode) string
 	return content.String()
 }
 
-func (bc *BlockquoteConverter) convertParagraphToMarkdown(paragraph adf_types.ADFNode) string {
+func (bc *blockquoteConverter) convertParagraphToMarkdown(paragraph adf_types.ADFNode) string {
 	var result strings.Builder
 
 	for _, textNode := range paragraph.Content {
@@ -168,7 +168,7 @@ func (bc *BlockquoteConverter) convertParagraphToMarkdown(paragraph adf_types.AD
 
 // prefixLines adds a blockquote prefix ("> ") to each line of multi-line content.
 // Empty lines get only the bare prefix without trailing space.
-func (bc *BlockquoteConverter) prefixLines(content string, nestedLevel int) string {
+func (bc *blockquoteConverter) prefixLines(content string, nestedLevel int) string {
 	prefix := bc.createQuotePrefix(nestedLevel) + " "
 	trimmed := strings.TrimRight(content, "\n")
 	lines := strings.Split(trimmed, "\n")
@@ -183,7 +183,7 @@ func (bc *BlockquoteConverter) prefixLines(content string, nestedLevel int) stri
 	return strings.Join(result, "\n")
 }
 
-func (bc *BlockquoteConverter) createQuotePrefix(nestedLevel int) string {
+func (bc *blockquoteConverter) createQuotePrefix(nestedLevel int) string {
 	depth := nestedLevel + 1
 	var prefix strings.Builder
 	for i := 0; i < depth; i++ {
@@ -195,7 +195,7 @@ func (bc *BlockquoteConverter) createQuotePrefix(nestedLevel int) string {
 	return prefix.String()
 }
 
-func (bc *BlockquoteConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (bc *blockquoteConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	emptyNode := adf_types.ADFNode{Type: "blockquote", Content: []adf_types.ADFNode{}}
 
 	if startIndex >= len(lines) {
@@ -250,19 +250,19 @@ func countBlockquoteLines(lines []string, startIndex int) int {
 	return lastQuoteLine
 }
 
-func (bc *BlockquoteConverter) CanParseLine(line string) bool {
+func (bc *blockquoteConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<blockquote") || strings.HasPrefix(line, ">")
 }
 
-func (bc *BlockquoteConverter) CanHandle(nodeType ADFNodeType) bool {
+func (bc *blockquoteConverter) CanHandle(nodeType ADFNodeType) bool {
 	return nodeType == NodeBlockquote
 }
 
-func (bc *BlockquoteConverter) GetStrategy() converter.ConversionStrategy {
+func (bc *blockquoteConverter) GetStrategy() converter.ConversionStrategy {
 	return MarkdownBlockquote
 }
 
-func (bc *BlockquoteConverter) ValidateInput(input interface{}) error {
+func (bc *blockquoteConverter) ValidateInput(input interface{}) error {
 	if input == nil {
 		return fmt.Errorf("input cannot be nil")
 	}
@@ -283,11 +283,11 @@ func (bc *BlockquoteConverter) ValidateInput(input interface{}) error {
 	}
 }
 
-func (bc *BlockquoteConverter) shouldPreserveAttrs(context converter.ConversionContext, node adf_types.ADFNode) bool {
+func (bc *blockquoteConverter) shouldPreserveAttrs(context converter.ConversionContext, node adf_types.ADFNode) bool {
 	return context.PreserveAttrs && len(node.Attrs) > 0
 }
 
-func (bc *BlockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]interface{}, nestedLevel int) string {
+func (bc *blockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]interface{}, nestedLevel int) string {
 	var xmlBuilder strings.Builder
 
 	xmlBuilder.WriteString("<blockquote")

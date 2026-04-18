@@ -9,15 +9,15 @@ import (
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
-// MentionConverter handles conversion of ADF mention nodes to/from markdown
+// mentionConverter handles conversion of ADF mention nodes to/from markdown
 // Format: [@DisplayName](accountid:id?accessLevel=X&userType=Y)
-type MentionConverter struct{}
+type mentionConverter struct{}
 
 func NewMentionConverter() converter.ElementConverter {
-	return &MentionConverter{}
+	return &mentionConverter{}
 }
 
-func (mc *MentionConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (mc *mentionConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
 		return converter.EnhancedConversionResult{}, fmt.Errorf("mention node missing attrs")
 	}
@@ -58,19 +58,19 @@ func buildMentionQuery(attrs map[string]interface{}) string {
 	return params.Encode()
 }
 
-func (mc *MentionConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (mc *mentionConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, fmt.Errorf("mention is an inline element and should be parsed within parent blocks")
 }
 
-func (mc *MentionConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (mc *mentionConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeMention)
 }
 
-func (mc *MentionConverter) GetStrategy() converter.ConversionStrategy {
+func (mc *mentionConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (mc *MentionConverter) ValidateInput(input interface{}) error {
+func (mc *mentionConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

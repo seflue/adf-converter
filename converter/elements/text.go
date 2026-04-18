@@ -9,7 +9,7 @@ import (
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
-// TextConverter handles bidirectional conversion of text nodes with marks (formatting)
+// textConverter handles bidirectional conversion of text nodes with marks (formatting)
 //
 // Text nodes are atomic inline elements that can have formatting marks applied:
 // - strong: **bold**
@@ -22,13 +22,13 @@ import (
 // Note: Text nodes are inline and typically processed within container elements
 // (paragraphs, headings, list items). The FromMarkdown direction is primarily
 // handled by container converters that call parseInlineContent().
-type TextConverter struct{}
+type textConverter struct{}
 
 func NewTextConverter() converter.ElementConverter {
-	return &TextConverter{}
+	return &textConverter{}
 }
 
-func (tc *TextConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (tc *textConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if err := tc.ValidateInput(node); err != nil {
 		return converter.EnhancedConversionResult{}, err
 	}
@@ -46,19 +46,19 @@ func (tc *TextConverter) ToMarkdown(node adf_types.ADFNode, context converter.Co
 	return builder.Build(), nil
 }
 
-func (tc *TextConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (tc *textConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, errors.New("text nodes are inline elements - use paragraph/heading converters for parsing")
 }
 
-func (tc *TextConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (tc *textConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == adf_types.NodeTypeText
 }
 
-func (tc *TextConverter) GetStrategy() converter.ConversionStrategy {
+func (tc *textConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (tc *TextConverter) ValidateInput(input interface{}) error {
+func (tc *textConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("invalid input type: expected ADFNode, got %T", input)
@@ -75,7 +75,7 @@ func (tc *TextConverter) ValidateInput(input interface{}) error {
 	return nil
 }
 
-func (tc *TextConverter) applyMarkToText(text string, mark adf_types.ADFMark) string {
+func (tc *textConverter) applyMarkToText(text string, mark adf_types.ADFMark) string {
 	switch mark.Type {
 	case adf_types.MarkTypeStrong:
 		return fmt.Sprintf("**%s**", text)

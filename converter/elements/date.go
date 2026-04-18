@@ -10,15 +10,15 @@ import (
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
-// DateConverter handles conversion of ADF date nodes to/from markdown
+// dateConverter handles conversion of ADF date nodes to/from markdown
 // Format: [date:2025-04-04]
-type DateConverter struct{}
+type dateConverter struct{}
 
 func NewDateConverter() converter.ElementConverter {
-	return &DateConverter{}
+	return &dateConverter{}
 }
 
-func (dc *DateConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (dc *dateConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
 		return converter.EnhancedConversionResult{}, fmt.Errorf("date node missing attrs")
 	}
@@ -49,19 +49,19 @@ func millisToDate(millis string) (string, error) {
 	return t.Format("2006-01-02"), nil
 }
 
-func (dc *DateConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (dc *dateConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, fmt.Errorf("date is an inline element and should be parsed within parent blocks")
 }
 
-func (dc *DateConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (dc *dateConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeDate)
 }
 
-func (dc *DateConverter) GetStrategy() converter.ConversionStrategy {
+func (dc *dateConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (dc *DateConverter) ValidateInput(input interface{}) error {
+func (dc *dateConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

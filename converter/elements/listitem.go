@@ -9,14 +9,14 @@ import (
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
-// ListItemConverter handles conversion of ADF list item nodes to/from markdown
-type ListItemConverter struct{}
+// listItemConverter handles conversion of ADF list item nodes to/from markdown
+type listItemConverter struct{}
 
 func NewListItemConverter() converter.ElementConverter {
-	return &ListItemConverter{}
+	return &listItemConverter{}
 }
 
-func (lic *ListItemConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (lic *listItemConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	depth := context.ListDepth
@@ -65,7 +65,7 @@ func (lic *ListItemConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	return builder.Build(), nil
 }
 
-func (lic *ListItemConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (lic *listItemConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -112,15 +112,15 @@ func (lic *ListItemConverter) FromMarkdown(lines []string, startIndex int, conte
 	return node, 1, nil
 }
 
-func (lic *ListItemConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (lic *listItemConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeListItem)
 }
 
-func (lic *ListItemConverter) GetStrategy() converter.ConversionStrategy {
+func (lic *listItemConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (lic *ListItemConverter) ValidateInput(input interface{}) error {
+func (lic *listItemConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

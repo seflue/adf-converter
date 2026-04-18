@@ -495,11 +495,11 @@ func TestTextConverter_CanHandle(t *testing.T) {
 	tc := NewTextConverter()
 
 	if !tc.CanHandle(adf_types.NodeTypeText) {
-		t.Error("TextConverter should handle NodeTypeText")
+		t.Error("textConverter should handle NodeTypeText")
 	}
 
 	if tc.CanHandle(adf_types.NodeTypeParagraph) {
-		t.Error("TextConverter should not handle NodeTypeParagraph")
+		t.Error("textConverter should not handle NodeTypeParagraph")
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 )
 
 // Compile-time interface check
-var _ converter.ElementConverter = (*TableConverter)(nil)
+var _ converter.ElementConverter = (*tableConverter)(nil)
 
 // ============================================================================
 // FromMarkdown Tests (new ElementConverter signature)

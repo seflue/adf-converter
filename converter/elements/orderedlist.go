@@ -13,14 +13,14 @@ import (
 
 var orderedListLinePattern = regexp.MustCompile(`^\s*\d+\.\s`)
 
-// OrderedListConverter handles conversion of ADF ordered list nodes to/from markdown
-type OrderedListConverter struct{}
+// orderedListConverter handles conversion of ADF ordered list nodes to/from markdown
+type orderedListConverter struct{}
 
 func NewOrderedListConverter() converter.ElementConverter {
-	return &OrderedListConverter{}
+	return &orderedListConverter{}
 }
 
-func (olc *OrderedListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (olc *orderedListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 
 	childContext := converter.ConversionContext{
@@ -61,7 +61,7 @@ func (olc *OrderedListConverter) ToMarkdown(node adf_types.ADFNode, context conv
 	return builder.Build(), nil
 }
 
-func (olc *OrderedListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (olc *orderedListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	// Count consecutive list lines starting from startIndex, including:
 	// - Lines that start with ordered list markers (1., 2., etc.)
 	// - Indented continuation lines (for multiline list items and nested lists)
@@ -138,19 +138,19 @@ func isOrderedListLine(trimmed string) bool {
 	return false
 }
 
-func (olc *OrderedListConverter) CanParseLine(line string) bool {
+func (olc *orderedListConverter) CanParseLine(line string) bool {
 	return orderedListLinePattern.MatchString(line)
 }
 
-func (olc *OrderedListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (olc *orderedListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeOrderedList)
 }
 
-func (olc *OrderedListConverter) GetStrategy() converter.ConversionStrategy {
+func (olc *orderedListConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (olc *OrderedListConverter) ValidateInput(input interface{}) error {
+func (olc *orderedListConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

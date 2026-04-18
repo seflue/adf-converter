@@ -8,15 +8,15 @@ import (
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
-// StatusConverter handles conversion of ADF status nodes to/from markdown
+// statusConverter handles conversion of ADF status nodes to/from markdown
 // Format: [status:Text|color]
-type StatusConverter struct{}
+type statusConverter struct{}
 
 func NewStatusConverter() converter.ElementConverter {
-	return &StatusConverter{}
+	return &statusConverter{}
 }
 
-func (sc *StatusConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (sc *statusConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
 		return converter.EnhancedConversionResult{}, fmt.Errorf("status node missing attrs")
 	}
@@ -37,19 +37,19 @@ func (sc *StatusConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 	return builder.Build(), nil
 }
 
-func (sc *StatusConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (sc *statusConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, fmt.Errorf("status is an inline element and should be parsed within parent blocks")
 }
 
-func (sc *StatusConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (sc *statusConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeStatus)
 }
 
-func (sc *StatusConverter) GetStrategy() converter.ConversionStrategy {
+func (sc *statusConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (sc *StatusConverter) ValidateInput(input interface{}) error {
+func (sc *statusConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

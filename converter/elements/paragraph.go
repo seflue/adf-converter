@@ -22,14 +22,14 @@ func isBlockBoundary(trimmed string) bool {
 	return false
 }
 
-// ParagraphConverter handles conversion of ADF paragraph nodes to/from markdown
-type ParagraphConverter struct{}
+// paragraphConverter handles conversion of ADF paragraph nodes to/from markdown
+type paragraphConverter struct{}
 
 func NewParagraphConverter() converter.ElementConverter {
-	return &ParagraphConverter{}
+	return &paragraphConverter{}
 }
 
-func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (pc *paragraphConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	if len(node.Content) == 0 {
 		builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
 		builder.AppendContent("\n")
@@ -72,7 +72,7 @@ func (pc *ParagraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	return builder.Build(), nil
 }
 
-func (pc *ParagraphConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (pc *paragraphConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 1, nil
 	}
@@ -146,7 +146,7 @@ func appendPreservedChild(
 		builder.AppendContent(rendered)
 	}
 
-	// appendPreservedChild is only called from ParagraphConverter, so every
+	// appendPreservedChild is only called from paragraphConverter, so every
 	// child is inline by construction — even if IsInlineNode does not yet
 	// recognize its type (unknown inline nodes, ac-0073).
 	if placeholderID == "" {
@@ -159,15 +159,15 @@ func appendPreservedChild(
 	return nil, nil
 }
 
-func (pc *ParagraphConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (pc *paragraphConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeParagraph)
 }
 
-func (pc *ParagraphConverter) GetStrategy() converter.ConversionStrategy {
+func (pc *paragraphConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (pc *ParagraphConverter) ValidateInput(input interface{}) error {
+func (pc *paragraphConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

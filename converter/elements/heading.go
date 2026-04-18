@@ -14,14 +14,14 @@ import (
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 )
 
-// HeadingConverter handles conversion of ADF heading nodes to/from markdown
-type HeadingConverter struct{}
+// headingConverter handles conversion of ADF heading nodes to/from markdown
+type headingConverter struct{}
 
 func NewHeadingConverter() converter.ElementConverter {
-	return &HeadingConverter{}
+	return &headingConverter{}
 }
 
-func (hc *HeadingConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (hc *headingConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
 	// Get heading level (1-6)
 	level := node.GetHeadingLevel()
 	if level < 1 || level > 6 {
@@ -46,7 +46,7 @@ func (hc *HeadingConverter) ToMarkdown(node adf_types.ADFNode, context converter
 	return builder.Build(), nil
 }
 
-func (hc *HeadingConverter) FromMarkdown(lines []string, startIndex int, _ converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (hc *headingConverter) FromMarkdown(lines []string, startIndex int, _ converter.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -78,7 +78,7 @@ func (hc *HeadingConverter) FromMarkdown(lines []string, startIndex int, _ conve
 	return node, 1, nil
 }
 
-func (hc *HeadingConverter) CanParseLine(line string) bool {
+func (hc *headingConverter) CanParseLine(line string) bool {
 	if !strings.HasPrefix(line, "#") {
 		return false
 	}
@@ -93,15 +93,15 @@ func (hc *HeadingConverter) CanParseLine(line string) bool {
 	return level == len(line) || line[level] == ' ' || line[level] == '\t'
 }
 
-func (hc *HeadingConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (hc *headingConverter) CanHandle(nodeType converter.ADFNodeType) bool {
 	return nodeType == converter.ADFNodeType(adf_types.NodeTypeHeading)
 }
 
-func (hc *HeadingConverter) GetStrategy() converter.ConversionStrategy {
+func (hc *headingConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (hc *HeadingConverter) ValidateInput(input interface{}) error {
+func (hc *headingConverter) ValidateInput(input interface{}) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

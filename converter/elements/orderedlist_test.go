@@ -752,4 +752,4 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 }
 
 // NOTE: TestMain is defined in paragraph_test.go for the entire elements package
-// It registers all converters including OrderedListConverter
+// It registers all converters including orderedListConverter

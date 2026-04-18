@@ -562,4 +562,4 @@ func TestBulletListConverter_ValidateInput(t *testing.T) {
 }
 
 // NOTE: TestMain is defined in paragraph_test.go for the entire elements package
-// It registers all converters including BulletListConverter
+// It registers all converters including bulletListConverter
