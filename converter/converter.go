@@ -69,9 +69,6 @@ type Converter interface {
 
 	// FromMarkdown converts edited Markdown back to ADF, restoring preserved content from placeholders
 	FromMarkdown(markdown string, session *placeholder.EditSession) (ConversionResult, error)
-
-	// FromMarkdownLegacy provides the old interface for backward compatibility
-	FromMarkdownLegacy(markdown string, session *placeholder.EditSession) (adf_types.ADFDocument, error)
 }
 
 // DefaultConverter uses the classifier and placeholder manager for conversion
@@ -114,11 +111,6 @@ func (c *DefaultConverter) ToMarkdown(doc adf_types.ADFDocument) (string, *place
 // FromMarkdown converts edited Markdown back to ADF with deletion tracking
 func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.EditSession) (ConversionResult, error) {
 	return FromMarkdownWithTracking(markdown, session, c.manager)
-}
-
-// FromMarkdownLegacy provides backward compatibility with the old interface
-func (c *DefaultConverter) FromMarkdownLegacy(markdown string, session *placeholder.EditSession) (adf_types.ADFDocument, error) {
-	return FromMarkdown(markdown, session, c.manager)
 }
 
 // GetClassifier returns the content classifier used by this converter

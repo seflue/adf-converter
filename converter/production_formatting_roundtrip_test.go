@@ -81,8 +81,9 @@ Complex list:
 	session := manager.GetSession()
 
 	// Step 1: Convert Markdown to ADF
-	adf, err := converter.FromMarkdownLegacy(productionMarkdown, session)
+	firstResult, err := converter.FromMarkdown(productionMarkdown, session)
 	require.NoError(t, err, "Markdown to ADF conversion should not fail")
+	adf := firstResult.Document
 
 	// DEBUG: Print ADF structure to see what we're getting
 	if adfBytes, err := json.MarshalIndent(adf, "", "  "); err == nil {
@@ -119,8 +120,9 @@ Complex list:
 	})
 
 	// Step 3: Test full roundtrip (this is what failed in production)
-	secondADF, err := converter.FromMarkdownLegacy(roundtripMarkdown, session)
+	secondResult, err := converter.FromMarkdown(roundtripMarkdown, session)
 	require.NoError(t, err, "Second markdown to ADF conversion should not fail")
+	secondADF := secondResult.Document
 
 	// CRITICAL: This is where the production failure occurred
 	t.Run("Production API Compatibility", func(t *testing.T) {
@@ -340,8 +342,9 @@ func TestSpecificFormattingIssues(t *testing.T) {
 			manager := placeholder.NewManager()
 			session := manager.GetSession()
 
-			adf, err := converter.FromMarkdownLegacy(tc.markdown, session)
+			fromResult, err := converter.FromMarkdown(tc.markdown, session)
 			require.NoError(t, err)
+			adf := fromResult.Document
 
 			result, _, err := converter.ToMarkdown(adf)
 			require.NoError(t, err)

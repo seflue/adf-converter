@@ -408,8 +408,9 @@ func TestRealJiraADF(t *testing.T) {
 		markdown, _, err := converter.ToMarkdown(adfDoc)
 		require.NoError(t, err)
 
-		newADF, err := converter.FromMarkdownLegacy(markdown, session)
+		result, err := converter.FromMarkdown(markdown, session)
 		require.NoError(t, err)
+		newADF := result.Document
 
 		assert.Equal(t, adfDoc.Version, newADF.Version, "Version should be preserved")
 		assert.Equal(t, adfDoc.Type, newADF.Type, "Document type should be preserved")
