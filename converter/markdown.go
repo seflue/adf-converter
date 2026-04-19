@@ -46,7 +46,7 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 		if converter != nil {
 			for _, nodeType := range nodeTypes {
 				if converter.CanHandle(nodeType) {
-					globalRegistry.Register(nodeType, converter)
+					globalRegistry.MustRegister(nodeType, converter)
 				}
 			}
 		}
@@ -64,7 +64,7 @@ func RegisterDefaultConverters(elementConverters ...ElementConverter) {
 	}
 	for _, nodeType := range blockParserOrder {
 		if globalRegistry.IsRegistered(nodeType) {
-			globalRegistry.RegisterBlockParser(nodeType)
+			globalRegistry.MustRegisterBlockParser(nodeType)
 		}
 	}
 }

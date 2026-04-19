@@ -36,23 +36,31 @@ func NewConverterRegistry() *ConverterRegistry {
 	}
 }
 
-// Register registers a converter for the given node type
+// Register registers a converter for the given node type.
 //
 // If a converter is already registered for this node type, it will be replaced.
 // This allows for testing different converter implementations.
 //
-// Parameters:
-//   - nodeType: The ADF node type this converter handles
-//   - converter: The ElementConverter implementation
-func (r *ConverterRegistry) Register(nodeType ADFNodeType, converter ElementConverter) {
+// Returns an error if converter is nil. Use MustRegister for init-time
+// registration where a nil converter is a programmer error.
+func (r *ConverterRegistry) Register(nodeType ADFNodeType, converter ElementConverter) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	if converter == nil {
-		panic(fmt.Sprintf("cannot register nil converter for node type %s", nodeType))
+		return fmt.Errorf("cannot register nil converter for node type %s", nodeType)
 	}
 
 	r.converters[nodeType] = converter
+	return nil
+}
+
+// MustRegister calls Register and panics if it returns an error.
+// Intended for init-time registration where a failure is a programmer error.
+func (r *ConverterRegistry) MustRegister(nodeType ADFNodeType, converter ElementConverter) {
+	if err := r.Register(nodeType, converter); err != nil {
+		panic(err)
+	}
 }
 
 // GetConverter retrieves the converter for the given node type
@@ -116,21 +124,33 @@ func (r *ConverterRegistry) Clear() {
 // RegisterBlockParser adds the converter for nodeType to the ordered block parser list.
 // The converter must already be registered via Register() and implement BlockParser.
 // Registration order determines dispatch priority (first match wins).
-func (r *ConverterRegistry) RegisterBlockParser(nodeType ADFNodeType) {
+//
+// Returns an error if the converter is not registered or does not implement
+// BlockParser. Use MustRegisterBlockParser for init-time registration.
+func (r *ConverterRegistry) RegisterBlockParser(nodeType ADFNodeType) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	conv, exists := r.converters[nodeType]
 	if !exists {
-		panic(fmt.Sprintf("RegisterBlockParser: converter %q not registered", nodeType))
+		return fmt.Errorf("RegisterBlockParser: converter %q not registered", nodeType)
 	}
 
 	bp, ok := conv.(BlockParser)
 	if !ok {
-		panic(fmt.Sprintf("RegisterBlockParser: converter %q does not implement BlockParser", nodeType))
+		return fmt.Errorf("RegisterBlockParser: converter %q does not implement BlockParser", nodeType)
 	}
 
 	r.blockParsers = append(r.blockParsers, BlockParserEntry{NodeType: nodeType, Parser: bp})
+	return nil
+}
+
+// MustRegisterBlockParser calls RegisterBlockParser and panics if it returns an error.
+// Intended for init-time registration where a failure is a programmer error.
+func (r *ConverterRegistry) MustRegisterBlockParser(nodeType ADFNodeType) {
+	if err := r.RegisterBlockParser(nodeType); err != nil {
+		panic(err)
+	}
 }
 
 // BlockParsers returns the ordered block parser list for MD→ADF dispatch.
@@ -141,16 +161,14 @@ func (r *ConverterRegistry) BlockParsers() []BlockParserEntry {
 	return r.blockParsers
 }
 
-// RegisterGlobal registers a converter with the global registry
+// RegisterGlobal registers a converter with the global registry.
 //
 // This function is intended to be called from init() functions in the elements/
 // package to register converters without creating circular import dependencies.
 //
-// Parameters:
-//   - nodeType: The ADF node type this converter handles
-//   - converter: The ElementConverter implementation
-func RegisterGlobal(nodeType ADFNodeType, converter ElementConverter) {
-	globalRegistry.Register(nodeType, converter)
+// Returns an error if converter is nil.
+func RegisterGlobal(nodeType ADFNodeType, converter ElementConverter) error {
+	return globalRegistry.Register(nodeType, converter)
 }
 
 // adaptContext adapts markdownConversionContext to ConversionContext for registry converters
