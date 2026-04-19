@@ -5,44 +5,15 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/elements"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"github.com/seflue/adf-converter/placeholder"
 )
-
-// TestMain sets up the converter registry before running tests.
-// Registers ALL converters once — individual tests must NOT call Clear() or RegisterDefaultConverters().
-func TestMain(m *testing.M) {
-	converter.RegisterDefaultConverters(
-		elements.NewTextConverter(),
-		elements.NewHardBreakConverter(),
-		elements.NewParagraphConverter(),
-		elements.NewHeadingConverter(),
-		elements.NewListItemConverter(),
-		elements.NewBulletListConverter(),
-		elements.NewOrderedListConverter(),
-		elements.NewExpandConverter(),
-		elements.NewInlineCardConverter(),
-		elements.NewBlockCardConverter(),
-		elements.NewEmojiConverter(),
-		elements.NewCodeBlockConverter(),
-		elements.NewRuleConverter(),
-		elements.NewMentionConverter(),
-		elements.NewTableConverter(),
-		elements.NewPanelConverter(),
-		elements.NewDateConverter(),
-		elements.NewStatusConverter(),
-		elements.NewBlockquoteConverter(),
-		elements.NewTaskListConverter(),
-		elements.NewMediaSingleConverter(),
-	)
-
-	m.Run()
-}
 
 // TestTextConverter_Integration verifies TextConverter works end-to-end through ToMarkdown
 func TestTextConverter_Integration(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
+	registry := defaults.NewRegistry()
 
 	tests := []struct {
 		name     string
@@ -113,7 +84,7 @@ func TestTextConverter_Integration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			markdown, _, err := converter.ToMarkdown(tt.adf, classifier, manager)
+			markdown, _, err := converter.ToMarkdown(tt.adf, classifier, manager, registry)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

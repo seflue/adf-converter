@@ -72,41 +72,57 @@ type Converter interface {
 	FromMarkdown(markdown string, session *placeholder.EditSession) (ConversionResult, error)
 }
 
-// DefaultConverter uses the classifier and placeholder manager for conversion
+// DefaultConverter uses the classifier and placeholder manager for conversion.
+// Each instance holds its own registry — there is no global registry.
 type DefaultConverter struct {
 	classifier ContentClassifier
 	manager    placeholder.Manager
+	registry   *ConverterRegistry
 }
 
-// NewConverter creates a new DefaultConverter with the provided classifier and manager
-func NewConverter(classifier ContentClassifier, manager placeholder.Manager) Converter {
-	return &DefaultConverter{
-		classifier: classifier,
-		manager:    manager,
+// Option configures a DefaultConverter at construction time.
+type Option func(*DefaultConverter)
+
+// WithRegistry overrides the converter registry used for element dispatch.
+func WithRegistry(r *ConverterRegistry) Option {
+	return func(c *DefaultConverter) {
+		c.registry = r
 	}
 }
 
-// NewDefaultConverter creates a DefaultConverter with default implementations
-func NewDefaultConverter() Converter {
-	return &DefaultConverter{
+// WithClassifier overrides the content classifier.
+func WithClassifier(cl ContentClassifier) Option {
+	return func(c *DefaultConverter) {
+		c.classifier = cl
+	}
+}
+
+// WithPlaceholderManager overrides the placeholder manager.
+func WithPlaceholderManager(m placeholder.Manager) Option {
+	return func(c *DefaultConverter) {
+		c.manager = m
+	}
+}
+
+// NewConverter creates a new DefaultConverter.
+//
+// Defaults: DefaultClassifier, placeholder.NewManager, empty registry.
+// Use WithRegistry to supply a populated registry (see converter/defaults).
+func NewConverter(opts ...Option) *DefaultConverter {
+	c := &DefaultConverter{
 		classifier: NewDefaultClassifier(),
 		manager:    placeholder.NewManager(),
+		registry:   NewConverterRegistry(),
 	}
-}
-
-// NewDisplayConverter creates a converter for read-only display mode.
-// Uses a NullManager that produces preview text instead of placeholder comments.
-// FromMarkdown is still available but not useful in display context.
-func NewDisplayConverter() Converter {
-	return &DefaultConverter{
-		classifier: NewDefaultClassifier(),
-		manager:    placeholder.NewNullManager(),
+	for _, opt := range opts {
+		opt(c)
 	}
+	return c
 }
 
 // ToMarkdown converts an ADF document to editable Markdown with placeholders for complex content
 func (c *DefaultConverter) ToMarkdown(doc adf_types.ADFDocument) (string, *placeholder.EditSession, error) {
-	return ToMarkdown(doc, c.classifier, c.manager)
+	return ToMarkdown(doc, c.classifier, c.manager, c.registry)
 }
 
 // FromMarkdown converts edited Markdown back to ADF with deletion tracking
@@ -119,7 +135,7 @@ func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.Ed
 
 	lines := strings.Split(markdown, "\n")
 
-	parser := NewMarkdownParser(session, c.manager)
+	parser := NewMarkdownParser(session, c.manager, c.registry)
 	nodes, err := parser.ParseMarkdownToADFNodes(lines)
 	if err != nil {
 		return ConversionResult{}, fmt.Errorf("failed to parse markdown: %w", err)
@@ -145,4 +161,9 @@ func (c *DefaultConverter) GetClassifier() ContentClassifier {
 // GetManager returns the placeholder manager used by this converter
 func (c *DefaultConverter) GetManager() placeholder.Manager {
 	return c.manager
+}
+
+// GetRegistry returns the converter registry used by this converter.
+func (c *DefaultConverter) GetRegistry() *ConverterRegistry {
+	return c.registry
 }

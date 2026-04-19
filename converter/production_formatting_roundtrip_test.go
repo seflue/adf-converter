@@ -1,4 +1,4 @@
-package converter
+package converter_test
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"github.com/seflue/adf-converter/placeholder"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -76,12 +77,12 @@ Complex list:
 2. Second with **formatting**
 3. Third item`
 
-	converter := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
 	// Step 1: Convert Markdown to ADF
-	firstResult, err := converter.FromMarkdown(productionMarkdown, session)
+	firstResult, err := conv.FromMarkdown(productionMarkdown, session)
 	require.NoError(t, err, "Markdown to ADF conversion should not fail")
 	adf := firstResult.Document
 
@@ -101,7 +102,7 @@ Complex list:
 	})
 
 	// Step 2: Convert ADF back to Markdown
-	roundtripMarkdown, _, err := converter.ToMarkdown(adf)
+	roundtripMarkdown, _, err := conv.ToMarkdown(adf)
 	require.NoError(t, err, "ADF to Markdown conversion should not fail")
 
 	// CRITICAL VALIDATION: Check formatting preservation
@@ -120,7 +121,7 @@ Complex list:
 	})
 
 	// Step 3: Test full roundtrip (this is what failed in production)
-	secondResult, err := converter.FromMarkdown(roundtripMarkdown, session)
+	secondResult, err := conv.FromMarkdown(roundtripMarkdown, session)
 	require.NoError(t, err, "Second markdown to ADF conversion should not fail")
 	secondADF := secondResult.Document
 
@@ -132,7 +133,7 @@ Complex list:
 	})
 
 	// Final validation: Multiple roundtrips should be stable
-	thirdMarkdown, _, err := converter.ToMarkdown(secondADF)
+	thirdMarkdown, _, err := conv.ToMarkdown(secondADF)
 	require.NoError(t, err, "Third conversion should not fail")
 
 	// Content should stabilize after first roundtrip
@@ -308,7 +309,7 @@ func validateJiraStructureInNode(node adf_types.ADFNode, errors *[]string, expan
 
 // TestSpecificFormattingIssues tests the individual components that failed
 func TestSpecificFormattingIssues(t *testing.T) {
-	converter := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	testCases := []struct {
 		name     string
@@ -342,11 +343,11 @@ func TestSpecificFormattingIssues(t *testing.T) {
 			manager := placeholder.NewManager()
 			session := manager.GetSession()
 
-			fromResult, err := converter.FromMarkdown(tc.markdown, session)
+			fromResult, err := conv.FromMarkdown(tc.markdown, session)
 			require.NoError(t, err)
 			adf := fromResult.Document
 
-			result, _, err := converter.ToMarkdown(adf)
+			result, _, err := conv.ToMarkdown(adf)
 			require.NoError(t, err)
 
 			assert.Contains(t, result, tc.expected, "Formatting should be preserved in roundtrip")

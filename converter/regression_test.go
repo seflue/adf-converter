@@ -5,6 +5,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -99,7 +100,7 @@ func TestTextNodeRegression(t *testing.T) {
 		},
 	}
 
-	markdown, _, err := converter.ToMarkdown(doc, classifier, manager)
+	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}

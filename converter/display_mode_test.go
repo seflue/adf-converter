@@ -1,6 +1,8 @@
-package converter
+package converter_test
 
 import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"strings"
 	"testing"
 
@@ -32,10 +34,10 @@ func TestDisplayMode_NoPlaceholderComments(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, session, err := ToMarkdown(doc, classifier, manager)
+	md, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 	require.NotNil(t, session)
 
@@ -61,10 +63,10 @@ func TestDisplayMode_UnknownNodeShowsPreviewText(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, _, err := ToMarkdown(doc, classifier, manager)
+	md, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Contains(t, md, "Before")
@@ -90,10 +92,10 @@ func TestDisplayMode_InlinePreservedNodes(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, _, err := ToMarkdown(doc, classifier, manager)
+	md, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.NotContains(t, md, "<!--", "inline preserved nodes must not produce comments")
@@ -136,10 +138,10 @@ func TestDisplayMode_MixedEditableAndPreserved(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, _, err := ToMarkdown(doc, classifier, manager)
+	md, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Contains(t, md, "# Title")
@@ -165,7 +167,7 @@ func TestNewDisplayConverter_Integration(t *testing.T) {
 		},
 	}
 
-	conv := NewDisplayConverter()
+	conv := defaults.NewDisplayConverter()
 	md, session, err := conv.ToMarkdown(doc)
 	require.NoError(t, err)
 	require.NotNil(t, session)

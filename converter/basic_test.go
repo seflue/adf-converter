@@ -1,6 +1,8 @@
-package converter
+package converter_test
 
 import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"testing"
 
 	"github.com/seflue/adf-converter/adf_types"
@@ -76,7 +78,7 @@ This is after the second element.
 `
 
 	// First, test that both placeholders work
-	doc, err := FromMarkdown(markdownWithBothPlaceholders, session, manager)
+	doc, err := converter.FromMarkdown(markdownWithBothPlaceholders, session, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("FromMarkdown failed with both placeholders: %v", err)
 	}
@@ -97,7 +99,7 @@ This is after the second element.
 `
 
 	// This should succeed after our fix - deleted placeholder is gracefully skipped
-	doc, err = FromMarkdown(markdownWithDeletedPlaceholder, session, manager)
+	doc, err = converter.FromMarkdown(markdownWithDeletedPlaceholder, session, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("FromMarkdown failed with deleted placeholder (should succeed after fix): %v", err)
 	}
@@ -138,10 +140,10 @@ func TestToMarkdown_BasicDocument(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := ToMarkdown(doc, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -181,10 +183,10 @@ func TestToMarkdown_HeadingWithText(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, _, err := ToMarkdown(doc, classifier, manager)
+	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -227,10 +229,10 @@ func TestToMarkdown_TextWithMarks(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, _, err := ToMarkdown(doc, classifier, manager)
+	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -300,17 +302,17 @@ func TestBasicLinks(t *testing.T) {
 
 	testDoc := parseTestADFPayload(t, basicLinksADF)
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := ToMarkdown(testDoc, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	expectedMarkdown := "Visit [Google](https://google.com) for search and [GitHub](https://github.com) for code.\n\n"
 	assert.Equal(t, expectedMarkdown, markdown)
 
 	// Verify round-trip conversion
-	convertedBack, err := FromMarkdown(markdown, session, manager)
+	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve link structure
@@ -393,10 +395,10 @@ func TestLinksWithFormatting(t *testing.T) {
 
 	testDoc := parseTestADFPayload(t, formattingLinksADF)
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := ToMarkdown(testDoc, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should contain both formatted links (formatting around whole link)
@@ -404,7 +406,7 @@ func TestLinksWithFormatting(t *testing.T) {
 	assert.Contains(t, markdown, "*[italic link](https://github.com)*")
 
 	// Verify round-trip conversion
-	convertedBack, err := FromMarkdown(markdown, session, manager)
+	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve both links and formatting
@@ -460,17 +462,17 @@ func TestLinksInLists(t *testing.T) {
 
 	testDoc := parseTestADFPayload(t, listsWithLinksADF)
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := ToMarkdown(testDoc, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should contain bullet list with link
 	assert.Contains(t, markdown, "- External: [Stack Overflow](https://stackoverflow.com)")
 
 	// Verify round-trip conversion
-	convertedBack, err := FromMarkdown(markdown, session, manager)
+	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve list structure
@@ -508,17 +510,17 @@ func TestLinksWithSpecialCharacters(t *testing.T) {
 
 	testDoc := parseTestADFPayload(t, specialCharsLinksADF)
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := ToMarkdown(testDoc, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should handle special characters in link text
 	assert.Contains(t, markdown, "[Link with (parentheses)](https://company.atlassian.com/browse/PAREN-123)")
 
 	// Verify round-trip conversion
-	convertedBack, err := FromMarkdown(markdown, session, manager)
+	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve link structure
@@ -530,7 +532,7 @@ func TestLinksWithSpecialCharacters(t *testing.T) {
 // ============================================================================
 
 func TestDefaultClassifier_IsEditable(t *testing.T) {
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 
 	tests := []struct {
 		nodeType string
@@ -560,7 +562,7 @@ func TestDefaultClassifier_IsEditable(t *testing.T) {
 }
 
 func TestDefaultClassifier_IsPreserved(t *testing.T) {
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 
 	tests := []struct {
 		nodeType string

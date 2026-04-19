@@ -170,7 +170,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := pc.ToMarkdown(tt.node, converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()})
+			result, err := pc.ToMarkdown(tt.node, converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result.Content)
 			assert.Equal(t, converter.MarkdownPanel, result.Strategy)
@@ -192,7 +192,7 @@ func TestPanelConverter_ToMarkdown_UnknownTypeWarning(t *testing.T) {
 		},
 	}
 
-	result, err := pc.ToMarkdown(node, converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()})
+	result, err := pc.ToMarkdown(node, converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
 	require.NoError(t, err)
 	assert.Equal(t, ":::custom\nContent\n:::\n\n", result.Content)
 	// Unknown type should produce a warning
@@ -272,7 +272,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			node, consumed, err := pc.FromMarkdown(tt.lines, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()})
+			node, consumed, err := pc.FromMarkdown(tt.lines, 0, converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -380,7 +380,7 @@ func TestPanelConverter_FromMarkdown_Admonition(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			node, consumed, err := pc.FromMarkdown(tt.lines, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()})
+			node, consumed, err := pc.FromMarkdown(tt.lines, 0, converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
 			require.NoError(t, err)
 			assert.Equal(t, adf_types.NodeTypePanel, node.Type)
 			assert.Equal(t, tt.wantType, node.Attrs["panelType"])
@@ -400,7 +400,7 @@ func TestPanelConverter_FromMarkdown_Admonition(t *testing.T) {
 func TestPanelConverter_Roundtrip_FencedDiv(t *testing.T) {
 
 	pc := NewPanelConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()}
 
 	// ADF -> Markdown -> ADF
 	originalNode := adf_types.ADFNode{
@@ -435,7 +435,7 @@ func TestPanelConverter_Roundtrip_FencedDiv(t *testing.T) {
 func TestPanelConverter_Roundtrip_AdmonitionNormalization(t *testing.T) {
 
 	pc := NewPanelConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()}
 
 	// GitHub Admonition -> ADF -> Fenced-Div (canonical normalization)
 	admonitionLines := []string{"> [!INFO]", "> Admonition content"}
@@ -451,7 +451,7 @@ func TestPanelConverter_Roundtrip_AdmonitionNormalization(t *testing.T) {
 
 func TestPanelConverter_Integration_MixedDocument(t *testing.T) {
 
-	conv := converter.NewDefaultConverter()
+	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
 
 	doc := adf_types.ADFDocument{
 		Version: 1,
@@ -493,7 +493,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv_WithBulletList(t *testing.T) {
 	pc := NewPanelConverter()
 
 	lines := []string{":::info", "- Item 1", "- Item 2", ":::"}
-	node, consumed, err := pc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()})
+	node, consumed, err := pc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
 	require.NoError(t, err)
 	assert.Equal(t, 4, consumed)
 	assert.Equal(t, adf_types.NodeTypePanel, node.Type)
@@ -509,7 +509,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv_WithCodeBlock(t *testing.T) {
 	pc := NewPanelConverter()
 
 	lines := []string{":::info", "```go", "fmt.Println(\"hello\")", "```", ":::"}
-	node, consumed, err := pc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ParseNested: testParseNested()})
+	node, consumed, err := pc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
 	require.NoError(t, err)
 	assert.Equal(t, 5, consumed)
 	assert.Equal(t, adf_types.NodeTypePanel, node.Type)

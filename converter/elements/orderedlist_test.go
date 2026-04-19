@@ -170,7 +170,7 @@ func TestOrderedListConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			ctx := converter.ConversionContext{Registry: newTestRegistry()}
 			result, err := olc.ToMarkdown(tt.node, ctx)
 
 			if (err != nil) != tt.wantErr {
@@ -207,7 +207,7 @@ func TestOrderedListConverter_ToMarkdown_NestedLists(t *testing.T) {
 	}
 
 	// Test at depth 0 (top level)
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ListDepth: 0}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), ListDepth: 0}
 	result, err := olc.ToMarkdown(node, ctx)
 	if err != nil {
 		t.Fatalf("ToMarkdown() error = %v", err)
@@ -219,7 +219,7 @@ func TestOrderedListConverter_ToMarkdown_NestedLists(t *testing.T) {
 	}
 
 	// Test at depth 1 (nested)
-	ctx = converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ListDepth: 1}
+	ctx = converter.ConversionContext{Registry: newTestRegistry(), ListDepth: 1}
 	result, err = olc.ToMarkdown(node, ctx)
 	if err != nil {
 		t.Fatalf("ToMarkdown() error = %v", err)
@@ -231,7 +231,7 @@ func TestOrderedListConverter_ToMarkdown_NestedLists(t *testing.T) {
 	}
 
 	// Test at depth 2 (deeply nested)
-	ctx = converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ListDepth: 2}
+	ctx = converter.ConversionContext{Registry: newTestRegistry(), ListDepth: 2}
 	result, err = olc.ToMarkdown(node, ctx)
 	if err != nil {
 		t.Fatalf("ToMarkdown() error = %v", err)
@@ -329,7 +329,7 @@ func TestOrderedListConverter_FromMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			ctx := converter.ConversionContext{Registry: newTestRegistry()}
 			node, consumed, err := olc.FromMarkdown(tt.lines, tt.startIndex, ctx)
 
 			if (err != nil) != tt.wantErr {
@@ -441,7 +441,7 @@ func TestOrderedListConverter_RoundTrip(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 			// Convert to markdown
 			result, err := olc.ToMarkdown(tt.node, ctx)
@@ -604,7 +604,7 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 					},
 				}
 
-				ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+				ctx := converter.ConversionContext{Registry: newTestRegistry()}
 				result, err := olc.ToMarkdown(node, ctx)
 				if err != nil {
 					t.Fatalf("ToMarkdown() error = %v", err)
@@ -641,7 +641,7 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+				ctx := converter.ConversionContext{Registry: newTestRegistry()}
 				node, _, err := olc.FromMarkdown(tt.lines, 0, ctx)
 				if err != nil {
 					t.Fatalf("FromMarkdown() error = %v", err)
@@ -710,7 +710,7 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 					},
 				}
 
-				ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+				ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 				// ADF → Markdown
 				result, err := olc.ToMarkdown(node, ctx)

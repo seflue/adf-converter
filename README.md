@@ -32,7 +32,7 @@ import (
 	"fmt"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 )
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 		panic(err)
 	}
 
-	c := converter.NewDefaultConverter()
+	c := defaults.NewDefaultConverter()
 
 	md, session, err := c.ToMarkdown(*doc)
 	if err != nil {

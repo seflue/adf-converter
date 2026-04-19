@@ -11,7 +11,7 @@ import (
 
 func TestStatusConverter_ToMarkdown(t *testing.T) {
 	sc := NewStatusConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
 		name    string

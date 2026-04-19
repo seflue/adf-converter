@@ -1,6 +1,8 @@
-package converter
+package converter_test
 
 import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"reflect"
 	"testing"
 
@@ -32,10 +34,10 @@ func TestRoundTripConversion_BasicDocument(t *testing.T) {
 		},
 	}
 
-	converter := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	// Perform round-trip conversion
-	markdown, restored, err := ConvertRoundTrip(converter, original)
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	if err != nil {
 		t.Fatalf("Round-trip conversion failed: %v", err)
 	}
@@ -95,10 +97,10 @@ func TestRoundTripConversion_FormattedText(t *testing.T) {
 		},
 	}
 
-	converter := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	// Perform round-trip conversion
-	markdown, restored, err := ConvertRoundTrip(converter, original)
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	if err != nil {
 		t.Fatalf("Round-trip conversion failed: %v", err)
 	}
@@ -156,10 +158,10 @@ func TestRoundTripConversion_MultipleHeadings(t *testing.T) {
 		},
 	}
 
-	converter := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	// Perform round-trip conversion
-	markdown, restored, err := ConvertRoundTrip(converter, original)
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	if err != nil {
 		t.Fatalf("Round-trip conversion failed: %v", err)
 	}
@@ -207,8 +209,8 @@ func TestRoundTripConversion_UnderlineText(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "This is <u>underlined</u> text\n\n", markdown)
@@ -243,8 +245,8 @@ func TestRoundTripConversion_UnderlineBoldText(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "**<u>bold underlined</u>**\n\n", markdown)
@@ -301,8 +303,8 @@ func TestRoundTripConversion_TextColorText(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "This is <span style=\"color: #ff0000\">red text</span> here\n\n", markdown)
@@ -332,8 +334,8 @@ func TestRoundTripConversion_TextColorBoldText(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "**<span style=\"color: #ff0000\">bold red</span>**\n\n", markdown)
@@ -397,8 +399,8 @@ func TestRoundTripConversion_SubscriptText(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "H<sub>2</sub>O\n\n", markdown)
@@ -434,8 +436,8 @@ func TestRoundTripConversion_SuperscriptText(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "x<sup>2</sup>\n\n", markdown)
@@ -472,8 +474,8 @@ func TestRoundTripConversion_BoldSubscriptText(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	assert.Equal(t, "**<sub>important</sub>**\n\n", markdown)
@@ -533,11 +535,11 @@ func TestEnhancedLinkRoundtrip_BasicExternalLinks(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
 	// Convert to markdown
-	markdown, session, err := ToMarkdown(original, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify markdown format
@@ -545,7 +547,7 @@ func TestEnhancedLinkRoundtrip_BasicExternalLinks(t *testing.T) {
 	assert.Equal(t, expectedMarkdown, markdown)
 
 	// Convert back to ADF
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify round-trip fidelity for structure
@@ -602,10 +604,10 @@ func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := ToMarkdown(original, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// No data-adf-type attribute — node type is derived from structural context
@@ -615,7 +617,7 @@ func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 	assert.Contains(t, markdown, "Hidden content here.")
 	assert.Contains(t, markdown, "</details>")
 
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Equal(t, original.Type, restored.Type)
@@ -720,11 +722,11 @@ func TestRoundTrip_ComplexDocument(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
 	// Convert to markdown
-	markdown, session, err := ToMarkdown(original, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify markdown contains expected elements
@@ -735,7 +737,7 @@ func TestRoundTrip_ComplexDocument(t *testing.T) {
 	assert.Contains(t, markdown, "- Second item")
 
 	// Convert back to ADF
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify document structure is preserved
@@ -815,14 +817,14 @@ func TestRoundTripFidelity_PreservesAllContent(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			classifier := NewDefaultClassifier()
+			classifier := converter.NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
 			// Convert ADF → Markdown → ADF
-			markdown, session, err := ToMarkdown(tc.doc, classifier, manager)
+			markdown, session, err := converter.ToMarkdown(tc.doc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err, "ADF to Markdown conversion failed")
 
-			restored, err := FromMarkdown(markdown, session, manager)
+			restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err, "Markdown to ADF conversion failed")
 
 			// Verify 100% fidelity for basic structure
@@ -846,7 +848,7 @@ func TestExpandBackwardCompatibility_DetailsFormat(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := FromMarkdown(markdownWithDetails, session, manager)
+	restored, err := converter.FromMarkdown(markdownWithDetails, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Equal(t, 3, len(restored.Content), "Should have 3 top-level elements")
@@ -865,7 +867,7 @@ func TestExpandNested_NoBlankLineBeforeInnerDetails(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Find the expand node
@@ -899,7 +901,7 @@ func TestParagraph_InlineHTMLNotBlockBoundary(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// All three lines should be in a single paragraph
@@ -941,12 +943,12 @@ func TestExpandRoundtrip_NestedExpandWithContent(t *testing.T) {
 	}
 
 	manager := placeholder.NewManager()
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 
-	markdown, session, err := ToMarkdown(original, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Equal(t, 1, len(restored.Content))
@@ -976,7 +978,7 @@ func TestExpandParsing_BackToBackExpands(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Equal(t, 2, len(restored.Content), "Should parse two separate expand nodes")
@@ -1072,10 +1074,10 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			classifier := NewDefaultClassifier()
+			classifier := converter.NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
-			markdown, _, err := ToMarkdown(test.input, classifier, manager)
+			markdown, _, err := converter.ToMarkdown(test.input, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			for _, expected := range test.expected {
@@ -1083,7 +1085,7 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 			}
 
 			session := manager.GetSession()
-			restored, err := FromMarkdown(markdown, session, manager)
+			restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			assert.Equal(t, test.input.Type, restored.Type)
@@ -1137,7 +1139,7 @@ Some **bold text** here.
 			manager := placeholder.NewManager()
 			session := manager.GetSession()
 
-			restored, err := FromMarkdown(test.markdownIn, session, manager)
+			restored, err := converter.FromMarkdown(test.markdownIn, session, manager, defaults.NewRegistry())
 
 			if test.expectError {
 				assert.Error(t, err)
@@ -1165,7 +1167,7 @@ Some **bold text** here.
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := FromMarkdown(markdownIn, session, manager)
+	restored, err := converter.FromMarkdown(markdownIn, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(restored.Content), "should be single expand node")
 
@@ -1257,17 +1259,17 @@ Regular content after all details.`,
 				},
 			}
 
-			classifier := NewDefaultClassifier()
+			classifier := converter.NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
 			// First convert ADF to markdown
-			_, session, err := ToMarkdown(testDoc, classifier, manager)
+			_, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err, "Initial conversion should work")
 			require.NotNil(t, session, "Session should be created")
 
 			// Now test the problematic conversion: markdown with nested details back to ADF
 			// This would hang before the fix due to infinite recursion
-			result, err := FromMarkdown(test.markdown, session, manager)
+			result, err := converter.FromMarkdown(test.markdown, session, manager, defaults.NewRegistry())
 
 			if test.expectError {
 				assert.Error(t, err)
@@ -1280,7 +1282,7 @@ Regular content after all details.`,
 				assert.True(t, len(result.Content) > 0, "Should have some content nodes")
 
 				// Test round-trip to ensure full functionality
-				backToMarkdown, _, err := ToMarkdown(result, classifier, manager)
+				backToMarkdown, _, err := converter.ToMarkdown(result, classifier, manager, defaults.NewRegistry())
 				assert.NoError(t, err, "Round-trip conversion should work")
 				// Check for details element - matches both <details> and <details attr="value">
 				assert.Regexp(t, `<details(?:\s|>)`, backToMarkdown, "Should contain details elements")
@@ -1295,7 +1297,7 @@ Regular content after all details.`,
 // ============================================================================
 
 func TestRoundTrip_OrderedList_StartNumber(t *testing.T) {
-	conv := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	tests := []struct {
 		name          string
@@ -1350,7 +1352,7 @@ func TestRoundTrip_OrderedList_StartNumber(t *testing.T) {
 				},
 			}
 
-			md, restored, err := ConvertRoundTrip(conv, doc)
+			md, restored, err := converter.ConvertRoundTrip(conv, doc)
 			require.NoError(t, err)
 
 			// Markdown contains correct start number
@@ -1378,7 +1380,7 @@ func TestRoundTrip_OrderedList_StartNumber(t *testing.T) {
 // ============================================================================
 
 func TestRoundTrip_Table_PlainTable(t *testing.T) {
-	conv := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	doc := adf_types.ADFDocument{
 		Version: 1,
@@ -1416,7 +1418,7 @@ func TestRoundTrip_Table_PlainTable(t *testing.T) {
 		},
 	}
 
-	md, restored, err := ConvertRoundTrip(conv, doc)
+	md, restored, err := converter.ConvertRoundTrip(conv, doc)
 	require.NoError(t, err)
 
 	// Should render as markdown table, not placeholder
@@ -1439,7 +1441,7 @@ func TestRoundTrip_Table_PlainTable(t *testing.T) {
 }
 
 func TestRoundTrip_Table_WithFormattedContent(t *testing.T) {
-	conv := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	doc := adf_types.ADFDocument{
 		Version: 1,
@@ -1481,7 +1483,7 @@ func TestRoundTrip_Table_WithFormattedContent(t *testing.T) {
 		},
 	}
 
-	md, restored, err := ConvertRoundTrip(conv, doc)
+	md, restored, err := converter.ConvertRoundTrip(conv, doc)
 	require.NoError(t, err)
 
 	// Bold header should appear in markdown
@@ -1523,8 +1525,8 @@ func TestRoundTripConversion_InlineCardDataOnly(t *testing.T) {
 		},
 	}
 
-	converter := NewDefaultConverter()
-	markdown, restored, err := ConvertRoundTrip(converter, original)
+	conv := defaults.NewDefaultConverter()
+	markdown, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	// Markdown must contain placeholder comment
@@ -1574,8 +1576,8 @@ func TestRoundTrip_MediaInline_InParagraph(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	md, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	md, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	// Markdown should contain placeholder comment (inline, no double newline)
@@ -1627,8 +1629,8 @@ func TestRoundTrip_MediaInline_StandaloneInParagraph(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
-	_, restored, err := ConvertRoundTrip(conv, original)
+	conv := defaults.NewDefaultConverter()
+	_, restored, err := converter.ConvertRoundTrip(conv, original)
 	require.NoError(t, err)
 
 	// Paragraph wrapper preserved, mediaInline restored inside

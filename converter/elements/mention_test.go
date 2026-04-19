@@ -106,7 +106,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+			ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 			result, err := mc.ToMarkdown(tt.node, ctx)
 
 			if tt.wantErr {

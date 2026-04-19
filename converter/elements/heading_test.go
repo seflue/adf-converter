@@ -265,7 +265,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := hc.ToMarkdown(tt.node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+			result, err := hc.ToMarkdown(tt.node, converter.ConversionContext{Registry: newTestRegistry()})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ToMarkdown() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -432,7 +432,7 @@ func TestHeadingConverter_FromMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			node, consumed, err := hc.FromMarkdown(tt.lines, tt.startIndex, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+			node, consumed, err := hc.FromMarkdown(tt.lines, tt.startIndex, converter.ConversionContext{Registry: newTestRegistry()})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FromMarkdown() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -519,7 +519,7 @@ func TestHeadingConverter_RoundTrip(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Parse markdown to ADF
 			lines := splitLines(tt.markdown)
-			node, _, err := hc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+			node, _, err := hc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: newTestRegistry()})
 			if err != nil {
 				t.Fatalf("FromMarkdown() failed: %v", err)
 			}
@@ -531,7 +531,7 @@ func TestHeadingConverter_RoundTrip(t *testing.T) {
 			}
 
 			// Convert back to markdown
-			result, err := hc.ToMarkdown(node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+			result, err := hc.ToMarkdown(node, converter.ConversionContext{Registry: newTestRegistry()})
 			if err != nil {
 				t.Fatalf("ToMarkdown() failed: %v", err)
 			}
@@ -705,7 +705,7 @@ func TestHeadingConverter_FromMarkdown_MarksPreserved(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			node, consumed, err := hc.FromMarkdown([]string{tt.line}, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+			node, consumed, err := hc.FromMarkdown([]string{tt.line}, 0, converter.ConversionContext{Registry: newTestRegistry()})
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -741,7 +741,7 @@ func TestHeadingConverter_FromMarkdown_StartIndex(t *testing.T) {
 	hc := NewHeadingConverter()
 	lines := []string{"paragraph text", "## The Heading", "more text"}
 
-	node, consumed, err := hc.FromMarkdown(lines, 1, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+	node, consumed, err := hc.FromMarkdown(lines, 1, converter.ConversionContext{Registry: newTestRegistry()})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -760,7 +760,7 @@ func TestHeadingConverter_FromMarkdown_StartIndexOutOfRange(t *testing.T) {
 	hc := NewHeadingConverter()
 	lines := []string{"# Only one line"}
 
-	_, _, err := hc.FromMarkdown(lines, 1, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+	_, _, err := hc.FromMarkdown(lines, 1, converter.ConversionContext{Registry: newTestRegistry()})
 	if err == nil {
 		t.Error("expected error for out-of-range startIndex, got nil")
 	}
@@ -790,7 +790,7 @@ func TestHeadingConverter_ToMarkdown_InvalidLevel(t *testing.T) {
 					{Type: adf_types.NodeTypeText, Text: "Text"},
 				},
 			}
-			result, err := hc.ToMarkdown(node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+			result, err := hc.ToMarkdown(node, converter.ConversionContext{Registry: newTestRegistry()})
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -809,7 +809,7 @@ func TestHeadingConverter_ToMarkdown_InvalidLevel(t *testing.T) {
 func TestHeadingConverter_FromMarkdown_HashWithoutSpace(t *testing.T) {
 	hc := NewHeadingConverter()
 
-	_, _, err := hc.FromMarkdown([]string{"#NoSpace"}, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+	_, _, err := hc.FromMarkdown([]string{"#NoSpace"}, 0, converter.ConversionContext{Registry: newTestRegistry()})
 	if err == nil {
 		t.Error("expected error for heading without space after #, got nil")
 	}

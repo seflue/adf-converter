@@ -8,6 +8,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -68,12 +69,12 @@ func TestMentionRoundtrip(t *testing.T) {
 			manager := placeholder.NewManager()
 
 			// ADF → Markdown
-			markdown, session, err := converter.ToMarkdown(doc, classifier, manager)
+			markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 			t.Logf("Markdown: %q", markdown)
 
 			// Markdown → ADF
-			resultDoc, err := converter.FromMarkdown(markdown, session, manager)
+			resultDoc, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			// Verify roundtrip
@@ -131,7 +132,7 @@ func TestUnresolvedMentionRoundtrip(t *testing.T) {
 			session := &placeholder.EditSession{}
 			manager := placeholder.NewManager()
 
-			resultDoc, err := converter.FromMarkdown(fullMarkdown, session, manager)
+			resultDoc, err := converter.FromMarkdown(fullMarkdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			require.Len(t, resultDoc.Content, 1)
@@ -176,11 +177,11 @@ func TestMentionIDURLEncoding(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(doc, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 	assert.Contains(t, markdown, "[@Some Name](accountid:Some%20Name)")
 
-	resultDoc, err := converter.FromMarkdown(markdown, session, manager)
+	resultDoc, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Len(t, resultDoc.Content, 1)
@@ -223,7 +224,7 @@ func TestMentionInMixedParagraph(t *testing.T) {
 	manager := placeholder.NewManager()
 
 	// ADF → Markdown
-	markdown, session, err := converter.ToMarkdown(doc, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Contains(t, markdown, "Hello ")
@@ -231,7 +232,7 @@ func TestMentionInMixedParagraph(t *testing.T) {
 	assert.Contains(t, markdown, " how are you?")
 
 	// Markdown → ADF
-	resultDoc, err := converter.FromMarkdown(markdown, session, manager)
+	resultDoc, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Len(t, resultDoc.Content, 1)

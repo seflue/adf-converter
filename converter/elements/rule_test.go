@@ -12,7 +12,7 @@ import (
 
 func TestRuleConverter_ToMarkdown(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name     string
@@ -83,7 +83,7 @@ func TestRuleConverter_ValidateInput(t *testing.T) {
 
 func TestRuleConverter_FromMarkdown(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name         string
@@ -157,7 +157,7 @@ func TestRuleConverter_FromMarkdown(t *testing.T) {
 
 func TestRuleConverter_FromMarkdown_OutOfBounds(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name       string
@@ -186,7 +186,7 @@ func TestRuleConverter_FromMarkdown_OutOfBounds(t *testing.T) {
 
 func TestRuleConverter_FromMarkdown_Invalid(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name  string
@@ -215,7 +215,7 @@ func TestRuleConverter_FromMarkdown_Invalid(t *testing.T) {
 }
 
 func TestRuleConverter_ADFToMarkdown_Integration(t *testing.T) {
-	conv := converter.NewDefaultConverter()
+	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
 
 	doc := adf_types.ADFDocument{
 		Version: 1,
@@ -246,7 +246,7 @@ func TestRuleConverter_ADFToMarkdown_Integration(t *testing.T) {
 }
 
 func TestRuleConverter_Roundtrip(t *testing.T) {
-	conv := converter.NewDefaultConverter()
+	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
 
 	doc := adf_types.ADFDocument{
 		Version: 1,
@@ -292,7 +292,7 @@ func TestRuleConverter_GetStrategy(t *testing.T) {
 }
 
 func TestRuleConverter_EdgeCases(t *testing.T) {
-	conv := converter.NewDefaultConverter()
+	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
 
 	tests := []struct {
 		name     string

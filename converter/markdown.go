@@ -8,84 +8,15 @@ import (
 	"github.com/seflue/adf-converter/placeholder"
 )
 
-// Global converter registry for incremental migration
-// Starts empty; converters are registered as they are extracted from the switch statement
-//
-// IMPORTANT: Call RegisterDefaultConverters() before using ToMarkdown/FromMarkdown
-// to register migrated element converters. This must be done explicitly to avoid
-// circular import dependencies (converter ← elements → converter).
-var globalRegistry = NewConverterRegistry()
-
-// RegisterDefaultConverters registers all migrated element converters
-//
-// This function must be called once before using ToMarkdown or FromMarkdown.
-// Typically called from application init() or test setup:
-//
-//	func init() {
-//	    converter.RegisterDefaultConverters()
-//	}
-//
-// The function is idempotent - calling it multiple times is safe.
-//
-// Note: We cannot import elements here due to circular dependency.
-// Callers must pass converters via the elementConverters parameter.
-func RegisterDefaultConverters(elementConverters ...ElementConverter) {
-	if globalRegistry.Count() > 0 {
-		return // Already registered
-	}
-
-	nodeTypes := []ADFNodeType{
-		"text", "hardBreak", "paragraph", "heading",
-		"listItem", "bulletList", "orderedList",
-		"expand", "nestedExpand", "inlineCard", "blockCard", "emoji",
-		"codeBlock", "rule", "mention", "table", "panel", "date", "status",
-		"blockquote", "taskList", "mediaSingle",
-	}
-
-	for _, converter := range elementConverters {
-		if converter != nil {
-			for _, nodeType := range nodeTypes {
-				if converter.CanHandle(nodeType) {
-					globalRegistry.MustRegister(nodeType, converter)
-				}
-			}
-		}
-	}
-
-	// Block parser dispatch order for MD→ADF (first match wins).
-	// Specific patterns before general ones:
-	// - panel before blockquote (> [!TYPE] vs >)
-	// - taskList before bulletList (- [ ] vs -)
-	// - rule before bulletList (--- vs -)
-	blockParserOrder := []ADFNodeType{
-		"expand", "blockCard", "panel", "table", "taskList",
-		"blockquote", "codeBlock", "heading", "mediaSingle", "rule",
-		"bulletList", "orderedList",
-	}
-	for _, nodeType := range blockParserOrder {
-		if globalRegistry.IsRegistered(nodeType) {
-			globalRegistry.MustRegisterBlockParser(nodeType)
-		}
-	}
-}
-
-// GetGlobalRegistry provides access to the global registry for manual registration
-//
-// Use this to register converters from test setup or application code:
-//
-//	import "github.com/seflue/adf-converter/converter/elements"
-//	converter.GetGlobalRegistry().Register(adf_types.NodeTypeText, elements.NewTextConverter())
-func GetGlobalRegistry() *ConverterRegistry {
-	return globalRegistry
-}
-
 // markdownConversionContext tracks state during ADF to Markdown conversion
 type markdownConversionContext struct {
 	ListDepth int // Current nesting depth for lists (0 = top level)
 }
 
-// ToMarkdown converts an ADF document to Markdown, preserving complex content as placeholders
-func ToMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager placeholder.Manager) (string, *placeholder.EditSession, error) {
+// ToMarkdown converts an ADF document to Markdown, preserving complex content as placeholders.
+// The registry must be populated with the element converters to dispatch to;
+// use converter/defaults.NewRegistry() for the standard set.
+func ToMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager placeholder.Manager, registry *ConverterRegistry) (string, *placeholder.EditSession, error) {
 	if doc.Type != "doc" {
 		return "", nil, fmt.Errorf("expected document type 'doc', got '%s'", doc.Type)
 	}
@@ -94,7 +25,7 @@ func ToMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager
 	ctx := &markdownConversionContext{ListDepth: 0}
 
 	for _, node := range doc.Content {
-		markdown, err := convertNodeToMarkdownWithContext(node, ctx, classifier, manager)
+		markdown, err := convertNodeToMarkdownWithContext(node, ctx, classifier, manager, registry)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed to convert node: %w", err)
 		}
@@ -106,7 +37,7 @@ func ToMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager
 }
 
 // convertNodeToMarkdownWithContext recursively converts an ADF node to Markdown with context
-func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *markdownConversionContext, classifier ContentClassifier, manager placeholder.Manager) (string, error) {
+func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *markdownConversionContext, classifier ContentClassifier, manager placeholder.Manager, registry *ConverterRegistry) (string, error) {
 	// Check if this node should be preserved as a placeholder
 	if classifier.IsPreserved(node.Type) {
 		placeholderID, preview, err := manager.Store(node)
@@ -129,21 +60,14 @@ func convertNodeToMarkdownWithContext(node adf_types.ADFNode, ctx *markdownConve
 		return comment + "\n\n", nil
 	}
 
-	// Try registry first (NEW - incremental migration pattern)
-	// Registry starts empty, so this has zero behavior change initially.
-	// As converters are registered, they take precedence over the switch statement.
+	// Dispatch via registry.
 	nodeType := ADFNodeType(node.Type)
-	if converter := globalRegistry.GetConverter(nodeType); converter != nil {
-		// Adapt context from legacy markdownConversionContext to ConversionContext
-		conversionCtx := adaptContext(ctx, classifier, manager, nodeType)
-
-		// Use registered converter
-		result, err := converter.ToMarkdown(node, conversionCtx)
+	if conv := registry.GetConverter(nodeType); conv != nil {
+		conversionCtx := adaptContext(ctx, classifier, manager, registry, nodeType)
+		result, err := conv.ToMarkdown(node, conversionCtx)
 		if err != nil {
 			return "", fmt.Errorf("converter failed for %s: %w", node.Type, err)
 		}
-
-		// Extract markdown content from enhanced result
 		return result.Content, nil
 	}
 

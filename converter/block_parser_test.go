@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"github.com/seflue/adf-converter/converter/elements"
 
 	"github.com/stretchr/testify/assert"
@@ -242,7 +243,7 @@ func TestCanParseLine_OrderedList(t *testing.T) {
 // converter based on registration order (first match wins).
 // Requires Registry.BlockParsers() — added in step 3.
 func TestBlockParserDispatchOrder(t *testing.T) {
-	registry := converter.GetGlobalRegistry()
+	registry := defaults.NewRegistry()
 
 	tests := []struct {
 		name     string

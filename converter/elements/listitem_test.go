@@ -33,7 +33,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 1,
 			},
 			expected: "- First item\n",
@@ -55,7 +55,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 2,
 			},
 			expected: "  - Nested item\n",
@@ -77,7 +77,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 3,
 			},
 			expected: "    - Deep nested item\n",
@@ -110,7 +110,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 1,
 			},
 			expected: "- Item with **bold** text\n",
@@ -143,7 +143,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 1,
 			},
 			expected: "- Item with *italic* text\n",
@@ -176,7 +176,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 1,
 			},
 			expected: "- Item with `code` text\n",
@@ -188,7 +188,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 				Type:    adf_types.NodeTypeListItem,
 				Content: []adf_types.ADFNode{},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 1,
 			},
 			expected: "- \n",
@@ -300,7 +300,7 @@ func TestListItemConverter_FromMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			node, consumed, err := lic.FromMarkdown(tt.lines, tt.startIndex, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+			node, consumed, err := lic.FromMarkdown(tt.lines, tt.startIndex, converter.ConversionContext{Registry: newTestRegistry()})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FromMarkdown() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -355,7 +355,7 @@ func TestListItemConverter_RoundTrip(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 1,
 			},
 		},
@@ -375,7 +375,7 @@ func TestListItemConverter_RoundTrip(t *testing.T) {
 					},
 				},
 			},
-			context: converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+			context: converter.ConversionContext{Registry: newTestRegistry(), 
 				ListDepth: 2,
 			},
 		},

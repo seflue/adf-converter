@@ -9,7 +9,7 @@ import (
 
 func TestTextConverter_ToMarkdown_PlainText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      converter.StandardMarkdown,
 		RoundTripMode: true,
 	}
@@ -39,7 +39,7 @@ func TestTextConverter_ToMarkdown_PlainText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_BoldText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -64,7 +64,7 @@ func TestTextConverter_ToMarkdown_BoldText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_ItalicText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -89,7 +89,7 @@ func TestTextConverter_ToMarkdown_ItalicText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_CodeText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -114,7 +114,7 @@ func TestTextConverter_ToMarkdown_CodeText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_StrikethroughText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -139,7 +139,7 @@ func TestTextConverter_ToMarkdown_StrikethroughText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_UnderlineText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -164,7 +164,7 @@ func TestTextConverter_ToMarkdown_UnderlineText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_UnderlineBoldText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -225,7 +225,7 @@ func TestTextConverter_ToMarkdown_TextColor(t *testing.T) {
 	}
 
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -247,7 +247,7 @@ func TestTextConverter_ToMarkdown_TextColor(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_TextColorBold(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeText,
@@ -274,7 +274,7 @@ func TestTextConverter_ToMarkdown_TextColorBold(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_LinkText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -304,7 +304,7 @@ func TestTextConverter_ToMarkdown_LinkText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_LinkWithoutHref(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -333,7 +333,7 @@ func TestTextConverter_ToMarkdown_LinkWithoutHref(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_MultipleMarks(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -363,7 +363,7 @@ func TestTextConverter_ToMarkdown_MultipleMarks(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_UnsupportedMark(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -389,7 +389,7 @@ func TestTextConverter_ToMarkdown_UnsupportedMark(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_SubscriptText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -419,7 +419,7 @@ func TestTextConverter_ToMarkdown_SubscriptText(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_SubsupDefaultsToSub(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -444,7 +444,7 @@ func TestTextConverter_ToMarkdown_SubsupDefaultsToSub(t *testing.T) {
 
 func TestTextConverter_ToMarkdown_SuperscriptText(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 
@@ -474,7 +474,7 @@ func TestTextConverter_ToMarkdown_SuperscriptText(t *testing.T) {
 
 func TestTextConverter_FromMarkdown_ReturnsError(t *testing.T) {
 	tc := NewTextConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 

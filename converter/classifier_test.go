@@ -1,6 +1,8 @@
-package converter
+package converter_test
 
 import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"testing"
 
 	"github.com/seflue/adf-converter/adf_types"
@@ -8,7 +10,7 @@ import (
 )
 
 func TestDefaultClassifier_MentionIsEditable(t *testing.T) {
-	c := NewDefaultClassifier()
+	c := converter.NewDefaultClassifier()
 
 	if !c.IsEditable(adf_types.NodeTypeMention) {
 		t.Error("mention should be editable")
@@ -19,7 +21,7 @@ func TestDefaultClassifier_MentionIsEditable(t *testing.T) {
 }
 
 func TestDefaultClassifier_TableIsEditable(t *testing.T) {
-	c := NewDefaultClassifier()
+	c := converter.NewDefaultClassifier()
 
 	if !c.IsEditable(adf_types.NodeTypeTable) {
 		t.Error("table should be editable")
@@ -30,7 +32,7 @@ func TestDefaultClassifier_TableIsEditable(t *testing.T) {
 }
 
 func TestTableConverter_RegisteredInRegistry(t *testing.T) {
-	c := globalRegistry.GetConverter("table")
+	c := defaults.NewRegistry().GetConverter("table")
 	if c == nil {
 		t.Fatal("table converter should be registered in global registry")
 	}
@@ -40,7 +42,7 @@ func TestTableConverter_RegisteredInRegistry(t *testing.T) {
 }
 
 func TestDefaultClassifier_TableSubNodesNotPreserved(t *testing.T) {
-	c := NewDefaultClassifier()
+	c := converter.NewDefaultClassifier()
 
 	if c.IsPreserved(adf_types.NodeTypeTableRow) {
 		t.Error("tableRow should not be preserved (sub-node of table)")
@@ -53,7 +55,7 @@ func TestDefaultClassifier_TableSubNodesNotPreserved(t *testing.T) {
 func TestParseNext_DetectsPlainMarkdownTable(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
-	parser := NewMarkdownParser(session, manager)
+	parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
 
 	lines := []string{
 		"| Header 1 | Header 2 |",

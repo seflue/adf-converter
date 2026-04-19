@@ -58,7 +58,7 @@ func TestDateConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
+			ctx := converter.ConversionContext{Registry: newTestRegistry(), Strategy: converter.StandardMarkdown}
 			result, err := dc.ToMarkdown(tt.node, ctx)
 
 			if tt.wantErr {
@@ -124,7 +124,8 @@ func TestDateConverter_Roundtrip(t *testing.T) {
 	manager := placeholder.NewManager()
 
 	// ADF → Markdown
-	markdown, _, err := converter.ToMarkdown(original, classifier, manager)
+	registry := newTestRegistry()
+	markdown, _, err := converter.ToMarkdown(original, classifier, manager, registry)
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -135,7 +136,7 @@ func TestDateConverter_Roundtrip(t *testing.T) {
 	}
 
 	// Markdown → ADF
-	restored, err := converter.FromMarkdown(markdown, manager.GetSession(), manager)
+	restored, err := converter.FromMarkdown(markdown, manager.GetSession(), manager, registry)
 	if err != nil {
 		t.Fatalf("FromMarkdown failed: %v", err)
 	}

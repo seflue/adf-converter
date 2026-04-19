@@ -8,6 +8,7 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -70,11 +71,11 @@ func TestUnknownInlineNodeRoundtrip(t *testing.T) {
 			classifier := converter.NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
-			markdown, session, err := converter.ToMarkdown(doc, classifier, manager)
+			markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 			t.Logf("Markdown: %q", markdown)
 
-			resultDoc, err := converter.FromMarkdown(markdown, session, manager)
+			resultDoc, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			require.Len(t, resultDoc.Content, 1, "expected 1 paragraph")

@@ -1,4 +1,4 @@
-package converter
+package converter_test
 
 import (
 	"encoding/xml"

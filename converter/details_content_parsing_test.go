@@ -1,6 +1,8 @@
-package converter
+package converter_test
 
 import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"testing"
 
 	"github.com/seflue/adf-converter/adf_types"
@@ -78,10 +80,10 @@ func TestDetailsContentParsingRegression(t *testing.T) {
 		},
 	}
 
-	conv := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 
 	// Convert to markdown and back
-	markdown, restoredADF, err := ConvertRoundTrip(conv, originalADF)
+	markdown, restoredADF, err := converter.ConvertRoundTrip(conv, originalADF)
 	require.NoError(t, err, "Round trip conversion should succeed")
 
 	t.Logf("Generated Markdown:\n%s", markdown)
@@ -190,9 +192,9 @@ func TestDetailsContentParsingEdgeCases(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			conv := NewDefaultConverter()
+			conv := defaults.NewDefaultConverter()
 
-			_, restored, err := ConvertRoundTrip(conv, tc.inputADF)
+			_, restored, err := converter.ConvertRoundTrip(conv, tc.inputADF)
 
 			if tc.expectError {
 				assert.Error(t, err)

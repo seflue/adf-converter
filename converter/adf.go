@@ -63,7 +63,7 @@ func (dt *deletionTracker) GetSummary() *DeletionSummary {
 }
 
 // FromMarkdown converts edited Markdown back to ADF, restoring preserved content from placeholders
-func FromMarkdown(markdown string, session *placeholder.EditSession, manager placeholder.Manager) (adf_types.ADFDocument, error) {
+func FromMarkdown(markdown string, session *placeholder.EditSession, manager placeholder.Manager, registry *ConverterRegistry) (adf_types.ADFDocument, error) {
 	// PHASE 5: Comprehensive error handling with recovery
 	defer func() {
 		if r := recover(); r != nil {
@@ -89,7 +89,7 @@ func FromMarkdown(markdown string, session *placeholder.EditSession, manager pla
 	}
 
 	// Parse the markdown into ADF nodes
-	parser := NewMarkdownParser(session, manager)
+	parser := NewMarkdownParser(session, manager, registry)
 	nodes, err := parser.ParseMarkdownToADFNodes(lines)
 	if err != nil {
 		return adf_types.ADFDocument{}, fmt.Errorf("failed to parse markdown: %w", err)
@@ -105,33 +105,3 @@ func FromMarkdown(markdown string, session *placeholder.EditSession, manager pla
 	return doc, nil
 }
 
-// parsePlaceholderNode restores preserved content from placeholder comments
-func parsePlaceholderNode(lines []string, manager placeholder.Manager) (*adf_types.ADFNode, int, error) {
-	if len(lines) == 0 {
-		return nil, 1, nil
-	}
-
-	line := strings.TrimSpace(lines[0])
-	placeholderID, found := placeholder.ParsePlaceholderComment(line)
-	if !found {
-		return nil, 1, nil
-	}
-
-	// Restore the preserved content
-	node, err := manager.Restore(placeholderID)
-	if err != nil {
-		// Placeholder was deleted from markdown - skip it (allows intentional deletion)
-		return nil, 1, nil
-	}
-
-	// Inline nodes live inside paragraphs; wrap them to restore the original structure
-	if adf_types.IsInlineNode(node.Type) {
-		para := adf_types.ADFNode{
-			Type:    adf_types.NodeTypeParagraph,
-			Content: []adf_types.ADFNode{node},
-		}
-		return &para, 1, nil
-	}
-
-	return &node, 1, nil
-}

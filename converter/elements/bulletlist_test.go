@@ -148,7 +148,7 @@ func TestBulletListConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			ctx := converter.ConversionContext{Registry: newTestRegistry()}
 			result, err := blc.ToMarkdown(tt.node, ctx)
 
 			if (err != nil) != tt.wantErr {
@@ -185,7 +185,7 @@ func TestBulletListConverter_ToMarkdown_NestedLists(t *testing.T) {
 	}
 
 	// Test at depth 0 (top level)
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ListDepth: 0}
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), ListDepth: 0}
 	result, err := blc.ToMarkdown(node, ctx)
 	if err != nil {
 		t.Fatalf("ToMarkdown() error = %v", err)
@@ -197,7 +197,7 @@ func TestBulletListConverter_ToMarkdown_NestedLists(t *testing.T) {
 	}
 
 	// Test at depth 1 (nested)
-	ctx = converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ListDepth: 1}
+	ctx = converter.ConversionContext{Registry: newTestRegistry(), ListDepth: 1}
 	result, err = blc.ToMarkdown(node, ctx)
 	if err != nil {
 		t.Fatalf("ToMarkdown() error = %v", err)
@@ -209,7 +209,7 @@ func TestBulletListConverter_ToMarkdown_NestedLists(t *testing.T) {
 	}
 
 	// Test at depth 2 (deeply nested)
-	ctx = converter.ConversionContext{Registry: converter.GetGlobalRegistry(), ListDepth: 2}
+	ctx = converter.ConversionContext{Registry: newTestRegistry(), ListDepth: 2}
 	result, err = blc.ToMarkdown(node, ctx)
 	if err != nil {
 		t.Fatalf("ToMarkdown() error = %v", err)
@@ -386,7 +386,7 @@ func TestBulletListConverter_FromMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			ctx := converter.ConversionContext{Registry: newTestRegistry()}
 			node, consumed, err := blc.FromMarkdown(tt.lines, tt.startIndex, ctx)
 
 			if (err != nil) != tt.wantErr {
@@ -456,7 +456,7 @@ func TestBulletListConverter_RoundTrip(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 			// Convert to markdown
 			result, err := blc.ToMarkdown(tt.node, ctx)

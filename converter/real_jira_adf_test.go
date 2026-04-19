@@ -1,10 +1,11 @@
-package converter
+package converter_test
 
 import (
 	"encoding/json"
 	"testing"
 
 	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"github.com/seflue/adf-converter/placeholder"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -320,7 +321,7 @@ func TestRealJiraADF(t *testing.T) {
   ]
 }`
 
-	converter := NewDefaultConverter()
+	conv := defaults.NewDefaultConverter()
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
@@ -355,7 +356,7 @@ func TestRealJiraADF(t *testing.T) {
 	})
 
 	t.Run("Convert Real Jira ADF to Markdown", func(t *testing.T) {
-		markdown, _, err := converter.ToMarkdown(adfDoc)
+		markdown, _, err := conv.ToMarkdown(adfDoc)
 		require.NoError(t, err)
 
 		assert.NotEmpty(t, markdown)
@@ -367,7 +368,7 @@ func TestRealJiraADF(t *testing.T) {
 	})
 
 	t.Run("Expected Markdown Structure for Real Jira ADF", func(t *testing.T) {
-		markdown, _, err := converter.ToMarkdown(adfDoc)
+		markdown, _, err := conv.ToMarkdown(adfDoc)
 		require.NoError(t, err)
 
 		expectedElements := []string{
@@ -405,10 +406,10 @@ func TestRealJiraADF(t *testing.T) {
 	})
 
 	t.Run("Round-trip Test with Real Jira ADF", func(t *testing.T) {
-		markdown, _, err := converter.ToMarkdown(adfDoc)
+		markdown, _, err := conv.ToMarkdown(adfDoc)
 		require.NoError(t, err)
 
-		result, err := converter.FromMarkdown(markdown, session)
+		result, err := conv.FromMarkdown(markdown, session)
 		require.NoError(t, err)
 		newADF := result.Document
 

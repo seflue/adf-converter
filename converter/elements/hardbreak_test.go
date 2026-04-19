@@ -9,7 +9,7 @@ import (
 
 func TestHardBreakConverter_ToMarkdown_BasicHardBreak(t *testing.T) {
 	hc := NewHardBreakConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      converter.StandardMarkdown,
 		RoundTripMode: true,
 	}
@@ -38,7 +38,7 @@ func TestHardBreakConverter_ToMarkdown_BasicHardBreak(t *testing.T) {
 
 func TestHardBreakConverter_ToMarkdown_WithRoundTripMode(t *testing.T) {
 	hc := NewHardBreakConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      converter.StandardMarkdown,
 		RoundTripMode: true,
 	}
@@ -60,7 +60,7 @@ func TestHardBreakConverter_ToMarkdown_WithRoundTripMode(t *testing.T) {
 
 func TestHardBreakConverter_ToMarkdown_WithoutRoundTripMode(t *testing.T) {
 	hc := NewHardBreakConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      converter.StandardMarkdown,
 		RoundTripMode: false,
 	}
@@ -83,7 +83,7 @@ func TestHardBreakConverter_ToMarkdown_WithoutRoundTripMode(t *testing.T) {
 
 func TestHardBreakConverter_FromMarkdown_ReturnsError(t *testing.T) {
 	hc := NewHardBreakConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: converter.StandardMarkdown,
 	}
 

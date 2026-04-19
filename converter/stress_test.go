@@ -1,6 +1,8 @@
-package converter
+package converter_test
 
 import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"fmt"
 	"strings"
 	"testing"
@@ -54,7 +56,7 @@ func TestStreamingParser_StressTest(t *testing.T) {
 			var err error
 
 			go func() {
-				parser := NewMarkdownParser(session, manager)
+				parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
 				_, err = parser.ParseMarkdownToADFNodes(strings.Split(markdown, "\n"))
 				done <- true
 			}()
@@ -98,7 +100,7 @@ Deeply nested content
 	var err error
 
 	go func() {
-		parser := NewMarkdownParser(session, manager)
+		parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
 		result, err = parser.ParseMarkdownToADFNodes(strings.Split(problematicMarkdown, "\n"))
 		done <- true
 	}()
@@ -127,7 +129,7 @@ Content here
 
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
-	parser := NewMarkdownParser(session, manager)
+	parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
 
 	// Stack should be empty initially
 	assert.True(t, parser.IsStackEmpty(), "Stack should be empty initially")
@@ -176,7 +178,7 @@ Final paragraph content.`
 	var err error
 
 	go func() {
-		parser := NewMarkdownParser(session, manager)
+		parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
 		result, err = parser.ParseMarkdownToADFNodes(strings.Split(complexMarkdown, "\n"))
 		done <- true
 	}()
@@ -235,7 +237,7 @@ Content without summary
 			var err error
 
 			go func() {
-				parser := NewMarkdownParser(session, manager)
+				parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
 				_, err = parser.ParseMarkdownToADFNodes(strings.Split(testCase.markdown, "\n"))
 				done <- true
 			}()
@@ -310,7 +312,7 @@ func TestStreamingParser_PerformanceBenchmark(t *testing.T) {
 			session := manager.GetSession()
 
 			start := time.Now()
-			parser := NewMarkdownParser(session, manager)
+			parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
 			result, err := parser.ParseMarkdownToADFNodes(strings.Split(markdown, "\n"))
 			duration := time.Since(start)
 

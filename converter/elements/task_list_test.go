@@ -36,7 +36,7 @@ func stripLocalIds(node adf_types.ADFNode) adf_types.ADFNode {
 
 func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 	conv := NewTaskListConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
 		name             string
@@ -176,7 +176,7 @@ func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 
 func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 	conv := NewTaskListConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
 		name             string
@@ -343,7 +343,7 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 
 func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 	conv := NewTaskListConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
 		name             string
@@ -421,7 +421,7 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 
 func TestTaskListConverter_RoundTrip(t *testing.T) {
 	conv := NewTaskListConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
 		name     string
@@ -493,7 +493,7 @@ func TestTaskListConverter_FromMarkdown_Plain_GeneratesLocalId(t *testing.T) {
 	// Jira requires localId on taskList and taskItem nodes.
 	// Plain markdown (no XML wrapper) must auto-generate UUIDs.
 	conv := NewTaskListConverter()
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	ctx := converter.ConversionContext{Registry: newTestRegistry()}
 
 	lines := []string{"- [ ] Task 1", "- [x] Task 2"}
 	node, consumed, err := conv.FromMarkdown(lines, 0, ctx)
@@ -528,7 +528,7 @@ func TestTaskListConverter_ToMarkdown_TrailingNewline(t *testing.T) {
 	}
 
 	t.Run("plain (no preserve attrs)", func(t *testing.T) {
-		result, err := conv.ToMarkdown(node, converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false})
+		result, err := conv.ToMarkdown(node, converter.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: false})
 		require.NoError(t, err)
 		assert.True(t, strings.HasSuffix(result.Content, "\n\n"),
 			"plain task list output must end with \\n\\n, got: %q", result.Content)

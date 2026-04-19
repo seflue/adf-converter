@@ -1,6 +1,8 @@
-package converter
+package converter_test
 
 import (
+	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/defaults"
 	"testing"
 
 	"github.com/seflue/adf-converter/adf_types"
@@ -73,7 +75,7 @@ Ut enim ad minim veniam:
 			session := manager.GetSession()
 
 			// Try conversion
-			doc, err := FromMarkdown(test.inputMarkdown, session, manager)
+			doc, err := converter.FromMarkdown(test.inputMarkdown, session, manager, defaults.NewRegistry())
 
 			if test.expectConversion {
 				require.NoError(t, err, "Conversion should succeed for: %s", test.description)
@@ -123,7 +125,7 @@ func TestEdgeCases_EmptyInputs(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := FromMarkdown(test.markdown, session, manager)
+			doc, err := converter.FromMarkdown(test.markdown, session, manager, defaults.NewRegistry())
 
 			if test.shouldSucceed {
 				require.NoError(t, err, "Should handle empty/whitespace input gracefully")
@@ -141,7 +143,7 @@ func TestEdgeCases_EmptyInputs(t *testing.T) {
 // ============================================================================
 
 func TestEdgeCases_MalformedADF(t *testing.T) {
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
 	tests := []struct {
@@ -187,7 +189,7 @@ func TestEdgeCases_MalformedADF(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			markdown, session, err := ToMarkdown(test.adf, classifier, manager)
+			markdown, session, err := converter.ToMarkdown(test.adf, classifier, manager, defaults.NewRegistry())
 
 			if test.shouldSucceed {
 				require.NoError(t, err, "Should handle malformed ADF gracefully")
@@ -198,7 +200,7 @@ func TestEdgeCases_MalformedADF(t *testing.T) {
 
 			// If conversion succeeded, try round-trip
 			if err == nil && markdown != "" {
-				_, err2 := FromMarkdown(markdown, session, manager)
+				_, err2 := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 				assert.NoError(t, err2, "Round-trip should also succeed")
 			}
 		})
@@ -266,11 +268,11 @@ func TestEdgeCases_DeeplyNestedStructures(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
 	// Convert to markdown
-	markdown, session, err := ToMarkdown(deeplyNestedList, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(deeplyNestedList, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should handle deeply nested structures")
 
 	// Verify markdown contains nested list indicators
@@ -279,7 +281,7 @@ func TestEdgeCases_DeeplyNestedStructures(t *testing.T) {
 	assert.Contains(t, markdown, "    - Level 3")
 
 	// Verify round-trip conversion
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Round-trip should succeed for nested structures")
 
 	// Verify structure is preserved
@@ -310,11 +312,11 @@ func TestEdgeCases_LargeContent(t *testing.T) {
 		},
 	}
 
-	classifier := NewDefaultClassifier()
+	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
 	// Convert to markdown
-	markdown, session, err := ToMarkdown(largeParagraph, classifier, manager)
+	markdown, session, err := converter.ToMarkdown(largeParagraph, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should handle large text content")
 
 	// Verify content is preserved
@@ -322,7 +324,7 @@ func TestEdgeCases_LargeContent(t *testing.T) {
 	assert.Greater(t, len(markdown), 10000, "Markdown should contain the full text")
 
 	// Verify round-trip conversion
-	restored, err := FromMarkdown(markdown, session, manager)
+	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Round-trip should succeed for large content")
 
 	// Verify document structure
@@ -341,7 +343,7 @@ func TestEdgeCases_PlainBlockquote(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	doc, err := FromMarkdown(blockquoteMarkdown, session, manager)
+	doc, err := converter.FromMarkdown(blockquoteMarkdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Equal(t, "doc", doc.Type)
@@ -367,7 +369,7 @@ func TestEdgeCases_NestedBlockquotes(t *testing.T) {
 	session := manager.GetSession()
 
 	// Convert to ADF
-	doc, err := FromMarkdown(nestedBlockquoteMarkdown, session, manager)
+	doc, err := converter.FromMarkdown(nestedBlockquoteMarkdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should handle nested blockquotes")
 
 	// Verify structure - blockquotes may be converted to placeholders
@@ -375,8 +377,8 @@ func TestEdgeCases_NestedBlockquotes(t *testing.T) {
 	assert.Greater(t, len(doc.Content), 0, "Should have content")
 
 	// Test round-trip
-	classifier := NewDefaultClassifier()
-	markdown, _, err := ToMarkdown(doc, classifier, manager)
+	classifier := converter.NewDefaultClassifier()
+	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should convert blockquotes back to markdown")
 
 	// Should preserve some form of quote structure
@@ -403,7 +405,7 @@ func TestEdgeCases_TaskListVariations(t *testing.T) {
 	session := manager.GetSession()
 
 	// Convert to ADF
-	doc, err := FromMarkdown(taskListMarkdown, session, manager)
+	doc, err := converter.FromMarkdown(taskListMarkdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should handle task list variations")
 
 	// Verify structure
@@ -411,8 +413,8 @@ func TestEdgeCases_TaskListVariations(t *testing.T) {
 	assert.Greater(t, len(doc.Content), 0, "Should have content")
 
 	// Test round-trip
-	classifier := NewDefaultClassifier()
-	markdown, _, err := ToMarkdown(doc, classifier, manager)
+	classifier := converter.NewDefaultClassifier()
+	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should convert task lists back to markdown")
 
 	// Should preserve list structure in some form
@@ -428,7 +430,7 @@ func TestPlainMarkdownTaskList_ParsedAsTaskList(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	doc, err := FromMarkdown(markdown, session, manager)
+	doc, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 	require.Len(t, doc.Content, 1, "should produce a single top-level node")
 
@@ -461,15 +463,15 @@ Mixed: "Smart quotes" and 'single quotes' and —em dash— and –en dash–`
 	session := manager.GetSession()
 
 	// Convert to ADF
-	doc, err := FromMarkdown(specialCharsMarkdown, session, manager)
+	doc, err := converter.FromMarkdown(specialCharsMarkdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should handle special characters")
 
 	// Verify structure
 	assert.Equal(t, "doc", doc.Type)
 
 	// Test round-trip
-	classifier := NewDefaultClassifier()
-	markdown, _, err := ToMarkdown(doc, classifier, manager)
+	classifier := converter.NewDefaultClassifier()
+	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should convert special characters back to markdown")
 
 	// Verify key special characters are preserved
@@ -499,7 +501,7 @@ Final paragraph.`
 	session := manager.GetSession()
 
 	// Should succeed even if some elements cause issues
-	doc, err := FromMarkdown(mixedValidInvalidMarkdown, session, manager)
+	doc, err := converter.FromMarkdown(mixedValidInvalidMarkdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Should recover from individual element errors")
 
 	// Verify basic structure is preserved
@@ -507,8 +509,8 @@ Final paragraph.`
 	assert.Greater(t, len(doc.Content), 0, "Should preserve valid content")
 
 	// Test round-trip
-	classifier := NewDefaultClassifier()
-	markdown, _, err := ToMarkdown(doc, classifier, manager)
+	classifier := converter.NewDefaultClassifier()
+	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Round-trip should succeed")
 
 	// Should preserve main content

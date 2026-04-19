@@ -136,7 +136,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			conv := NewInlineCardConverter()
-			context := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			context := converter.ConversionContext{Registry: newTestRegistry()}
 
 			result, err := conv.ToMarkdown(tt.node, context)
 			if err != nil {
@@ -198,7 +198,7 @@ func TestInlineCardConverter_ToMarkdown_RoundTripFidelity(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			conv := NewInlineCardConverter()
-			context := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+			context := converter.ConversionContext{Registry: newTestRegistry()}
 
 			result, err := conv.ToMarkdown(tt.node, context)
 			if err != nil {
@@ -216,7 +216,7 @@ func TestInlineCardConverter_FromMarkdown(t *testing.T) {
 	// FromMarkdown for inline cards should return an error since they're inline elements
 	// and should be parsed within parent blocks (paragraphs, headings, etc.)
 	conv := NewInlineCardConverter()
-	context := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	context := converter.ConversionContext{Registry: newTestRegistry()}
 	lines := []string{"[url](url)"}
 
 	_, _, err := conv.FromMarkdown(lines, 0, context)
@@ -320,7 +320,7 @@ func TestInlineCardConverter_ValidateInput(t *testing.T) {
 func TestInlineCardConverter_ToMarkdown_Strategy(t *testing.T) {
 	// Verify that the conversion result has the correct strategy
 	conv := NewInlineCardConverter()
-	context := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	context := converter.ConversionContext{Registry: newTestRegistry()}
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeInlineCard,
@@ -342,7 +342,7 @@ func TestInlineCardConverter_ToMarkdown_Strategy(t *testing.T) {
 func TestInlineCardConverter_ToMarkdown_ComplexAttributePreservation(t *testing.T) {
 	// Test that complex metadata is preserved in HTML wrapper
 	conv := NewInlineCardConverter()
-	context := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
+	context := converter.ConversionContext{Registry: newTestRegistry()}
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeInlineCard,
@@ -404,7 +404,7 @@ func TestInlineCardConverter_ToMarkdown_DataOnlyPlaceholder(t *testing.T) {
 		},
 	}
 
-	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), 
+	ctx := converter.ConversionContext{Registry: newTestRegistry(), 
 		PlaceholderManager: mgr,
 	}
 
@@ -434,7 +434,7 @@ func TestInlineCardConverter_ToMarkdown_DataOnlyFallback(t *testing.T) {
 	}
 
 	// No PlaceholderManager in context
-	result, err := ic.ToMarkdown(node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
+	result, err := ic.ToMarkdown(node, converter.ConversionContext{Registry: newTestRegistry()})
 	require.NoError(t, err)
 	assert.Equal(t, "[InlineCard]", result.Content)
 }
