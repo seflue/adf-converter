@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -24,13 +24,13 @@ import (
 // handled by container converters that call parseInlineContent().
 type textConverter struct{}
 
-func NewTextConverter() converter.ElementConverter {
+func NewTextConverter() element.Converter {
 	return &textConverter{}
 }
 
-func (tc *textConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (tc *textConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if err := tc.ValidateInput(node); err != nil {
-		return converter.EnhancedConversionResult{}, err
+		return element.EnhancedConversionResult{}, err
 	}
 
 	text := node.Text
@@ -39,23 +39,23 @@ func (tc *textConverter) ToMarkdown(node adf_types.ADFNode, context converter.Co
 		text = tc.applyMarkToText(text, mark)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 	builder.AppendContent(text)
 	builder.IncrementConverted()
 
 	return builder.Build(), nil
 }
 
-func (tc *textConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (tc *textConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, errors.New("text nodes are inline elements - use paragraph/heading converters for parsing")
 }
 
-func (tc *textConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (tc *textConverter) CanHandle(nodeType element.ADFNodeType) bool {
 	return nodeType == adf_types.NodeTypeText
 }
 
-func (tc *textConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (tc *textConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (tc *textConverter) ValidateInput(input any) error {

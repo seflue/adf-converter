@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/placeholder"
 )
@@ -27,18 +27,18 @@ var mediaSingleRegex = regexp.MustCompile(`^!\[([^\]]*)\]\(([^)\s"]+)(?:\s+"layo
 // Internal media (media[type=file/link] with id+collection) are preserved as placeholders.
 type mediaSingleConverter struct{}
 
-func NewMediaSingleConverter() converter.ElementConverter {
+func NewMediaSingleConverter() element.Converter {
 	return &mediaSingleConverter{}
 }
 
-func (mc *mediaSingleConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (mc *mediaSingleConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if isExternalMedia(node) {
 		return mc.externalToMarkdown(node)
 	}
 	return mc.internalToMarkdown(node, context)
 }
 
-func (mc *mediaSingleConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (mc *mediaSingleConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse at index %d", startIndex)
 	}
@@ -80,12 +80,12 @@ func (mc *mediaSingleConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "![")
 }
 
-func (mc *mediaSingleConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeMediaSingle)
+func (mc *mediaSingleConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeMediaSingle)
 }
 
-func (mc *mediaSingleConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (mc *mediaSingleConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (mc *mediaSingleConverter) ValidateInput(input any) error {
@@ -112,13 +112,13 @@ func isExternalMedia(node adf_types.ADFNode) bool {
 	return mediaType == "external"
 }
 
-func (mc *mediaSingleConverter) externalToMarkdown(node adf_types.ADFNode) (converter.EnhancedConversionResult, error) {
+func (mc *mediaSingleConverter) externalToMarkdown(node adf_types.ADFNode) (element.EnhancedConversionResult, error) {
 	media := node.Content[0]
 	url, _ := media.Attrs["url"].(string)
 	alt, _ := media.Attrs["alt"].(string)
 	layout, _ := node.Attrs["layout"].(string)
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 
 	if layout == "" || layout == "center" {
 		builder.AppendContent(fmt.Sprintf("![%s](%s)\n\n", alt, url))
@@ -130,19 +130,19 @@ func (mc *mediaSingleConverter) externalToMarkdown(node adf_types.ADFNode) (conv
 	return builder.Build(), nil
 }
 
-func (mc *mediaSingleConverter) internalToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (mc *mediaSingleConverter) internalToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if context.PlaceholderManager == nil {
-		builder := convresult.NewEnhancedConversionResultBuilder(converter.Placeholder)
+		builder := convresult.NewEnhancedConversionResultBuilder(element.Placeholder)
 		builder.AppendContent("<!-- mediaSingle: preserved -->\n\n")
 		return builder.Build(), nil
 	}
 
 	placeholderID, preview, err := context.PlaceholderManager.Store(node)
 	if err != nil {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("storing mediaSingle placeholder: %w", err)
+		return element.EnhancedConversionResult{}, fmt.Errorf("storing mediaSingle placeholder: %w", err)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.Placeholder)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.Placeholder)
 	if placeholderID == "" {
 		builder.AppendContent(preview + "\n\n")
 	} else {

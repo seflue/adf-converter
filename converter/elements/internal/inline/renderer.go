@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 )
 
 // markDelimiter maps spannable mark types to their markdown delimiters.
@@ -38,7 +38,7 @@ func isSpannable(markType string) bool {
 // delimiters to prevent ambiguous sequences like *** (bold close + italic open).
 // The extruded space is placed between closing and opening delimiters in the
 // transition function, preserving mark spanning for shared marks.
-func RenderInlineNodes(nodes []adf_types.ADFNode, context converter.ConversionContext) (string, error) {
+func RenderInlineNodes(nodes []adf_types.ADFNode, context element.ConversionContext) (string, error) {
 	var result strings.Builder
 	var openMarks []string // stack of currently open spannable marks (sorted by priority)
 	var deferredSpace string
@@ -181,8 +181,8 @@ func applyWrappingMark(text string, mark adf_types.ADFMark) string {
 }
 
 // renderNonTextNode delegates rendering of non-text inline nodes to their converters.
-func renderNonTextNode(node adf_types.ADFNode, context converter.ConversionContext) (string, error) {
-	c := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(node.Type))
+func renderNonTextNode(node adf_types.ADFNode, context element.ConversionContext) (string, error) {
+	c , _ := context.Registry.Lookup(element.ADFNodeType(node.Type))
 	if c == nil {
 		return "", fmt.Errorf("no converter found for inline node type: %s", node.Type)
 	}

@@ -12,7 +12,7 @@ import (
 
 func TestRuleConverter_ToMarkdown(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name     string
@@ -83,7 +83,7 @@ func TestRuleConverter_ValidateInput(t *testing.T) {
 
 func TestRuleConverter_FromMarkdown(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name         string
@@ -157,7 +157,7 @@ func TestRuleConverter_FromMarkdown(t *testing.T) {
 
 func TestRuleConverter_FromMarkdown_OutOfBounds(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name       string
@@ -186,7 +186,7 @@ func TestRuleConverter_FromMarkdown_OutOfBounds(t *testing.T) {
 
 func TestRuleConverter_FromMarkdown_Invalid(t *testing.T) {
 	rc := NewRuleConverter()
-	ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
 
 	tests := []struct {
 		name  string

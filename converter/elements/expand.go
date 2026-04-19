@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/elements/internal/dedent"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
@@ -23,12 +23,12 @@ var (
 // top-level <details> → expand, nested <details> (NestedLevel > 0) → nestedExpand.
 type expandConverter struct{}
 
-func NewExpandConverter() converter.ElementConverter {
+func NewExpandConverter() element.Converter {
 	return &expandConverter{}
 }
 
-func (ec *expandConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+func (ec *expandConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 
 	title := ""
 	if titleAttr, exists := node.Attrs["title"]; exists {
@@ -39,14 +39,14 @@ func (ec *expandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 	var contentBuilder strings.Builder
 	for i, child := range node.Content {
-		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
+		childConverter , _ := context.Registry.Lookup(element.ADFNodeType(child.Type))
 		if childConverter == nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
+			return element.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
 		}
 
 		childResult, err := childConverter.ToMarkdown(child, context)
 		if err != nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("failed to convert expand content: %w", err)
+			return element.EnhancedConversionResult{}, fmt.Errorf("failed to convert expand content: %w", err)
 		}
 
 		contentBuilder.WriteString(strings.TrimSpace(childResult.Content))
@@ -96,7 +96,7 @@ func (ec *expandConverter) ToMarkdown(node adf_types.ADFNode, context converter.
 
 const maxExpandNestingDepth = 100
 
-func (ec *expandConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (ec *expandConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, nil
 	}
@@ -201,7 +201,7 @@ func (ec *expandConverter) findClosingTag(lines []string, searchStart int) (int,
 
 // parseInnerContentWithContext parses markdown content using a MarkdownParser
 // that inherits placeholder support and nesting level from the parent context.
-func parseInnerContentWithContext(lines []string, context converter.ConversionContext) ([]adf_types.ADFNode, error) {
+func parseInnerContentWithContext(lines []string, context element.ConversionContext) ([]adf_types.ADFNode, error) {
 	hasContent := false
 	for _, line := range lines {
 		if strings.TrimSpace(line) != "" {
@@ -213,21 +213,23 @@ func parseInnerContentWithContext(lines []string, context converter.ConversionCo
 		return nil, nil
 	}
 
-	parser := converter.NewMarkdownParserWithNesting(context.PlaceholderSession, context.PlaceholderManager, context.NestedLevel)
-	return parser.ParseMarkdownToADFNodes(lines)
+	if context.ParseNested == nil {
+		return nil, fmt.Errorf("expand: ConversionContext.ParseNested not wired")
+	}
+	return context.ParseNested(lines, context.NestedLevel)
 }
 
 func (ec *expandConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<details")
 }
 
-func (ec *expandConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeExpand) ||
-		nodeType == converter.ADFNodeType(adf_types.NodeTypeNestedExpand)
+func (ec *expandConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeExpand) ||
+		nodeType == element.ADFNodeType(adf_types.NodeTypeNestedExpand)
 }
 
-func (ec *expandConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (ec *expandConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (ec *expandConverter) ValidateInput(input any) error {

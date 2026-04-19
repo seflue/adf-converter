@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -21,12 +21,12 @@ var blockCardRegex = regexp.MustCompile(`^<div data-adf-type="blockCard">(?:\[([
 //	<div data-adf-type="blockCard">https://example.com</div>
 type blockCardConverter struct{}
 
-func NewBlockCardConverter() converter.ElementConverter {
+func NewBlockCardConverter() element.Converter {
 	return &blockCardConverter{}
 }
 
-func (bc *blockCardConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+func (bc *blockCardConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 
 	url, _ := node.Attrs["url"].(string)
 	if url == "" {
@@ -39,7 +39,7 @@ func (bc *blockCardConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	return builder.Build(), nil
 }
 
-func (bc *blockCardConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (bc *blockCardConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -69,12 +69,12 @@ func (bc *blockCardConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, `<div data-adf-type="blockCard"`)
 }
 
-func (bc *blockCardConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeBlockCard)
+func (bc *blockCardConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeBlockCard)
 }
 
-func (bc *blockCardConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (bc *blockCardConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (bc *blockCardConverter) ValidateInput(input any) error {

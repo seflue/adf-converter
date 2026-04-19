@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
-// BlockParserEntry pairs a node type with its BlockParser for ordered dispatch.
-type BlockParserEntry struct {
-	NodeType ADFNodeType
-	Parser   BlockParser
-}
+// BlockParserEntry is an alias for element.BlockParserEntry.
+type BlockParserEntry = element.BlockParserEntry
 
 // ConverterRegistry manages registration and lookup of element converters.
 //
@@ -66,8 +64,6 @@ func (r *ConverterRegistry) MustRegister(nodeType ADFNodeType, converter Element
 // GetConverter retrieves the converter for the given node type
 //
 // Returns nil if no converter is registered for this node type.
-// This allows the incremental migration pattern where the registry check
-// falls back to the legacy switch statement.
 //
 // Parameters:
 //   - nodeType: The ADF node type to look up
@@ -79,6 +75,16 @@ func (r *ConverterRegistry) GetConverter(nodeType ADFNodeType) ElementConverter 
 	defer r.mu.RUnlock()
 
 	return r.converters[nodeType]
+}
+
+// Lookup implements element.Registry by returning the converter for nodeType
+// together with a presence flag.
+func (r *ConverterRegistry) Lookup(nodeType ADFNodeType) (ElementConverter, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	c, ok := r.converters[nodeType]
+	return c, ok
 }
 
 // IsRegistered checks if a converter is registered for the given node type
@@ -210,5 +216,6 @@ func adaptContext(ctx *markdownConversionContext, classifier ContentClassifier, 
 		ErrorRecovery:      true,
 		Classifier:         classifier,
 		PlaceholderManager: manager,
+		Registry:           globalRegistry,
 	}
 }

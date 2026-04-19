@@ -58,7 +58,7 @@ func TestDateConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := converter.ConversionContext{Strategy: converter.StandardMarkdown}
+			ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), Strategy: converter.StandardMarkdown}
 			result, err := dc.ToMarkdown(tt.node, ctx)
 
 			if tt.wantErr {

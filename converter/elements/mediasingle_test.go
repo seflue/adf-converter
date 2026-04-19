@@ -98,7 +98,7 @@ func TestMediaSingleConverter_ToMarkdown(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mc := NewMediaSingleConverter()
-			result, err := mc.ToMarkdown(tt.node, converter.ConversionContext{})
+			result, err := mc.ToMarkdown(tt.node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -111,7 +111,7 @@ func TestMediaSingleConverter_ToMarkdown(t *testing.T) {
 
 func TestMediaSingleConverter_ToMarkdown_Internal_UsesPlaceholder(t *testing.T) {
 	mgr := placeholder.NewManager()
-	ctx := converter.ConversionContext{PlaceholderManager: mgr}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PlaceholderManager: mgr}
 
 	mc := NewMediaSingleConverter()
 	node := internalMediaNode()
@@ -126,7 +126,7 @@ func TestMediaSingleConverter_ToMarkdown_Internal_UsesPlaceholder(t *testing.T) 
 
 func TestMediaSingleConverter_ToMarkdown_NoContent_UsesPlaceholder(t *testing.T) {
 	mgr := placeholder.NewManager()
-	ctx := converter.ConversionContext{PlaceholderManager: mgr}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PlaceholderManager: mgr}
 
 	mc := NewMediaSingleConverter()
 	node := adf_types.ADFNode{
@@ -210,7 +210,7 @@ func TestMediaSingleConverter_FromMarkdown(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mc := NewMediaSingleConverter()
-			node, consumed, err := mc.FromMarkdown([]string{tt.line}, 0, converter.ConversionContext{})
+			node, consumed, err := mc.FromMarkdown([]string{tt.line}, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -235,13 +235,13 @@ func TestMediaSingleConverter_FromMarkdown(t *testing.T) {
 
 func TestMediaSingleConverter_FromMarkdown_EmptyLines(t *testing.T) {
 	mc := NewMediaSingleConverter()
-	_, _, err := mc.FromMarkdown([]string{}, 0, converter.ConversionContext{})
+	_, _, err := mc.FromMarkdown([]string{}, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 	require.Error(t, err)
 }
 
 func TestMediaSingleConverter_FromMarkdown_StartIndexOutOfBounds(t *testing.T) {
 	mc := NewMediaSingleConverter()
-	_, _, err := mc.FromMarkdown([]string{"![alt](url)"}, 5, converter.ConversionContext{})
+	_, _, err := mc.FromMarkdown([]string{"![alt](url)"}, 5, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 	require.Error(t, err)
 }
 
@@ -306,13 +306,13 @@ func TestMediaSingleConverter_Roundtrip_ExternalCenter(t *testing.T) {
 	original := externalMediaNode("center", "https://example.com/img.png", "alt text")
 
 	// ADF → MD
-	md, err := mc.ToMarkdown(original, converter.ConversionContext{})
+	md, err := mc.ToMarkdown(original, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 	require.NoError(t, err)
 	assert.Equal(t, "![alt text](https://example.com/img.png)\n\n", md.Content)
 
 	// MD → ADF
 	line := strings.TrimSpace(md.Content)
-	restored, _, err := mc.FromMarkdown([]string{line}, 0, converter.ConversionContext{})
+	restored, _, err := mc.FromMarkdown([]string{line}, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 	require.NoError(t, err)
 
 	assert.Equal(t, adf_types.NodeTypeMediaSingle, restored.Type)
@@ -329,13 +329,13 @@ func TestMediaSingleConverter_Roundtrip_ExternalWide(t *testing.T) {
 	original := externalMediaNode("wide", "https://example.com/chart.png", "chart")
 
 	// ADF → MD
-	md, err := mc.ToMarkdown(original, converter.ConversionContext{})
+	md, err := mc.ToMarkdown(original, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 	require.NoError(t, err)
 	assert.Equal(t, `![chart](https://example.com/chart.png "layout:wide")`+"\n\n", md.Content)
 
 	// MD → ADF
 	line := strings.TrimSpace(md.Content)
-	restored, _, err := mc.FromMarkdown([]string{line}, 0, converter.ConversionContext{})
+	restored, _, err := mc.FromMarkdown([]string{line}, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 	require.NoError(t, err)
 
 	assert.Equal(t, "wide", restored.Attrs["layout"])
@@ -344,7 +344,7 @@ func TestMediaSingleConverter_Roundtrip_ExternalWide(t *testing.T) {
 
 func TestMediaSingleConverter_Roundtrip_Internal_Placeholder(t *testing.T) {
 	mgr := placeholder.NewManager()
-	ctx := converter.ConversionContext{PlaceholderManager: mgr}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PlaceholderManager: mgr}
 
 	mc := NewMediaSingleConverter()
 	original := internalMediaNode()

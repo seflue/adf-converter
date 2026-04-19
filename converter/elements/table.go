@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 	"github.com/seflue/adf-converter/converter/elements/internal/tables"
 	"github.com/seflue/adf-converter/converter/internal"
@@ -16,13 +16,13 @@ import (
 // tableConverter implements markdown table conversion for ADF table nodes
 type tableConverter struct{}
 
-func NewTableConverter() converter.ElementConverter {
+func NewTableConverter() element.Converter {
 	return &tableConverter{}
 }
 
-func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if node.Type != "table" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("table converter can only handle table nodes, got: %s", node.Type)
+		return element.EnhancedConversionResult{}, fmt.Errorf("table converter can only handle table nodes, got: %s", node.Type)
 	}
 
 	var markdown strings.Builder
@@ -92,7 +92,7 @@ func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 	if context.PreserveAttrs && len(nonDefaultAttrs) > 0 {
 		wrappedMarkdown, err := tc.wrapTableWithXML(markdown.String(), nonDefaultAttrs)
 		if err != nil {
-			return convresult.CreateErrorResult(err.Error(), converter.MarkdownTable), err
+			return convresult.CreateErrorResult(err.Error(), element.MarkdownTable), err
 		}
 		finalMarkdown = wrappedMarkdown
 	} else {
@@ -108,7 +108,7 @@ func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 		}
 	}
 
-	result := convresult.CreateSuccessResult(finalMarkdown, converter.MarkdownTable)
+	result := convresult.CreateSuccessResult(finalMarkdown, element.MarkdownTable)
 	result.ElementsConverted = 1
 
 	// Preserve ADF attributes for round-trip fidelity
@@ -163,7 +163,7 @@ func (tc *tableConverter) firstRowIsHeader(node adf_types.ADFNode) bool {
 }
 
 // extractCellText extracts text content from a table cell, preserving markdown formatting
-func (tc *tableConverter) extractCellText(cell adf_types.ADFNode, context converter.ConversionContext) string {
+func (tc *tableConverter) extractCellText(cell adf_types.ADFNode, context element.ConversionContext) string {
 	var text strings.Builder
 
 	for _, content := range cell.Content {
@@ -195,7 +195,7 @@ func (tc *tableConverter) extractCellText(cell adf_types.ADFNode, context conver
 //	|----------|----------|
 //	| Cell 1   | Cell 2   |
 //	</table>
-func (tc *tableConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (tc *tableConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{Type: "table", Content: []adf_types.ADFNode{}}, 0, nil
 	}
@@ -305,13 +305,13 @@ func (tc *tableConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<table") || strings.HasPrefix(line, "|")
 }
 
-func (tc *tableConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.NodeTable
+func (tc *tableConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.NodeTable
 }
 
 // GetStrategy returns the conversion strategy this converter implements
-func (tc *tableConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.MarkdownTable
+func (tc *tableConverter) GetStrategy() element.ConversionStrategy {
+	return element.MarkdownTable
 }
 
 // ValidateInput validates that the input can be processed

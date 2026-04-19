@@ -29,7 +29,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "simple blockquote",
 			lines:            []string{"> This is a simple blockquote"},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  1,
 			expectedConsumed: 1,
@@ -39,7 +39,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "multi-line same paragraph",
 			lines:            []string{"> This is line one", "> This is line two"},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  1,
 			expectedConsumed: 2,
@@ -49,7 +49,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "multi-paragraph",
 			lines:            []string{"> First paragraph", ">", "> Second paragraph"},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  2,
 			expectedConsumed: 3,
@@ -63,7 +63,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 				"</blockquote>",
 			},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: true},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true},
 			expectedType:     "blockquote",
 			expectedContent:  1,
 			expectedConsumed: 3,
@@ -74,7 +74,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "empty lines slice",
 			lines:            []string{},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  0,
 			expectedConsumed: 0,
@@ -83,7 +83,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "startIndex out of bounds",
 			lines:            []string{"> something"},
 			startIndex:       5,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  0,
 			expectedConsumed: 0,
@@ -92,7 +92,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "empty blockquote line",
 			lines:            []string{"> "},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  0,
 			expectedConsumed: 1,
@@ -101,7 +101,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "startIndex skips prefix lines",
 			lines:            []string{"ignored line", "> actual blockquote"},
 			startIndex:       1,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  1,
 			expectedConsumed: 1,
@@ -111,7 +111,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "boundary: stops at non-blockquote line",
 			lines:            []string{"> line one", "> line two", "not a blockquote"},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  1,
 			expectedConsumed: 2,
@@ -121,7 +121,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			name:             "boundary: empty line between blockquote paragraphs",
 			lines:            []string{"> first", "", "> second"},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: false},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			expectedType:     "blockquote",
 			expectedContent:  2,
 			expectedConsumed: 3,
@@ -137,7 +137,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 				"another trailing",
 			},
 			startIndex:       0,
-			ctx:              converter.ConversionContext{PreserveAttrs: true},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true},
 			expectedType:     "blockquote",
 			expectedContent:  1,
 			expectedConsumed: 3,
@@ -153,7 +153,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 				"</blockquote>",
 			},
 			startIndex:       1,
-			ctx:              converter.ConversionContext{PreserveAttrs: true},
+			ctx:              converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true},
 			expectedType:     "blockquote",
 			expectedContent:  1,
 			expectedConsumed: 3,
@@ -190,7 +190,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 
 func TestBlockquoteConverter_RoundTrip_Simple(t *testing.T) {
 	conv := NewBlockquoteConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: false}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false}
 
 	lines := []string{"> This is a simple blockquote"}
 
@@ -208,7 +208,7 @@ func TestBlockquoteConverter_RoundTrip_Simple(t *testing.T) {
 
 func TestBlockquoteConverter_RoundTrip_WithAttributes(t *testing.T) {
 	conv := NewBlockquoteConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: true}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true}
 
 	lines := []string{
 		`<blockquote localId="test123">`,
@@ -438,7 +438,7 @@ func TestBlockquoteConverter_FromMarkdown_NestedPrefix(t *testing.T) {
 		"> > Inner text",
 	}
 
-	node, consumed, err := bc.FromMarkdown(lines, 0, converter.ConversionContext{})
+	node, consumed, err := bc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 	require.NoError(t, err)
 	assert.Equal(t, 3, consumed)
 	assert.Equal(t, "blockquote", node.Type)
@@ -455,7 +455,7 @@ func TestBlockquoteConverter_FromMarkdown_NestedPrefix(t *testing.T) {
 
 func TestBlockquoteConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 	bc := NewBlockquoteConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	tests := []struct {
 		name     string
@@ -574,7 +574,7 @@ func TestParseMarkdownBlockquote_CodeBlock(t *testing.T) {
 
 func TestBlockquoteConverter_ToMarkdown_Lists(t *testing.T) {
 	bc := NewBlockquoteConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	tests := []struct {
 		name     string
@@ -630,7 +630,7 @@ func TestBlockquoteConverter_ToMarkdown_Lists(t *testing.T) {
 
 func TestBlockquoteConverter_ToMarkdown_CodeBlock(t *testing.T) {
 	bc := NewBlockquoteConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	node := adf_types.ADFNode{
 		Type: "blockquote",
@@ -650,7 +650,7 @@ func TestBlockquoteConverter_ToMarkdown_CodeBlock(t *testing.T) {
 
 func TestBlockquoteConverter_Roundtrip_BulletList(t *testing.T) {
 	bc := NewBlockquoteConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	lines := []string{"> - item1", "> - item2"}
 
@@ -675,25 +675,25 @@ func TestBlockquoteConverter_shouldPreserveAttrs(t *testing.T) {
 	}{
 		{
 			name: "preserve true, attrs with content",
-			ctx:  converter.ConversionContext{PreserveAttrs: true},
+			ctx:  converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true},
 			node: adf_types.ADFNode{Attrs: map[string]any{"localId": "x"}},
 			want: true,
 		},
 		{
 			name: "preserve true, attrs nil",
-			ctx:  converter.ConversionContext{PreserveAttrs: true},
+			ctx:  converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true},
 			node: adf_types.ADFNode{},
 			want: false,
 		},
 		{
 			name: "preserve true, attrs empty map",
-			ctx:  converter.ConversionContext{PreserveAttrs: true},
+			ctx:  converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true},
 			node: adf_types.ADFNode{Attrs: map[string]any{}},
 			want: false,
 		},
 		{
 			name: "preserve false, attrs with content",
-			ctx:  converter.ConversionContext{PreserveAttrs: false},
+			ctx:  converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false},
 			node: adf_types.ADFNode{Attrs: map[string]any{"localId": "x"}},
 			want: false,
 		},

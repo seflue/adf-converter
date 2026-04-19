@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/placeholder"
@@ -13,8 +13,11 @@ import (
 
 // isBlockBoundary checks if a trimmed line starts a new block element
 // by asking all registered BlockParsers. This avoids hardcoding tag names.
-func isBlockBoundary(trimmed string) bool {
-	for _, entry := range converter.GetGlobalRegistry().BlockParsers() {
+func isBlockBoundary(trimmed string, registry element.Registry) bool {
+	if registry == nil {
+		return false
+	}
+	for _, entry := range registry.BlockParsers() {
 		if entry.Parser.CanParseLine(trimmed) {
 			return true
 		}
@@ -25,18 +28,18 @@ func isBlockBoundary(trimmed string) bool {
 // paragraphConverter handles conversion of ADF paragraph nodes to/from markdown
 type paragraphConverter struct{}
 
-func NewParagraphConverter() converter.ElementConverter {
+func NewParagraphConverter() element.Converter {
 	return &paragraphConverter{}
 }
 
-func (pc *paragraphConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (pc *paragraphConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if len(node.Content) == 0 {
-		builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+		builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 		builder.AppendContent("\n")
 		return builder.Build(), nil
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 
 	// Separate preserved nodes into placeholders, pass rest to inline renderer.
 	// Unknown inline types (anything IsInlineNode does not recognize) also take
@@ -50,7 +53,7 @@ func (pc *paragraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 			var err error
 			renderableContent, err = appendPreservedChild(child, renderableContent, context, builder)
 			if err != nil {
-				return converter.EnhancedConversionResult{}, err
+				return element.EnhancedConversionResult{}, err
 			}
 			continue
 		}
@@ -62,7 +65,7 @@ func (pc *paragraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	if len(renderableContent) > 0 {
 		rendered, err := inline.RenderInlineNodes(renderableContent, context)
 		if err != nil {
-			return converter.EnhancedConversionResult{}, err
+			return element.EnhancedConversionResult{}, err
 		}
 		builder.AppendContent(rendered)
 	}
@@ -72,7 +75,7 @@ func (pc *paragraphConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	return builder.Build(), nil
 }
 
-func (pc *paragraphConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (pc *paragraphConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 1, nil
 	}
@@ -89,7 +92,7 @@ func (pc *paragraphConverter) FromMarkdown(lines []string, startIndex int, conte
 			break
 		}
 
-		if isBlockBoundary(trimmed) {
+		if isBlockBoundary(trimmed, context.Registry) {
 			consumed = i - startIndex
 			break
 		}
@@ -130,7 +133,7 @@ func (pc *paragraphConverter) FromMarkdown(lines []string, startIndex int, conte
 func appendPreservedChild(
 	child adf_types.ADFNode,
 	pending []adf_types.ADFNode,
-	context converter.ConversionContext,
+	context element.ConversionContext,
 	builder *convresult.EnhancedConversionResultBuilder,
 ) ([]adf_types.ADFNode, error) {
 	placeholderID, preview, err := context.PlaceholderManager.Store(child)
@@ -159,12 +162,12 @@ func appendPreservedChild(
 	return nil, nil
 }
 
-func (pc *paragraphConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeParagraph)
+func (pc *paragraphConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeParagraph)
 }
 
-func (pc *paragraphConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (pc *paragraphConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (pc *paragraphConverter) ValidateInput(input any) error {

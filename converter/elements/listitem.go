@@ -5,19 +5,19 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // listItemConverter handles conversion of ADF list item nodes to/from markdown
 type listItemConverter struct{}
 
-func NewListItemConverter() converter.ElementConverter {
+func NewListItemConverter() element.Converter {
 	return &listItemConverter{}
 }
 
-func (lic *listItemConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+func (lic *listItemConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 
 	depth := context.ListDepth
 	if depth < 1 {
@@ -29,14 +29,14 @@ func (lic *listItemConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	builder.AppendContent(indent + "- ")
 
 	for i, child := range node.Content {
-		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
+		childConverter , _ := context.Registry.Lookup(element.ADFNodeType(child.Type))
 		if childConverter == nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
+			return element.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
 		}
 
 		childResult, err := childConverter.ToMarkdown(child, context)
 		if err != nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("failed to convert child node: %w", err)
+			return element.EnhancedConversionResult{}, fmt.Errorf("failed to convert child node: %w", err)
 		}
 
 		childContent := strings.TrimSuffix(childResult.Content, "\n\n")
@@ -65,7 +65,7 @@ func (lic *listItemConverter) ToMarkdown(node adf_types.ADFNode, context convert
 	return builder.Build(), nil
 }
 
-func (lic *listItemConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (lic *listItemConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -112,12 +112,12 @@ func (lic *listItemConverter) FromMarkdown(lines []string, startIndex int, conte
 	return node, 1, nil
 }
 
-func (lic *listItemConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeListItem)
+func (lic *listItemConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeListItem)
 }
 
-func (lic *listItemConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (lic *listItemConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (lic *listItemConverter) ValidateInput(input any) error {

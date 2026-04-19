@@ -1,11 +1,6 @@
 package converter
 
-// EnhancedConversionResult contains the result of an enhanced conversion operation
-type EnhancedConversionResult struct {
-	Content           string
-	PreservedAttrs    map[string]any
-	Strategy          ConversionStrategy
-	Warnings          []string
-	ElementsConverted int
-	ElementsPreserved int
-}
+import "github.com/seflue/adf-converter/converter/element"
+
+// EnhancedConversionResult is an alias for element.EnhancedConversionResult.
+type EnhancedConversionResult = element.EnhancedConversionResult

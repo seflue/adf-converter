@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -23,19 +23,19 @@ import (
 type hardBreakConverter struct{}
 
 // NewHardBreakConverter creates a new hard break converter instance
-func NewHardBreakConverter() converter.ElementConverter {
+func NewHardBreakConverter() element.Converter {
 	return &hardBreakConverter{}
 }
 
 // ToMarkdown converts an ADF hard break node to a Markdown newline
-func (hc *hardBreakConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (hc *hardBreakConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	// Validate input
 	if err := hc.ValidateInput(node); err != nil {
-		return converter.EnhancedConversionResult{}, err
+		return element.EnhancedConversionResult{}, err
 	}
 
 	// Hard break is simply a newline character
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 	builder.AppendContent("\n")
 	builder.IncrementConverted()
 
@@ -47,18 +47,18 @@ func (hc *hardBreakConverter) ToMarkdown(node adf_types.ADFNode, context convert
 // Hard break nodes are inline elements, so this method returns an error indicating
 // that parsing is handled by container converters (paragraph, heading, etc.).
 // Container converters detect newlines within their content and create hard break nodes.
-func (hc *hardBreakConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (hc *hardBreakConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, errors.New("hardBreak nodes are inline elements - use paragraph/heading converters for parsing")
 }
 
 // CanHandle returns true if this converter can handle the given node type
-func (hc *hardBreakConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (hc *hardBreakConverter) CanHandle(nodeType element.ADFNodeType) bool {
 	return nodeType == adf_types.NodeTypeHardBreak
 }
 
 // GetStrategy returns the conversion strategy for hard break nodes
-func (hc *hardBreakConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (hc *hardBreakConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 // ValidateInput validates that the input node is a valid hard break node

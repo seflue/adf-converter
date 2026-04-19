@@ -90,7 +90,7 @@ func TestEmojiConverter_ValidateInput(t *testing.T) {
 
 func TestEmojiConverter_ToMarkdown(t *testing.T) {
 	ec := NewEmojiConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	tests := []struct {
 		name    string

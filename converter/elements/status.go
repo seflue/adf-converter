@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -12,41 +12,41 @@ import (
 // Format: [status:Text|color]
 type statusConverter struct{}
 
-func NewStatusConverter() converter.ElementConverter {
+func NewStatusConverter() element.Converter {
 	return &statusConverter{}
 }
 
-func (sc *statusConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (sc *statusConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("status node missing attrs")
+		return element.EnhancedConversionResult{}, fmt.Errorf("status node missing attrs")
 	}
 
 	text, _ := node.Attrs["text"].(string)
 	if text == "" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("status node missing text attribute")
+		return element.EnhancedConversionResult{}, fmt.Errorf("status node missing text attribute")
 	}
 
 	color, _ := node.Attrs["color"].(string)
 	if color == "" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("status node missing color attribute")
+		return element.EnhancedConversionResult{}, fmt.Errorf("status node missing color attribute")
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 	builder.AppendContent(fmt.Sprintf("[status:%s|%s]", text, color))
 	builder.IncrementConverted()
 	return builder.Build(), nil
 }
 
-func (sc *statusConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (sc *statusConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, fmt.Errorf("status is an inline element and should be parsed within parent blocks")
 }
 
-func (sc *statusConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeStatus)
+func (sc *statusConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeStatus)
 }
 
-func (sc *statusConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (sc *statusConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (sc *statusConverter) ValidateInput(input any) error {

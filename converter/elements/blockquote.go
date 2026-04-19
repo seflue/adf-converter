@@ -9,7 +9,7 @@ import (
 	"github.com/yuin/goldmark/text"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 	"github.com/seflue/adf-converter/converter/internal"
@@ -19,16 +19,16 @@ import (
 // blockquoteConverter implements markdown blockquote conversion for ADF blockquote nodes
 type blockquoteConverter struct{}
 
-func NewBlockquoteConverter() converter.ElementConverter {
+func NewBlockquoteConverter() element.Converter {
 	return &blockquoteConverter{}
 }
 
-func (bc *blockquoteConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (bc *blockquoteConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if node.Type != "blockquote" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
+		return element.EnhancedConversionResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownBlockquote)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.MarkdownBlockquote)
 
 	if bc.shouldPreserveAttrs(context, node) {
 		builder.PreserveAttributes(node.Attrs)
@@ -196,7 +196,7 @@ func (bc *blockquoteConverter) createQuotePrefix(nestedLevel int) string {
 	return prefix.String()
 }
 
-func (bc *blockquoteConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (bc *blockquoteConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	emptyNode := adf_types.ADFNode{Type: "blockquote", Content: []adf_types.ADFNode{}}
 
 	if startIndex >= len(lines) {
@@ -255,12 +255,12 @@ func (bc *blockquoteConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<blockquote") || strings.HasPrefix(line, ">")
 }
 
-func (bc *blockquoteConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.NodeBlockquote
+func (bc *blockquoteConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.NodeBlockquote
 }
 
-func (bc *blockquoteConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.MarkdownBlockquote
+func (bc *blockquoteConverter) GetStrategy() element.ConversionStrategy {
+	return element.MarkdownBlockquote
 }
 
 func (bc *blockquoteConverter) ValidateInput(input any) error {
@@ -284,7 +284,7 @@ func (bc *blockquoteConverter) ValidateInput(input any) error {
 	}
 }
 
-func (bc *blockquoteConverter) shouldPreserveAttrs(context converter.ConversionContext, node adf_types.ADFNode) bool {
+func (bc *blockquoteConverter) shouldPreserveAttrs(context element.ConversionContext, node adf_types.ADFNode) bool {
 	return context.PreserveAttrs && len(node.Attrs) > 0
 }
 

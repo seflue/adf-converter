@@ -1,33 +1,31 @@
 package converter
 
-// ADFNodeType represents the type of ADF node for classification
-type ADFNodeType string
+import "github.com/seflue/adf-converter/converter/element"
+
+// ADFNodeType is an alias for element.ADFNodeType.
+type ADFNodeType = element.ADFNodeType
 
 const (
-	// Document structure
-	NodeDoc       ADFNodeType = "doc"
-	NodeParagraph ADFNodeType = "paragraph"
-	NodeHeading   ADFNodeType = "heading"
+	NodeDoc       = element.NodeDoc
+	NodeParagraph = element.NodeParagraph
+	NodeHeading   = element.NodeHeading
 
-	// Markdown-native elements
-	NodeTable       ADFNodeType = "table"
-	NodeTableRow    ADFNodeType = "tableRow"
-	NodeTableCell   ADFNodeType = "tableCell"
-	NodeTableHeader ADFNodeType = "tableHeader"
-	NodeTaskList    ADFNodeType = "taskList"
-	NodeTaskItem    ADFNodeType = "taskItem"
-	NodeBlockquote  ADFNodeType = "blockquote"
-	NodeCodeBlock   ADFNodeType = "codeBlock"
-	NodeBulletList  ADFNodeType = "bulletList"
-	NodeOrderedList ADFNodeType = "orderedList"
-	NodeListItem    ADFNodeType = "listItem"
+	NodeTable       = element.NodeTable
+	NodeTableRow    = element.NodeTableRow
+	NodeTableCell   = element.NodeTableCell
+	NodeTableHeader = element.NodeTableHeader
+	NodeTaskList    = element.NodeTaskList
+	NodeTaskItem    = element.NodeTaskItem
+	NodeBlockquote  = element.NodeBlockquote
+	NodeCodeBlock   = element.NodeCodeBlock
+	NodeBulletList  = element.NodeBulletList
+	NodeOrderedList = element.NodeOrderedList
+	NodeListItem    = element.NodeListItem
 
-	// XML-preserved elements
-	NodeExpand    ADFNodeType = "expand"
-	NodeMention   ADFNodeType = "mention"
-	NodeHardBreak ADFNodeType = "hardBreak"
+	NodeExpand    = element.NodeExpand
+	NodeMention   = element.NodeMention
+	NodeHardBreak = element.NodeHardBreak
 
-	// Text formatting (existing)
-	NodeText ADFNodeType = "text"
-	MarkLink ADFNodeType = "link"
+	NodeText = element.NodeText
+	MarkLink = element.MarkLink
 )

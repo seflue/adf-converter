@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -13,18 +13,18 @@ import (
 // Format: [@DisplayName](accountid:id?accessLevel=X&userType=Y)
 type mentionConverter struct{}
 
-func NewMentionConverter() converter.ElementConverter {
+func NewMentionConverter() element.Converter {
 	return &mentionConverter{}
 }
 
-func (mc *mentionConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (mc *mentionConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("mention node missing attrs")
+		return element.EnhancedConversionResult{}, fmt.Errorf("mention node missing attrs")
 	}
 
 	id, _ := node.Attrs["id"].(string)
 	if id == "" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("mention node missing id attribute")
+		return element.EnhancedConversionResult{}, fmt.Errorf("mention node missing id attribute")
 	}
 
 	text, _ := node.Attrs["text"].(string)
@@ -38,7 +38,7 @@ func (mc *mentionConverter) ToMarkdown(node adf_types.ADFNode, context converter
 		destination += "?" + query
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 	builder.AppendContent(fmt.Sprintf("[%s](%s)", text, destination))
 	builder.IncrementConverted()
 	return builder.Build(), nil
@@ -58,16 +58,16 @@ func buildMentionQuery(attrs map[string]any) string {
 	return params.Encode()
 }
 
-func (mc *mentionConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (mc *mentionConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, fmt.Errorf("mention is an inline element and should be parsed within parent blocks")
 }
 
-func (mc *mentionConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeMention)
+func (mc *mentionConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeMention)
 }
 
-func (mc *mentionConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (mc *mentionConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (mc *mentionConverter) ValidateInput(input any) error {

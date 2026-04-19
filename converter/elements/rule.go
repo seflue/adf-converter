@@ -8,7 +8,7 @@ import (
 	"github.com/yuin/goldmark/text"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -18,23 +18,23 @@ import (
 // In Markdown: "---" (thematic break)
 type ruleConverter struct{}
 
-func NewRuleConverter() converter.ElementConverter {
+func NewRuleConverter() element.Converter {
 	return &ruleConverter{}
 }
 
-func (rc *ruleConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (rc *ruleConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if err := rc.ValidateInput(node); err != nil {
-		return converter.EnhancedConversionResult{}, err
+		return element.EnhancedConversionResult{}, err
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 	builder.AppendContent("---\n\n")
 	builder.IncrementConverted()
 
 	return builder.Build(), nil
 }
 
-func (rc *ruleConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (rc *ruleConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("startIndex %d out of range", startIndex)
 	}
@@ -79,12 +79,12 @@ func (rc *ruleConverter) CanParseLine(line string) bool {
 	return count >= 3
 }
 
-func (rc *ruleConverter) CanHandle(nodeType converter.ADFNodeType) bool {
+func (rc *ruleConverter) CanHandle(nodeType element.ADFNodeType) bool {
 	return nodeType == adf_types.NodeTypeRule
 }
 
-func (rc *ruleConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (rc *ruleConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (rc *ruleConverter) ValidateInput(input any) error {

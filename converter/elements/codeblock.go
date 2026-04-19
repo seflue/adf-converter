@@ -9,19 +9,19 @@ import (
 	"github.com/yuin/goldmark/text"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // codeBlockConverter handles conversion of ADF codeBlock nodes to/from markdown
 type codeBlockConverter struct{}
 
-func NewCodeBlockConverter() converter.ElementConverter {
+func NewCodeBlockConverter() element.Converter {
 	return &codeBlockConverter{}
 }
 
-func (c *codeBlockConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownCodeBlock)
+func (c *codeBlockConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
+	builder := convresult.NewEnhancedConversionResultBuilder(element.MarkdownCodeBlock)
 
 	// Extract code text
 	var text string
@@ -53,7 +53,7 @@ func (c *codeBlockConverter) ToMarkdown(node adf_types.ADFNode, context converte
 	return builder.Build(), nil
 }
 
-func (c *codeBlockConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (c *codeBlockConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("startIndex out of range")
 	}
@@ -108,12 +108,12 @@ func (c *codeBlockConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "```")
 }
 
-func (c *codeBlockConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeCodeBlock)
+func (c *codeBlockConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeCodeBlock)
 }
 
-func (c *codeBlockConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.MarkdownCodeBlock
+func (c *codeBlockConverter) GetStrategy() element.ConversionStrategy {
+	return element.MarkdownCodeBlock
 }
 
 func (c *codeBlockConverter) ValidateInput(input any) error {

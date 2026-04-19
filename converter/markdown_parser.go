@@ -45,6 +45,11 @@ func (p *MarkdownParser) conversionContext() ConversionContext {
 		PlaceholderSession: p.session,
 		PlaceholderManager: p.manager,
 		NestedLevel:        p.nestedLevel,
+		Registry:           globalRegistry,
+		ParseNested: func(lines []string, nestedLevel int) ([]adf_types.ADFNode, error) {
+			nested := NewMarkdownParserWithNesting(p.session, p.manager, nestedLevel)
+			return nested.ParseMarkdownToADFNodes(lines)
+		},
 	}
 }
 

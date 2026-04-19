@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/placeholder"
 )
@@ -13,7 +13,7 @@ import (
 // inlineCardConverter handles conversion of ADF inlineCard nodes to/from markdown
 type inlineCardConverter struct{}
 
-func NewInlineCardConverter() converter.ElementConverter {
+func NewInlineCardConverter() element.Converter {
 	return &inlineCardConverter{}
 }
 
@@ -52,9 +52,9 @@ func buildComplexMetadataHTML(attrs map[string]any, linkURL string) string {
 	return b.String()
 }
 
-func (ic *inlineCardConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (ic *inlineCardConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if node.Attrs == nil {
-		builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+		builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 		builder.AppendContent("[InlineCard]")
 		return builder.Build(), nil
 	}
@@ -68,7 +68,7 @@ func (ic *inlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 		}
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 
 	if hasComplexMetadata(node.Attrs) {
 		builder.AppendContent(buildComplexMetadataHTML(node.Attrs, linkURL))
@@ -83,13 +83,13 @@ func (ic *inlineCardConverter) ToMarkdown(node adf_types.ADFNode, context conver
 	return builder.Build(), nil
 }
 
-func (ic *inlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (ic *inlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if context.PlaceholderManager != nil {
 		placeholderID, preview, err := context.PlaceholderManager.Store(node)
 		if err != nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("storing inlineCard placeholder: %w", err)
+			return element.EnhancedConversionResult{}, fmt.Errorf("storing inlineCard placeholder: %w", err)
 		}
-		builder := convresult.NewEnhancedConversionResultBuilder(converter.Placeholder)
+		builder := convresult.NewEnhancedConversionResultBuilder(element.Placeholder)
 		if placeholderID == "" {
 			builder.AppendContent(preview)
 		} else {
@@ -99,21 +99,21 @@ func (ic *inlineCardConverter) dataOnlyToMarkdown(node adf_types.ADFNode, contex
 	}
 
 	// No PlaceholderManager available — lossy fallback
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 	builder.AppendContent("[InlineCard]")
 	return builder.Build(), nil
 }
 
-func (ic *inlineCardConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (ic *inlineCardConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	return adf_types.ADFNode{}, 0, fmt.Errorf("inlineCard is an inline element and should be parsed within parent blocks")
 }
 
-func (ic *inlineCardConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeInlineCard)
+func (ic *inlineCardConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeInlineCard)
 }
 
-func (ic *inlineCardConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (ic *inlineCardConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (ic *inlineCardConverter) ValidateInput(input any) error {

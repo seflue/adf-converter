@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
@@ -19,12 +19,12 @@ var admonitionRegex = regexp.MustCompile(`(?i)^>\s*\[!(INFO|WARNING|ERROR|SUCCES
 // Input (MD -> ADF): Fenced-div AND GitHub Admonition (> [!TYPE])
 type panelConverter struct{}
 
-func NewPanelConverter() converter.ElementConverter {
+func NewPanelConverter() element.Converter {
 	return &panelConverter{}
 }
 
-func (pc *panelConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownPanel)
+func (pc *panelConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
+	builder := convresult.NewEnhancedConversionResultBuilder(element.MarkdownPanel)
 
 	panelType := pc.extractPanelType(node)
 
@@ -34,7 +34,7 @@ func (pc *panelConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 
 	var contentBuilder strings.Builder
 	for _, child := range node.Content {
-		childConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(child.Type))
+		childConverter , _ := context.Registry.Lookup(element.ADFNodeType(child.Type))
 		if childConverter == nil {
 			builder.AddWarningf("no converter for child type: %s", child.Type)
 			continue
@@ -42,7 +42,7 @@ func (pc *panelConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 
 		childResult, err := childConverter.ToMarkdown(child, context)
 		if err != nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("converting panel child %s: %w", child.Type, err)
+			return element.EnhancedConversionResult{}, fmt.Errorf("converting panel child %s: %w", child.Type, err)
 		}
 
 		contentBuilder.WriteString(childResult.Content)
@@ -61,7 +61,7 @@ func (pc *panelConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 	return builder.Build(), nil
 }
 
-func (pc *panelConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (pc *panelConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("startIndex out of range")
 	}
@@ -80,7 +80,7 @@ func (pc *panelConverter) FromMarkdown(lines []string, startIndex int, context c
 }
 
 // parseFencedDiv parses :::type ... ::: syntax
-func (pc *panelConverter) parseFencedDiv(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (pc *panelConverter) parseFencedDiv(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	firstLine := strings.TrimSpace(lines[startIndex])
 	panelType := strings.ToLower(strings.TrimSpace(firstLine[3:]))
 	if panelType == "" {
@@ -121,12 +121,12 @@ func (pc *panelConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, ":::") || admonitionRegex.MatchString(line)
 }
 
-func (pc *panelConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypePanel)
+func (pc *panelConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypePanel)
 }
 
-func (pc *panelConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.MarkdownPanel
+func (pc *panelConverter) GetStrategy() element.ConversionStrategy {
+	return element.MarkdownPanel
 }
 
 func (pc *panelConverter) ValidateInput(input any) error {
@@ -156,7 +156,7 @@ func isGitHubAdmonition(line string) bool {
 }
 
 // parseGitHubAdmonition parses > [!TYPE] ... syntax
-func (pc *panelConverter) parseGitHubAdmonition(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (pc *panelConverter) parseGitHubAdmonition(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	firstLine := strings.TrimSpace(lines[startIndex])
 
 	// Extract type from [!TYPE]

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/elements/internal/dedent"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
@@ -14,34 +14,25 @@ import (
 // bulletListConverter handles conversion of ADF bullet list nodes to/from markdown
 type bulletListConverter struct{}
 
-func NewBulletListConverter() converter.ElementConverter {
+func NewBulletListConverter() element.Converter {
 	return &bulletListConverter{}
 }
 
-func (blc *bulletListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.StandardMarkdown)
+func (blc *bulletListConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
+	builder := convresult.NewEnhancedConversionResultBuilder(element.StandardMarkdown)
 
-	childContext := converter.ConversionContext{
-		Strategy:           context.Strategy,
-		PreserveAttrs:      context.PreserveAttrs,
-		NestedLevel:        context.NestedLevel,
-		ParentNodeType:     context.ParentNodeType,
-		RoundTripMode:      context.RoundTripMode,
-		ErrorRecovery:      context.ErrorRecovery,
-		ListDepth:          context.ListDepth + 1,
-		Classifier:         context.Classifier,
-		PlaceholderManager: context.PlaceholderManager,
-	}
+	childContext := context
+	childContext.ListDepth = context.ListDepth + 1
 
 	for _, item := range node.Content {
-		itemConverter := converter.GetGlobalRegistry().GetConverter(converter.ADFNodeType(item.Type))
+		itemConverter , _ := context.Registry.Lookup(element.ADFNodeType(item.Type))
 		if itemConverter == nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("no converter found for list item type: %s", item.Type)
+			return element.EnhancedConversionResult{}, fmt.Errorf("no converter found for list item type: %s", item.Type)
 		}
 
 		itemResult, err := itemConverter.ToMarkdown(item, childContext)
 		if err != nil {
-			return converter.EnhancedConversionResult{}, fmt.Errorf("failed to convert list item: %w", err)
+			return element.EnhancedConversionResult{}, fmt.Errorf("failed to convert list item: %w", err)
 		}
 
 		builder.AppendContent(itemResult.Content)
@@ -52,7 +43,7 @@ func (blc *bulletListConverter) ToMarkdown(node adf_types.ADFNode, context conve
 	return builder.Build(), nil
 }
 
-func (blc *bulletListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (blc *bulletListConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf_types.ADFNode{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -116,12 +107,12 @@ func (blc *bulletListConverter) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "- ")
 }
 
-func (blc *bulletListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.ADFNodeType(adf_types.NodeTypeBulletList)
+func (blc *bulletListConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.ADFNodeType(adf_types.NodeTypeBulletList)
 }
 
-func (blc *bulletListConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.StandardMarkdown
+func (blc *bulletListConverter) GetStrategy() element.ConversionStrategy {
+	return element.StandardMarkdown
 }
 
 func (blc *bulletListConverter) ValidateInput(input any) error {

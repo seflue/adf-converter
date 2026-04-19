@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter"
+	"github.com/seflue/adf-converter/converter/element"
 	"github.com/seflue/adf-converter/converter/internal"
 	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
@@ -14,16 +14,16 @@ import (
 // taskListConverter implements markdown checkbox conversion for ADF taskList nodes
 type taskListConverter struct{}
 
-func NewTaskListConverter() converter.ElementConverter {
+func NewTaskListConverter() element.Converter {
 	return &taskListConverter{}
 }
 
-func (tc *taskListConverter) ToMarkdown(node adf_types.ADFNode, context converter.ConversionContext) (converter.EnhancedConversionResult, error) {
+func (tc *taskListConverter) ToMarkdown(node adf_types.ADFNode, context element.ConversionContext) (element.EnhancedConversionResult, error) {
 	if node.Type != "taskList" {
-		return converter.EnhancedConversionResult{}, fmt.Errorf("task list converter can only handle taskList nodes, got: %s", node.Type)
+		return element.EnhancedConversionResult{}, fmt.Errorf("task list converter can only handle taskList nodes, got: %s", node.Type)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(converter.MarkdownTaskList)
+	builder := convresult.NewEnhancedConversionResultBuilder(element.MarkdownTaskList)
 
 	for _, item := range node.Content {
 		if item.Type != "taskItem" {
@@ -119,7 +119,7 @@ func (tc *taskListConverter) convertParagraphToMarkdown(paragraph adf_types.ADFN
 //	- [ ] Task text
 //	- [x] Completed task
 //	</taskList>
-func (tc *taskListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
+func (tc *taskListConverter) FromMarkdown(lines []string, startIndex int, context element.ConversionContext) (adf_types.ADFNode, int, error) {
 	emptyNode := adf_types.ADFNode{Type: "taskList", Attrs: map[string]any{}, Content: nil}
 
 	if startIndex >= len(lines) {
@@ -249,12 +249,12 @@ func (tc *taskListConverter) CanParseLine(line string) bool {
 		strings.HasPrefix(line, "- [X]")
 }
 
-func (tc *taskListConverter) CanHandle(nodeType converter.ADFNodeType) bool {
-	return nodeType == converter.NodeTaskList
+func (tc *taskListConverter) CanHandle(nodeType element.ADFNodeType) bool {
+	return nodeType == element.NodeTaskList
 }
 
-func (tc *taskListConverter) GetStrategy() converter.ConversionStrategy {
-	return converter.MarkdownTaskList
+func (tc *taskListConverter) GetStrategy() element.ConversionStrategy {
+	return element.MarkdownTaskList
 }
 
 func (tc *taskListConverter) ValidateInput(input any) error {

@@ -42,7 +42,7 @@ func TestBlockCardConverter_ToMarkdown(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bc := NewBlockCardConverter()
-			result, err := bc.ToMarkdown(tt.node, converter.ConversionContext{})
+			result, err := bc.ToMarkdown(tt.node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -79,7 +79,7 @@ func TestBlockCardConverter_FromMarkdown(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bc := NewBlockCardConverter()
-			node, consumed, err := bc.FromMarkdown([]string{tt.line}, 0, converter.ConversionContext{})
+			node, consumed, err := bc.FromMarkdown([]string{tt.line}, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -98,7 +98,7 @@ func TestBlockCardConverter_FromMarkdown(t *testing.T) {
 
 func TestBlockCardConverter_RoundTrip(t *testing.T) {
 	bc := NewBlockCardConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	original := adf_types.ADFNode{
 		Type:  adf_types.NodeTypeBlockCard,

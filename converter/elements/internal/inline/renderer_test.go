@@ -8,7 +8,7 @@ import (
 )
 
 func TestRenderInlineNodes_MarkSpanning(t *testing.T) {
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	tests := []struct {
 		name  string

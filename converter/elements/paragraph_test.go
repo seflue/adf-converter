@@ -170,7 +170,7 @@ func TestParagraphConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := pc.ToMarkdown(tt.node, converter.ConversionContext{})
+			result, err := pc.ToMarkdown(tt.node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ToMarkdown() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -281,7 +281,7 @@ func TestParagraphConverter_FromMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			node, consumed, err := pc.FromMarkdown(tt.lines, tt.startIndex, converter.ConversionContext{})
+			node, consumed, err := pc.FromMarkdown(tt.lines, tt.startIndex, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FromMarkdown() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -348,13 +348,13 @@ func TestParagraphConverter_RoundTrip(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Parse markdown to ADF
 			lines := splitLines(tt.markdown)
-			node, _, err := pc.FromMarkdown(lines, 0, converter.ConversionContext{})
+			node, _, err := pc.FromMarkdown(lines, 0, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if err != nil {
 				t.Fatalf("FromMarkdown() failed: %v", err)
 			}
 
 			// Convert back to markdown
-			result, err := pc.ToMarkdown(node, converter.ConversionContext{})
+			result, err := pc.ToMarkdown(node, converter.ConversionContext{Registry: converter.GetGlobalRegistry()})
 			if err != nil {
 				t.Fatalf("ToMarkdown() failed: %v", err)
 			}

@@ -20,7 +20,7 @@ var _ converter.ElementConverter = (*tableConverter)(nil)
 
 func TestTableConverter_FromMarkdown(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	tests := []struct {
 		name              string
@@ -165,7 +165,7 @@ func TestTableConverter_FromMarkdown(t *testing.T) {
 
 func TestTableConverter_FromMarkdown_XMLWrappedAttributes(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	t.Run("localId and layout preserved", func(t *testing.T) {
 		lines := []string{
@@ -209,7 +209,7 @@ func TestTableConverter_FromMarkdown_XMLWrappedAttributes(t *testing.T) {
 
 func TestTableConverter_ToMarkdown_PlainTable(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: false}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false}
 
 	node := adf_types.ADFNode{
 		Type: "table",
@@ -283,7 +283,7 @@ func TestTableConverter_ToMarkdown_PlainTable(t *testing.T) {
 
 func TestTableConverter_ToMarkdown_NoHeader(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: false}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false}
 
 	// ADF table where ALL cells are tableCell (no tableHeader)
 	node := adf_types.ADFNode{
@@ -333,7 +333,7 @@ func TestTableConverter_ToMarkdown_NoHeader(t *testing.T) {
 
 func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: true}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true}
 
 	node := adf_types.ADFNode{
 		Type: "table",
@@ -371,7 +371,7 @@ func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
 
 func TestTableConverter_ToMarkdown_DefaultAttrsOmitWrapper(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: true}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true}
 
 	tableContent := []adf_types.ADFNode{
 		{
@@ -449,7 +449,7 @@ func TestTableConverter_ToMarkdown_DefaultAttrsOmitWrapper(t *testing.T) {
 
 func TestTableConverter_RoundTrip_PlainTable(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: false}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false}
 
 	lines := []string{
 		"| Header 1 | Header 2 |",
@@ -478,7 +478,7 @@ func TestTableConverter_RoundTrip_PlainTable(t *testing.T) {
 
 func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: true}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: true}
 
 	lines := []string{
 		`<table layout="wide" isNumberColumnEnabled="true">`,
@@ -512,7 +512,7 @@ func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
 
 func TestTableConverter_FromMarkdown_EmptyHeaderMeansNoHeader(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	lines := []string{
 		"|  |  |",
@@ -537,7 +537,7 @@ func TestTableConverter_FromMarkdown_EmptyHeaderMeansNoHeader(t *testing.T) {
 
 func TestTableConverter_RoundTrip_NoHeader(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: false}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false}
 
 	// Start with ADF: all tableCell, no tableHeader
 	originalNode := adf_types.ADFNode{
@@ -596,7 +596,7 @@ func TestTableConverter_RoundTrip_NoHeader(t *testing.T) {
 
 func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{PreserveAttrs: false}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry(), PreserveAttrs: false}
 
 	tests := []struct {
 		name     string
@@ -667,7 +667,7 @@ func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
 
 func TestTableConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	lines := []string{
 		"| **Bold** | *Italic* | `code` | [link](http://example.com) |",
@@ -718,7 +718,7 @@ func TestTableConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 
 func TestTableConverter_FromMarkdown_EdgeCases(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	tests := []struct {
 		name         string
@@ -795,7 +795,7 @@ func TestTableConverter_FromMarkdown_EdgeCases(t *testing.T) {
 
 func TestTableConverter_FromMarkdown_EmptyCellContent(t *testing.T) {
 	tc := NewTableConverter()
-	ctx := converter.ConversionContext{}
+	ctx := converter.ConversionContext{Registry: converter.GetGlobalRegistry()}
 
 	lines := []string{
 		"| Header 1 | Header 2 |",
