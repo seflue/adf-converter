@@ -100,7 +100,7 @@ func TestGetHeadingLevel(t *testing.T) {
 			name: "valid heading with level 3",
 			node: ADFNode{
 				Type:    NodeTypeHeading,
-				Attrs:   map[string]interface{}{"level": 3},
+				Attrs:   map[string]any{"level": 3},
 				Content: []ADFNode{NewTextNode("Test")},
 			},
 			expected: 3,
@@ -133,7 +133,7 @@ func TestGetHeadingLevel(t *testing.T) {
 
 func TestNewMark(t *testing.T) {
 	markType := MarkTypeLink
-	attrs := map[string]interface{}{
+	attrs := map[string]any{
 		"href": "https://example.com",
 	}
 

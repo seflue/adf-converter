@@ -403,7 +403,7 @@ func TestParagraphConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		wantErr bool
 	}{
 		{

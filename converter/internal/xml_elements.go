@@ -117,7 +117,7 @@ type XMLElementBuilder struct {
 	elementType string
 	attributes  map[string]string
 	content     string
-	children    []interface{}
+	children    []any
 }
 
 // NewXMLElementBuilder creates a new XML element builder
@@ -125,7 +125,7 @@ func NewXMLElementBuilder(elementType string) *XMLElementBuilder {
 	return &XMLElementBuilder{
 		elementType: elementType,
 		attributes:  make(map[string]string),
-		children:    make([]interface{}, 0),
+		children:    make([]any, 0),
 	}
 }
 
@@ -142,7 +142,7 @@ func (builder *XMLElementBuilder) SetContent(content string) *XMLElementBuilder 
 }
 
 // AddChild adds a child element
-func (builder *XMLElementBuilder) AddChild(child interface{}) *XMLElementBuilder {
+func (builder *XMLElementBuilder) AddChild(child any) *XMLElementBuilder {
 	builder.children = append(builder.children, child)
 	return builder
 }
@@ -283,7 +283,7 @@ func (helper *XMLElementHelper) GetElementType(data []byte) (string, error) {
 
 // HasAttribute checks if XML element has a specific attribute
 func (helper *XMLElementHelper) HasAttribute(data []byte, attributeName string) (bool, error) {
-	var temp map[string]interface{}
+	var temp map[string]any
 	if err := xml.Unmarshal(data, &temp); err != nil {
 		return false, err
 	}

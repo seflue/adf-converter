@@ -11,15 +11,15 @@ import (
 
 func TestNullManager_Store(t *testing.T) {
 	tests := []struct {
-		name            string
-		node            adf_types.ADFNode
-		wantID          string
-		wantPreviewSub  string
-		wantErr         bool
+		name           string
+		node           adf_types.ADFNode
+		wantID         string
+		wantPreviewSub string
+		wantErr        bool
 	}{
 		{
 			name:           "code block returns empty ID and preview",
-			node:           adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock, Attrs: map[string]interface{}{"language": "go"}},
+			node:           adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock, Attrs: map[string]any{"language": "go"}},
 			wantID:         "",
 			wantPreviewSub: "Code Block",
 		},
@@ -31,7 +31,7 @@ func TestNullManager_Store(t *testing.T) {
 		},
 		{
 			name:           "mention returns empty ID and preview",
-			node:           adf_types.ADFNode{Type: adf_types.NodeTypeMention, Attrs: map[string]interface{}{"text": "@alice"}},
+			node:           adf_types.ADFNode{Type: adf_types.NodeTypeMention, Attrs: map[string]any{"text": "@alice"}},
 			wantID:         "",
 			wantPreviewSub: "Mention: @alice",
 		},
@@ -98,18 +98,18 @@ func TestNullManager_GeneratePreview(t *testing.T) {
 	m := NewNullManager()
 
 	tests := []struct {
-		name     string
-		node     adf_types.ADFNode
-		wantSub  string
+		name    string
+		node    adf_types.ADFNode
+		wantSub string
 	}{
 		{
 			name:    "code block",
-			node:    adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock, Attrs: map[string]interface{}{"language": "python"}},
+			node:    adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock, Attrs: map[string]any{"language": "python"}},
 			wantSub: "Code Block (python",
 		},
 		{
 			name:    "panel",
-			node:    adf_types.ADFNode{Type: adf_types.NodeTypePanel, Attrs: map[string]interface{}{"panelType": "warning"}},
+			node:    adf_types.ADFNode{Type: adf_types.NodeTypePanel, Attrs: map[string]any{"panelType": "warning"}},
 			wantSub: "Warning Panel",
 		},
 		{

@@ -87,7 +87,7 @@ func (rc *ruleConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (rc *ruleConverter) ValidateInput(input interface{}) error {
+func (rc *ruleConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("invalid input type: expected ADFNode, got %T", input)

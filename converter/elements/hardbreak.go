@@ -62,7 +62,7 @@ func (hc *hardBreakConverter) GetStrategy() converter.ConversionStrategy {
 }
 
 // ValidateInput validates that the input node is a valid hard break node
-func (hc *hardBreakConverter) ValidateInput(input interface{}) error {
+func (hc *hardBreakConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("invalid input type: expected ADFNode, got %T", input)

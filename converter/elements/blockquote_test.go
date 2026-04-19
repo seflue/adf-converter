@@ -23,7 +23,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 		expectedContent  int // number of content nodes
 		expectedConsumed int
 		expectedText     []string // expected text in each paragraph (optional)
-		expectedAttrs    map[string]interface{}
+		expectedAttrs    map[string]any
 	}{
 		{
 			name:             "simple blockquote",
@@ -68,7 +68,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			expectedContent:  1,
 			expectedConsumed: 3,
 			expectedText:     []string{"This is a blockquote with attributes"},
-			expectedAttrs:    map[string]interface{}{"localId": "abc123"},
+			expectedAttrs:    map[string]any{"localId": "abc123"},
 		},
 		{
 			name:             "empty lines slice",
@@ -142,7 +142,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			expectedContent:  1,
 			expectedConsumed: 3,
 			expectedText:     []string{"content"},
-			expectedAttrs:    map[string]interface{}{"localId": "test"},
+			expectedAttrs:    map[string]any{"localId": "test"},
 		},
 		{
 			name: "XML-wrapped with startIndex",
@@ -158,7 +158,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 			expectedContent:  1,
 			expectedConsumed: 3,
 			expectedText:     []string{"inner"},
-			expectedAttrs:    map[string]interface{}{"localId": "skip"},
+			expectedAttrs:    map[string]any{"localId": "skip"},
 		},
 	}
 
@@ -237,7 +237,7 @@ func TestBlockquoteConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     interface{}
+		input     any
 		expectErr bool
 	}{
 		{
@@ -358,7 +358,7 @@ func TestParseXMLBlockquote(t *testing.T) {
 	tests := []struct {
 		name        string
 		lines       []string
-		expectAttrs map[string]interface{}
+		expectAttrs map[string]any
 		expectErr   bool
 	}{
 		{
@@ -368,7 +368,7 @@ func TestParseXMLBlockquote(t *testing.T) {
 				"> Content",
 				"</blockquote>",
 			},
-			expectAttrs: map[string]interface{}{
+			expectAttrs: map[string]any{
 				"localId": "abc123",
 			},
 			expectErr: false,
@@ -380,7 +380,7 @@ func TestParseXMLBlockquote(t *testing.T) {
 				"> Content",
 				"</blockquote>",
 			},
-			expectAttrs: map[string]interface{}{
+			expectAttrs: map[string]any{
 				"localId": "abc123",
 				"level":   1,
 			},
@@ -636,7 +636,7 @@ func TestBlockquoteConverter_ToMarkdown_CodeBlock(t *testing.T) {
 		Type: "blockquote",
 		Content: []adf_types.ADFNode{{
 			Type:  "codeBlock",
-			Attrs: map[string]interface{}{"language": "go"},
+			Attrs: map[string]any{"language": "go"},
 			Content: []adf_types.ADFNode{
 				{Type: "text", Text: "x := 1"},
 			},
@@ -676,7 +676,7 @@ func TestBlockquoteConverter_shouldPreserveAttrs(t *testing.T) {
 		{
 			name: "preserve true, attrs with content",
 			ctx:  converter.ConversionContext{PreserveAttrs: true},
-			node: adf_types.ADFNode{Attrs: map[string]interface{}{"localId": "x"}},
+			node: adf_types.ADFNode{Attrs: map[string]any{"localId": "x"}},
 			want: true,
 		},
 		{
@@ -688,13 +688,13 @@ func TestBlockquoteConverter_shouldPreserveAttrs(t *testing.T) {
 		{
 			name: "preserve true, attrs empty map",
 			ctx:  converter.ConversionContext{PreserveAttrs: true},
-			node: adf_types.ADFNode{Attrs: map[string]interface{}{}},
+			node: adf_types.ADFNode{Attrs: map[string]any{}},
 			want: false,
 		},
 		{
 			name: "preserve false, attrs with content",
 			ctx:  converter.ConversionContext{PreserveAttrs: false},
-			node: adf_types.ADFNode{Attrs: map[string]interface{}{"localId": "x"}},
+			node: adf_types.ADFNode{Attrs: map[string]any{"localId": "x"}},
 			want: false,
 		},
 	}

@@ -26,7 +26,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "info panel with text",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "info"},
+				Attrs: map[string]any{"panelType": "info"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "Hello"},
@@ -39,7 +39,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "warning panel",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "warning"},
+				Attrs: map[string]any{"panelType": "warning"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "Be careful"},
@@ -52,7 +52,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "error panel",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "error"},
+				Attrs: map[string]any{"panelType": "error"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "Something broke"},
@@ -65,7 +65,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "success panel",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "success"},
+				Attrs: map[string]any{"panelType": "success"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "All good"},
@@ -78,7 +78,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "note panel",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "note"},
+				Attrs: map[string]any{"panelType": "note"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "Remember this"},
@@ -103,7 +103,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "panel with empty attrs defaults to info",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{},
+				Attrs: map[string]any{},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "Default"},
@@ -116,7 +116,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "multi-paragraph panel",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "info"},
+				Attrs: map[string]any{"panelType": "info"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "First paragraph"},
@@ -129,10 +129,10 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			expected: ":::info\nFirst paragraph\n\nSecond paragraph\n:::\n\n",
 		},
 		{
-			name:     "empty panel",
+			name: "empty panel",
 			node: adf_types.ADFNode{
 				Type:    adf_types.NodeTypePanel,
-				Attrs:   map[string]interface{}{"panelType": "info"},
+				Attrs:   map[string]any{"panelType": "info"},
 				Content: []adf_types.ADFNode{},
 			},
 			expected: ":::info\n:::\n\n",
@@ -141,7 +141,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "panel with inline formatting",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "warning"},
+				Attrs: map[string]any{"panelType": "warning"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "This is "},
@@ -157,7 +157,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 			name: "unknown panel type passes through with warning",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "custom"},
+				Attrs: map[string]any{"panelType": "custom"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "Custom content"},
@@ -184,7 +184,7 @@ func TestPanelConverter_ToMarkdown_UnknownTypeWarning(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type:  adf_types.NodeTypePanel,
-		Attrs: map[string]interface{}{"panelType": "custom"},
+		Attrs: map[string]any{"panelType": "custom"},
 		Content: []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 				{Type: adf_types.NodeTypeText, Text: "Content"},
@@ -405,7 +405,7 @@ func TestPanelConverter_Roundtrip_FencedDiv(t *testing.T) {
 	// ADF -> Markdown -> ADF
 	originalNode := adf_types.ADFNode{
 		Type:  adf_types.NodeTypePanel,
-		Attrs: map[string]interface{}{"panelType": "info"},
+		Attrs: map[string]any{"panelType": "info"},
 		Content: []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 				{Type: adf_types.NodeTypeText, Text: "Round trip content"},
@@ -457,11 +457,11 @@ func TestPanelConverter_Integration_MixedDocument(t *testing.T) {
 		Version: 1,
 		Type:    "doc",
 		Content: []adf_types.ADFNode{
-			{Type: adf_types.NodeTypeHeading, Attrs: map[string]interface{}{"level": 1},
+			{Type: adf_types.NodeTypeHeading, Attrs: map[string]any{"level": 1},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeText, Text: "Title"},
 				}},
-			{Type: adf_types.NodeTypePanel, Attrs: map[string]interface{}{"panelType": "warning"},
+			{Type: adf_types.NodeTypePanel, Attrs: map[string]any{"panelType": "warning"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeParagraph, Content: []adf_types.ADFNode{
 						{Type: adf_types.NodeTypeText, Text: "Important warning"},
@@ -524,14 +524,14 @@ func TestPanelConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		wantErr bool
 	}{
 		{
 			name: "valid panel node",
 			input: adf_types.ADFNode{
 				Type:  adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{"panelType": "info"},
+				Attrs: map[string]any{"panelType": "info"},
 			},
 			wantErr: false,
 		},

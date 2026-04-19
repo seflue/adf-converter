@@ -21,9 +21,9 @@ func (inlineOnlyConverter) FromMarkdown([]string, int, ConversionContext) (adf_t
 	return adf_types.ADFNode{}, 0, nil
 }
 
-func (inlineOnlyConverter) CanHandle(ADFNodeType) bool            { return true }
-func (inlineOnlyConverter) GetStrategy() ConversionStrategy       { return StandardMarkdown }
-func (inlineOnlyConverter) ValidateInput(any) error               { return nil }
+func (inlineOnlyConverter) CanHandle(ADFNodeType) bool      { return true }
+func (inlineOnlyConverter) GetStrategy() ConversionStrategy { return StandardMarkdown }
+func (inlineOnlyConverter) ValidateInput(any) error         { return nil }
 
 // blockConverter implements BlockParser (ElementConverter + CanParseLine).
 type blockConverter struct{ inlineOnlyConverter }

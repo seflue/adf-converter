@@ -16,7 +16,7 @@ func TestExpandToXML_AttributeHandling(t *testing.T) {
 	tests := []struct {
 		name     string
 		title    string
-		localID  interface{}
+		localID  any
 		expected string
 	}{
 		{

@@ -13,7 +13,7 @@ import (
 // EnhancedConversionResultBuilder builds conversion results incrementally.
 type EnhancedConversionResultBuilder struct {
 	content           strings.Builder
-	preservedAttrs    map[string]interface{}
+	preservedAttrs    map[string]any
 	strategy          converter.ConversionStrategy
 	warnings          []string
 	elementsConverted int
@@ -23,7 +23,7 @@ type EnhancedConversionResultBuilder struct {
 // NewEnhancedConversionResultBuilder creates a new result builder.
 func NewEnhancedConversionResultBuilder(strategy converter.ConversionStrategy) *EnhancedConversionResultBuilder {
 	return &EnhancedConversionResultBuilder{
-		preservedAttrs: make(map[string]interface{}),
+		preservedAttrs: make(map[string]any),
 		strategy:       strategy,
 		warnings:       make([]string, 0),
 	}
@@ -38,11 +38,11 @@ func (crb *EnhancedConversionResultBuilder) AppendLine(content string) {
 	crb.content.WriteString("\n")
 }
 
-func (crb *EnhancedConversionResultBuilder) PreserveAttribute(key string, value interface{}) {
+func (crb *EnhancedConversionResultBuilder) PreserveAttribute(key string, value any) {
 	crb.preservedAttrs[key] = value
 }
 
-func (crb *EnhancedConversionResultBuilder) PreserveAttributes(attrs map[string]interface{}) {
+func (crb *EnhancedConversionResultBuilder) PreserveAttributes(attrs map[string]any) {
 	for key, value := range attrs {
 		crb.preservedAttrs[key] = value
 	}
@@ -52,7 +52,7 @@ func (crb *EnhancedConversionResultBuilder) AddWarning(message string) {
 	crb.warnings = append(crb.warnings, message)
 }
 
-func (crb *EnhancedConversionResultBuilder) AddWarningf(format string, args ...interface{}) {
+func (crb *EnhancedConversionResultBuilder) AddWarningf(format string, args ...any) {
 	crb.warnings = append(crb.warnings, fmt.Sprintf(format, args...))
 }
 
@@ -107,7 +107,7 @@ func (crb *EnhancedConversionResultBuilder) GetWarningsCount() int {
 func CreateSuccessResult(content string, strategy converter.ConversionStrategy) converter.EnhancedConversionResult {
 	return converter.EnhancedConversionResult{
 		Content:           content,
-		PreservedAttrs:    make(map[string]interface{}),
+		PreservedAttrs:    make(map[string]any),
 		Strategy:          strategy,
 		Warnings:          make([]string, 0),
 		ElementsConverted: 1,
@@ -116,9 +116,9 @@ func CreateSuccessResult(content string, strategy converter.ConversionStrategy) 
 }
 
 // CreatePreservedResult creates a result for preserved content.
-func CreatePreservedResult(content string, attrs map[string]interface{}, strategy converter.ConversionStrategy) converter.EnhancedConversionResult {
+func CreatePreservedResult(content string, attrs map[string]any, strategy converter.ConversionStrategy) converter.EnhancedConversionResult {
 	if attrs == nil {
-		attrs = make(map[string]interface{})
+		attrs = make(map[string]any)
 	}
 
 	return converter.EnhancedConversionResult{
@@ -135,7 +135,7 @@ func CreatePreservedResult(content string, attrs map[string]interface{}, strateg
 func CreateErrorResult(errorMsg string, strategy converter.ConversionStrategy) converter.EnhancedConversionResult {
 	return converter.EnhancedConversionResult{
 		Content:           "",
-		PreservedAttrs:    make(map[string]interface{}),
+		PreservedAttrs:    make(map[string]any),
 		Strategy:          strategy,
 		Warnings:          []string{errorMsg},
 		ElementsConverted: 0,
@@ -147,7 +147,7 @@ func CreateErrorResult(errorMsg string, strategy converter.ConversionStrategy) c
 func MergeResults(results ...converter.EnhancedConversionResult) converter.EnhancedConversionResult {
 	if len(results) == 0 {
 		return converter.EnhancedConversionResult{
-			PreservedAttrs: make(map[string]interface{}),
+			PreservedAttrs: make(map[string]any),
 			Warnings:       make([]string, 0),
 		}
 	}

@@ -3,10 +3,10 @@ package elements
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStatusConverter_ToMarkdown(t *testing.T) {
@@ -23,7 +23,7 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 			name: "basic status blue",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text":  "In Progress",
 					"color": "blue",
 				},
@@ -34,7 +34,7 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 			name: "status green",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text":  "Done",
 					"color": "green",
 				},
@@ -45,7 +45,7 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 			name: "status neutral",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text":  "TODO",
 					"color": "neutral",
 				},
@@ -56,7 +56,7 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 			name: "localId and style ignored",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text":    "Blocked",
 					"color":   "red",
 					"localId": "abc-123",
@@ -76,7 +76,7 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 			name: "missing text",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"color": "blue",
 				},
 			},
@@ -86,7 +86,7 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 			name: "missing color",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text": "Done",
 				},
 			},
@@ -123,14 +123,14 @@ func TestStatusConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		wantErr bool
 	}{
 		{
 			name: "valid status node",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text":  "In Progress",
 					"color": "blue",
 				},
@@ -145,7 +145,7 @@ func TestStatusConverter_ValidateInput(t *testing.T) {
 			name: "wrong node type",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeDate,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text":  "X",
 					"color": "blue",
 				},
@@ -163,7 +163,7 @@ func TestStatusConverter_ValidateInput(t *testing.T) {
 			name: "missing text attr",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"color": "blue",
 				},
 			},
@@ -173,7 +173,7 @@ func TestStatusConverter_ValidateInput(t *testing.T) {
 			name: "missing color attr",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeStatus,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text": "Done",
 				},
 			},

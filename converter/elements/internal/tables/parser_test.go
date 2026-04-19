@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
 	gast "github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
 	east "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
 

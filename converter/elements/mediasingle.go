@@ -58,13 +58,13 @@ func (mc *mediaSingleConverter) FromMarkdown(lines []string, startIndex int, con
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeMediaSingle,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"layout": layout,
 		},
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeMedia,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"type": "external",
 					"url":  url,
 					"alt":  alt,
@@ -88,7 +88,7 @@ func (mc *mediaSingleConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (mc *mediaSingleConverter) ValidateInput(input interface{}) error {
+func (mc *mediaSingleConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

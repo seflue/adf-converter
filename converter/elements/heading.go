@@ -10,8 +10,8 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // headingConverter handles conversion of ADF heading nodes to/from markdown
@@ -72,7 +72,7 @@ func (hc *headingConverter) FromMarkdown(lines []string, startIndex int, _ conve
 
 	node := adf_types.ADFNode{
 		Type:    adf_types.NodeTypeHeading,
-		Attrs:   map[string]interface{}{"level": level},
+		Attrs:   map[string]any{"level": level},
 		Content: textNodes,
 	}
 	return node, 1, nil
@@ -101,7 +101,7 @@ func (hc *headingConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (hc *headingConverter) ValidateInput(input interface{}) error {
+func (hc *headingConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

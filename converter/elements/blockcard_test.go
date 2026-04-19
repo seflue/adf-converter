@@ -17,7 +17,7 @@ func TestBlockCardConverter_ToMarkdown(t *testing.T) {
 			name: "simple url",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeBlockCard,
-				Attrs: map[string]interface{}{"url": "https://example.com"},
+				Attrs: map[string]any{"url": "https://example.com"},
 			},
 			want: "<div data-adf-type=\"blockCard\">[https://example.com](https://example.com)</div>\n\n",
 		},
@@ -25,7 +25,7 @@ func TestBlockCardConverter_ToMarkdown(t *testing.T) {
 			name: "jira ticket url",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeBlockCard,
-				Attrs: map[string]interface{}{"url": "https://jira.example.com/browse/PROJ-123"},
+				Attrs: map[string]any{"url": "https://jira.example.com/browse/PROJ-123"},
 			},
 			want: "<div data-adf-type=\"blockCard\">[https://jira.example.com/browse/PROJ-123](https://jira.example.com/browse/PROJ-123)</div>\n\n",
 		},
@@ -33,7 +33,7 @@ func TestBlockCardConverter_ToMarkdown(t *testing.T) {
 			name: "empty url",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeBlockCard,
-				Attrs: map[string]interface{}{},
+				Attrs: map[string]any{},
 			},
 			want: "<div data-adf-type=\"blockCard\"></div>\n\n",
 		},
@@ -102,7 +102,7 @@ func TestBlockCardConverter_RoundTrip(t *testing.T) {
 
 	original := adf_types.ADFNode{
 		Type:  adf_types.NodeTypeBlockCard,
-		Attrs: map[string]interface{}{"url": "https://example.com/page"},
+		Attrs: map[string]any{"url": "https://example.com/page"},
 	}
 
 	// ADF → MD

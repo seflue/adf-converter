@@ -3,10 +3,10 @@ package elements
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEmojiConverter_ValidateInput(t *testing.T) {
@@ -22,7 +22,7 @@ func TestEmojiConverter_ValidateInput(t *testing.T) {
 			name: "shortName only — valid per spec",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{"shortName": ":white_check_mark:"},
+				Attrs: map[string]any{"shortName": ":white_check_mark:"},
 			},
 			wantErr: false,
 		},
@@ -30,7 +30,7 @@ func TestEmojiConverter_ValidateInput(t *testing.T) {
 			name: "shortName and text — valid",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"shortName": ":white_check_mark:",
 					"text":      "✅",
 				},
@@ -41,7 +41,7 @@ func TestEmojiConverter_ValidateInput(t *testing.T) {
 			name: "text only without shortName — invalid",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{"text": "✅"},
+				Attrs: map[string]any{"text": "✅"},
 			},
 			wantErr: true,
 			errMsg:  "shortName",
@@ -50,7 +50,7 @@ func TestEmojiConverter_ValidateInput(t *testing.T) {
 			name: "neither text nor shortName — invalid",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{},
+				Attrs: map[string]any{},
 			},
 			wantErr: true,
 			errMsg:  "shortName",
@@ -67,7 +67,7 @@ func TestEmojiConverter_ValidateInput(t *testing.T) {
 			name: "wrong node type — invalid",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeText,
-				Attrs: map[string]interface{}{"shortName": ":white_check_mark:"},
+				Attrs: map[string]any{"shortName": ":white_check_mark:"},
 			},
 			wantErr: true,
 		},
@@ -102,7 +102,7 @@ func TestEmojiConverter_ToMarkdown(t *testing.T) {
 			name: "text takes priority over shortName",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"shortName": ":white_check_mark:",
 					"text":      "✅",
 				},
@@ -113,7 +113,7 @@ func TestEmojiConverter_ToMarkdown(t *testing.T) {
 			name: "shortName fallback when text missing",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{"shortName": ":white_check_mark:"},
+				Attrs: map[string]any{"shortName": ":white_check_mark:"},
 			},
 			want: ":white_check_mark:",
 		},
@@ -121,7 +121,7 @@ func TestEmojiConverter_ToMarkdown(t *testing.T) {
 			name: "shortName fallback with id also present",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":        "2705",
 					"shortName": ":white_check_mark:",
 				},
@@ -132,7 +132,7 @@ func TestEmojiConverter_ToMarkdown(t *testing.T) {
 			name: "missing shortName and text — error",
 			node: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeEmoji,
-				Attrs: map[string]interface{}{"id": "2705"},
+				Attrs: map[string]any{"id": "2705"},
 			},
 			wantErr: true,
 		},

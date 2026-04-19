@@ -41,7 +41,7 @@ func TestManager_Store(t *testing.T) {
 			name: "valid code block",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeCodeBlock,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"language": "javascript",
 				},
 				Content: []adf_types.ADFNode{
@@ -119,7 +119,7 @@ func TestManager_Restore(t *testing.T) {
 	// Store a node first
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeCodeBlock,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"language": "go",
 		},
 		Content: []adf_types.ADFNode{
@@ -161,7 +161,7 @@ func TestManager_GeneratePreview(t *testing.T) {
 			name: "code block with language",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeCodeBlock,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"language": "javascript",
 				},
 				Content: []adf_types.ADFNode{
@@ -210,7 +210,7 @@ func TestManager_GeneratePreview(t *testing.T) {
 			name: "panel with type",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypePanel,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"panelType": "warning",
 				},
 				Content: []adf_types.ADFNode{
@@ -228,7 +228,7 @@ func TestManager_GeneratePreview(t *testing.T) {
 			name: "mention",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text": "@john.doe",
 				},
 			},
@@ -245,8 +245,8 @@ func TestManager_GeneratePreview(t *testing.T) {
 			name: "inlineCard_with_data",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
-					"data": map[string]interface{}{
+				Attrs: map[string]any{
+					"data": map[string]any{
 						"@type": "Document",
 						"name":  "My Document",
 					},
@@ -258,13 +258,13 @@ func TestManager_GeneratePreview(t *testing.T) {
 			name: "mediaSingle with image type, dimensions, and layout",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMediaSingle,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"layout": "wide",
 				},
 				Content: []adf_types.ADFNode{
 					{
 						Type: "media",
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"id":     "a1b2c3d4",
 							"type":   "image",
 							"width":  float64(1920),
@@ -282,7 +282,7 @@ func TestManager_GeneratePreview(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: "media",
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"id":   "b2c3d4",
 							"type": "file",
 						},
@@ -295,7 +295,7 @@ func TestManager_GeneratePreview(t *testing.T) {
 			name: "mediaInline with image type and dimensions",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMediaInline,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":     "c3d4e5",
 					"type":   "image",
 					"width":  float64(200),
@@ -493,13 +493,13 @@ func TestManager_Store_MediaKeys(t *testing.T) {
 			name: "mediaSingle uses first 5 chars of media child id",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMediaSingle,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"layout": "center",
 				},
 				Content: []adf_types.ADFNode{
 					{
 						Type: "media",
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"id":         "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
 							"type":       "image",
 							"collection": "col-1",
@@ -513,7 +513,7 @@ func TestManager_Store_MediaKeys(t *testing.T) {
 			name: "mediaInline uses first 5 chars of id attr",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMediaInline,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":         "xyz99-abcd-ef12-3456-7890abcdef12",
 					"type":       "file",
 					"collection": "col-2",
@@ -528,7 +528,7 @@ func TestManager_Store_MediaKeys(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type:  "media",
-						Attrs: map[string]interface{}{"type": "image"},
+						Attrs: map[string]any{"type": "image"},
 					},
 				},
 			},

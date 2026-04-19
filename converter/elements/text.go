@@ -58,7 +58,7 @@ func (tc *textConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (tc *textConverter) ValidateInput(input interface{}) error {
+func (tc *textConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("invalid input type: expected ADFNode, got %T", input)

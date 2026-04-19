@@ -61,7 +61,7 @@ func (dc *dateConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (dc *dateConverter) ValidateInput(input interface{}) error {
+func (dc *dateConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

@@ -20,7 +20,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "h1 heading",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 1,
 				},
 				Content: []adf_types.ADFNode{
@@ -37,7 +37,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "h2 heading",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 2,
 				},
 				Content: []adf_types.ADFNode{
@@ -54,7 +54,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "h3 heading",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 3,
 				},
 				Content: []adf_types.ADFNode{
@@ -71,7 +71,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "h4 heading",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 4,
 				},
 				Content: []adf_types.ADFNode{
@@ -88,7 +88,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "h5 heading",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 5,
 				},
 				Content: []adf_types.ADFNode{
@@ -105,7 +105,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "h6 heading",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 6,
 				},
 				Content: []adf_types.ADFNode{
@@ -122,7 +122,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "heading with bold text",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 2,
 				},
 				Content: []adf_types.ADFNode{
@@ -146,7 +146,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "heading with italic text",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 3,
 				},
 				Content: []adf_types.ADFNode{
@@ -170,7 +170,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "heading with code",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 4,
 				},
 				Content: []adf_types.ADFNode{
@@ -194,7 +194,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "heading with mixed formatting",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 2,
 				},
 				Content: []adf_types.ADFNode{
@@ -229,7 +229,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "empty heading",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 1,
 				},
 				Content: []adf_types.ADFNode{},
@@ -241,7 +241,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 			name: "heading removes newlines from content",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 1,
 				},
 				Content: []adf_types.ADFNode{
@@ -577,8 +577,8 @@ func TestHeadingConverter_CanParseLine(t *testing.T) {
 		{"# Heading", true},
 		{"## Heading 2", true},
 		{"###### H6", true},
-		{"#", true},           // bare hash is a heading
-		{"#NoSpace", false},   // no space after hash — not a valid CommonMark heading
+		{"#", true},              // bare hash is a heading
+		{"#NoSpace", false},      // no space after hash — not a valid CommonMark heading
 		{"####### seven", false}, // 7 hashes — not a valid CommonMark heading level
 		{"not a heading", false},
 		{"  ## indented", false}, // leading spaces — HasPrefix does not trim
@@ -609,7 +609,7 @@ func TestHeadingConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		wantErr bool
 	}{
 		{
@@ -651,9 +651,9 @@ func TestHeadingConverter_FromMarkdown_MarksPreserved(t *testing.T) {
 	hc := NewHeadingConverter()
 
 	tests := []struct {
-		name          string
-		line          string
-		wantNodes     []adf_types.ADFNode
+		name      string
+		line      string
+		wantNodes []adf_types.ADFNode
 	}{
 		{
 			name: "bold mark",
@@ -785,7 +785,7 @@ func TestHeadingConverter_ToMarkdown_InvalidLevel(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			node := adf_types.ADFNode{
 				Type:  adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{"level": tt.level},
+				Attrs: map[string]any{"level": tt.level},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeText, Text: "Text"},
 				},

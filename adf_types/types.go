@@ -14,11 +14,11 @@ type ADFDocument struct {
 
 // ADFNode represents any node in the ADF tree structure
 type ADFNode struct {
-	Type    string                 `json:"type"`
-	Attrs   map[string]interface{} `json:"attrs,omitempty"`
-	Content []ADFNode              `json:"content,omitempty"`
-	Marks   []ADFMark              `json:"marks,omitempty"`
-	Text    string                 `json:"text,omitempty"` // Only for text nodes
+	Type    string         `json:"type"`
+	Attrs   map[string]any `json:"attrs,omitempty"`
+	Content []ADFNode      `json:"content,omitempty"`
+	Marks   []ADFMark      `json:"marks,omitempty"`
+	Text    string         `json:"text,omitempty"` // Only for text nodes
 }
 
 // MarshalJSON ensures text nodes always include the "text" field, even when empty.
@@ -41,8 +41,8 @@ func (n ADFNode) MarshalJSON() ([]byte, error) {
 
 // ADFMark represents text formatting marks (bold, italic, etc.)
 type ADFMark struct {
-	Type  string                 `json:"type"`
-	Attrs map[string]interface{} `json:"attrs,omitempty"`
+	Type  string         `json:"type"`
+	Attrs map[string]any `json:"attrs,omitempty"`
 }
 
 // Common ADF node types based on Atlassian specification
@@ -145,7 +145,7 @@ func NewParagraphNode(content ...ADFNode) ADFNode {
 }
 
 // NewMark creates a new text mark
-func NewMark(markType string, attrs map[string]interface{}) ADFMark {
+func NewMark(markType string, attrs map[string]any) ADFMark {
 	return ADFMark{
 		Type:  markType,
 		Attrs: attrs,
@@ -173,7 +173,7 @@ func (n ADFNode) GetHeadingLevel() int {
 }
 
 // GetAttribute returns an attribute value and whether it exists
-func (n ADFNode) GetAttribute(key string) (interface{}, bool) {
+func (n ADFNode) GetAttribute(key string) (any, bool) {
 	if n.Attrs == nil {
 		return nil, false
 	}
@@ -182,9 +182,9 @@ func (n ADFNode) GetAttribute(key string) (interface{}, bool) {
 }
 
 // SetAttribute sets an attribute value
-func (n *ADFNode) SetAttribute(key string, value interface{}) {
+func (n *ADFNode) SetAttribute(key string, value any) {
 	if n.Attrs == nil {
-		n.Attrs = make(map[string]interface{})
+		n.Attrs = make(map[string]any)
 	}
 	n.Attrs[key] = value
 }

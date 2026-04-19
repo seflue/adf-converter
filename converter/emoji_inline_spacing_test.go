@@ -89,7 +89,7 @@ func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 					},
 					{
 						Type: adf_types.NodeTypeEmoji,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"id":        "1f44d",
 							"shortName": ":thumbsup:",
 							"text":      "👍",
@@ -103,7 +103,7 @@ func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 			},
 			{
 				Type: adf_types.NodeTypeCodeBlock,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"language": "go",
 				},
 				Content: []adf_types.ADFNode{
@@ -165,7 +165,7 @@ func TestEmojiInlineSpacing_RoundTrip(t *testing.T) {
 								Content: []adf_types.ADFNode{
 									{
 										Type: adf_types.NodeTypeEmoji,
-										Attrs: map[string]interface{}{
+										Attrs: map[string]any{
 											"id":        "2705",
 											"shortName": ":white_check_mark:",
 											"text":      "✅",

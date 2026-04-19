@@ -23,7 +23,7 @@ func TestDisplayMode_NoPlaceholderComments(t *testing.T) {
 				},
 			},
 			{
-				Type: adf_types.NodeTypeCodeBlock,
+				Type:  adf_types.NodeTypeCodeBlock,
 				Attrs: map[string]any{"language": "go"},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeText, Text: "fmt.Println(\"hello\")"},
@@ -105,7 +105,7 @@ func TestDisplayMode_MixedEditableAndPreserved(t *testing.T) {
 		Type:    "doc",
 		Content: []adf_types.ADFNode{
 			{
-				Type: adf_types.NodeTypeHeading,
+				Type:  adf_types.NodeTypeHeading,
 				Attrs: map[string]any{"level": float64(1)},
 				Content: []adf_types.ADFNode{
 					{Type: adf_types.NodeTypeText, Text: "Title"},

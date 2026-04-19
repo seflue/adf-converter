@@ -102,9 +102,9 @@ func convertList(list *ast.List, source []byte, manager placeholder.Manager) (ad
 	}
 
 	// Capture start number for ordered lists (suppress default of 1)
-	var attrs map[string]interface{}
+	var attrs map[string]any
 	if list.IsOrdered() && list.Start != 1 {
-		attrs = map[string]interface{}{"order": float64(list.Start)}
+		attrs = map[string]any{"order": float64(list.Start)}
 	}
 
 	return adf_types.ADFNode{

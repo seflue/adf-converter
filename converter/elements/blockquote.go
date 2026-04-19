@@ -11,9 +11,9 @@ import (
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
-	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
 	"github.com/seflue/adf-converter/converter/internal"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // blockquoteConverter implements markdown blockquote conversion for ADF blockquote nodes
@@ -263,7 +263,7 @@ func (bc *blockquoteConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.MarkdownBlockquote
 }
 
-func (bc *blockquoteConverter) ValidateInput(input interface{}) error {
+func (bc *blockquoteConverter) ValidateInput(input any) error {
 	if input == nil {
 		return fmt.Errorf("input cannot be nil")
 	}
@@ -288,7 +288,7 @@ func (bc *blockquoteConverter) shouldPreserveAttrs(context converter.ConversionC
 	return context.PreserveAttrs && len(node.Attrs) > 0
 }
 
-func (bc *blockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]interface{}, nestedLevel int) string {
+func (bc *blockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]any, nestedLevel int) string {
 	var xmlBuilder strings.Builder
 
 	xmlBuilder.WriteString("<blockquote")
@@ -359,7 +359,7 @@ func parseXMLBlockquote(lines []string) (*adf_types.ADFNode, int, error) {
 
 	// Add the preserved XML attributes to the blockquote node
 	if blockquoteNode.Attrs == nil {
-		blockquoteNode.Attrs = make(map[string]interface{})
+		blockquoteNode.Attrs = make(map[string]any)
 	}
 	for key, value := range attrs {
 		blockquoteNode.Attrs[key] = value
@@ -426,7 +426,7 @@ func convertBlockquoteCodeBlock(n *ast.FencedCodeBlock, source []byte) adf_types
 
 	node := adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock}
 	if language != "" {
-		node.Attrs = map[string]interface{}{"language": language}
+		node.Attrs = map[string]any{"language": language}
 	}
 	node.Content = []adf_types.ADFNode{{Type: adf_types.NodeTypeText, Text: content}}
 	return node

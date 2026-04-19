@@ -13,7 +13,7 @@ import (
 // These marks can be opened once and span across multiple text nodes.
 var markDelimiter = map[string]string{
 	adf_types.MarkTypeStrong: "**",
-	adf_types.MarkTypeEm:    "*",
+	adf_types.MarkTypeEm:     "*",
 	adf_types.MarkTypeStrike: "~~",
 }
 
@@ -22,7 +22,7 @@ var markDelimiter = map[string]string{
 var markPriority = map[string]int{
 	adf_types.MarkTypeStrong: 0,
 	adf_types.MarkTypeStrike: 1,
-	adf_types.MarkTypeEm:    2,
+	adf_types.MarkTypeEm:     2,
 }
 
 func isSpannable(markType string) bool {

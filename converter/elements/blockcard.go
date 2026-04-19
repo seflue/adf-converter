@@ -57,7 +57,7 @@ func (bc *blockCardConverter) FromMarkdown(lines []string, startIndex int, conte
 	}
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeBlockCard,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"url": url,
 		},
 	}
@@ -77,7 +77,7 @@ func (bc *blockCardConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (bc *blockCardConverter) ValidateInput(input interface{}) error {
+func (bc *blockCardConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

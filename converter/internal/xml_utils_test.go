@@ -10,26 +10,26 @@ func TestParseXMLAttributes_StringValues(t *testing.T) {
 	tests := []struct {
 		name     string
 		xmlTag   string
-		expected map[string]interface{}
+		expected map[string]any
 	}{
 		{
 			name:   "single string attribute with double quotes",
 			xmlTag: `<table layout="default">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"layout": "default",
 			},
 		},
 		{
 			name:   "single string attribute with single quotes",
 			xmlTag: `<table layout='default'>`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"layout": "default",
 			},
 		},
 		{
 			name:   "multiple string attributes",
 			xmlTag: `<element id="test" class="example" data-value="something">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"id":         "test",
 				"class":      "example",
 				"data-value": "something",
@@ -38,7 +38,7 @@ func TestParseXMLAttributes_StringValues(t *testing.T) {
 		{
 			name:   "empty string value",
 			xmlTag: `<element value="">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"value": "",
 			},
 		},
@@ -56,26 +56,26 @@ func TestParseXMLAttributes_BooleanValues(t *testing.T) {
 	tests := []struct {
 		name     string
 		xmlTag   string
-		expected map[string]interface{}
+		expected map[string]any
 	}{
 		{
 			name:   "true boolean",
 			xmlTag: `<element checked="true">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"checked": true,
 			},
 		},
 		{
 			name:   "false boolean",
 			xmlTag: `<element checked="false">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"checked": false,
 			},
 		},
 		{
 			name:   "multiple boolean attributes",
 			xmlTag: `<element checked="true" disabled="false" readonly="true">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"checked":  true,
 				"disabled": false,
 				"readonly": true,
@@ -95,33 +95,33 @@ func TestParseXMLAttributes_NumericValues(t *testing.T) {
 	tests := []struct {
 		name     string
 		xmlTag   string
-		expected map[string]interface{}
+		expected map[string]any
 	}{
 		{
 			name:   "positive integer",
 			xmlTag: `<element width="100">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"width": 100,
 			},
 		},
 		{
 			name:   "negative integer",
 			xmlTag: `<element offset="-5">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"offset": -5,
 			},
 		},
 		{
 			name:   "zero",
 			xmlTag: `<element count="0">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"count": 0,
 			},
 		},
 		{
 			name:   "multiple numeric attributes",
 			xmlTag: `<element width="100" height="200" depth="50">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"width":  100,
 				"height": 200,
 				"depth":  50,
@@ -130,7 +130,7 @@ func TestParseXMLAttributes_NumericValues(t *testing.T) {
 		{
 			name:   "decimal stays as string",
 			xmlTag: `<element value="3.14">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"value": "3.14",
 			},
 		},
@@ -148,12 +148,12 @@ func TestParseXMLAttributes_MixedQuotes(t *testing.T) {
 	tests := []struct {
 		name     string
 		xmlTag   string
-		expected map[string]interface{}
+		expected map[string]any
 	}{
 		{
 			name:   "mixed double and single quotes",
 			xmlTag: `<element id="test" class='example' count="42">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"id":    "test",
 				"class": "example",
 				"count": 42,
@@ -162,7 +162,7 @@ func TestParseXMLAttributes_MixedQuotes(t *testing.T) {
 		{
 			name:   "mixed types with different quotes",
 			xmlTag: `<element checked='true' width="100" label="test">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"checked": true,
 				"width":   100,
 				"label":   "test",
@@ -182,27 +182,27 @@ func TestParseXMLAttributes_EdgeCases(t *testing.T) {
 	tests := []struct {
 		name     string
 		xmlTag   string
-		expected map[string]interface{}
+		expected map[string]any
 	}{
 		{
 			name:     "no attributes",
 			xmlTag:   `<element>`,
-			expected: map[string]interface{}{},
+			expected: map[string]any{},
 		},
 		{
 			name:     "empty tag",
 			xmlTag:   ``,
-			expected: map[string]interface{}{},
+			expected: map[string]any{},
 		},
 		{
 			name:     "self-closing tag",
 			xmlTag:   `<element id="test" />`,
-			expected: map[string]interface{}{"id": "test"},
+			expected: map[string]any{"id": "test"},
 		},
 		{
 			name:   "attributes with special characters in values",
 			xmlTag: `<element data-info="value-with-dashes" class="test_underscore">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"data-info": "value-with-dashes",
 				"class":     "test_underscore",
 			},
@@ -210,7 +210,7 @@ func TestParseXMLAttributes_EdgeCases(t *testing.T) {
 		{
 			name:   "mixed types all together",
 			xmlTag: `<element id="test" width="100" checked="true" height="0" disabled="false" label="">`,
-			expected: map[string]interface{}{
+			expected: map[string]any{
 				"id":       "test",
 				"width":    100,
 				"checked":  true,

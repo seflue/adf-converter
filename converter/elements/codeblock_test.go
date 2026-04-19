@@ -15,7 +15,7 @@ func TestCodeBlock_ToMarkdown_WithLanguage(t *testing.T) {
 	cb := NewCodeBlockConverter()
 	node := adf_types.ADFNode{
 		Type:  adf_types.NodeTypeCodeBlock,
-		Attrs: map[string]interface{}{"language": "go"},
+		Attrs: map[string]any{"language": "go"},
 		Content: []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeText, Text: "fmt.Println()"},
 		},
@@ -45,7 +45,7 @@ func TestCodeBlock_ToMarkdown_EmptyLanguage(t *testing.T) {
 	cb := NewCodeBlockConverter()
 	node := adf_types.ADFNode{
 		Type:  adf_types.NodeTypeCodeBlock,
-		Attrs: map[string]interface{}{"language": ""},
+		Attrs: map[string]any{"language": ""},
 		Content: []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeText, Text: "code"},
 		},
@@ -71,7 +71,7 @@ func TestCodeBlock_ToMarkdown_MultilineContent(t *testing.T) {
 	cb := NewCodeBlockConverter()
 	node := adf_types.ADFNode{
 		Type:  adf_types.NodeTypeCodeBlock,
-		Attrs: map[string]interface{}{"language": "go"},
+		Attrs: map[string]any{"language": "go"},
 		Content: []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeText, Text: "func main() {\n\tfmt.Println(\"hello\")\n}"},
 		},
@@ -114,7 +114,7 @@ func TestCodeBlock_ToMarkdown_WarningOnExtraAttrs(t *testing.T) {
 	cb := NewCodeBlockConverter()
 	node := adf_types.ADFNode{
 		Type:  adf_types.NodeTypeCodeBlock,
-		Attrs: map[string]interface{}{"language": "go", "uniqueId": "abc-123"},
+		Attrs: map[string]any{"language": "go", "uniqueId": "abc-123"},
 		Content: []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeText, Text: "code"},
 		},
@@ -260,7 +260,7 @@ func TestCodeBlock_RoundTrip_Simple(t *testing.T) {
 	cb := NewCodeBlockConverter()
 	original := adf_types.ADFNode{
 		Type:  adf_types.NodeTypeCodeBlock,
-		Attrs: map[string]interface{}{"language": "go"},
+		Attrs: map[string]any{"language": "go"},
 		Content: []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeText, Text: "fmt.Println(\"hello\")"},
 		},

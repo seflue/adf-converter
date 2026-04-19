@@ -20,7 +20,7 @@ func TestMentionRoundtrip(t *testing.T) {
 			name: "basic mention",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":   "abc123",
 					"text": "@john.doe",
 				},
@@ -30,7 +30,7 @@ func TestMentionRoundtrip(t *testing.T) {
 			name: "mention with all attrs",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":          "user456",
 					"text":        "@jane.smith",
 					"accessLevel": "CONTAINER",
@@ -42,7 +42,7 @@ func TestMentionRoundtrip(t *testing.T) {
 			name: "mention with only accessLevel",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":          "user789",
 					"text":        "@bob",
 					"accessLevel": "APPLICATION",
@@ -106,10 +106,10 @@ func TestMentionRoundtrip(t *testing.T) {
 
 func TestUnresolvedMentionRoundtrip(t *testing.T) {
 	tests := []struct {
-		name       string
-		markdown   string
-		wantID     string
-		wantText   string
+		name     string
+		markdown string
+		wantID   string
+		wantText string
 	}{
 		{
 			name:     "unresolved mention with single word",
@@ -163,7 +163,7 @@ func TestMentionIDURLEncoding(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeMention,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"id":   "Some Name",
 							"text": "@Some Name",
 						},
@@ -208,7 +208,7 @@ func TestMentionInMixedParagraph(t *testing.T) {
 					adf_types.NewTextNode("Hello "),
 					{
 						Type: adf_types.NodeTypeMention,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"id":   "abc123",
 							"text": "@john",
 						},

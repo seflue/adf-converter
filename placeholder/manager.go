@@ -247,7 +247,7 @@ func mediaIDKey(node adf_types.ADFNode) string {
 
 // generateMediaPreview creates a preview for media content
 func generateMediaPreview(node adf_types.ADFNode) string {
-	var mediaAttrs map[string]interface{}
+	var mediaAttrs map[string]any
 	var layout string
 
 	switch node.Type {

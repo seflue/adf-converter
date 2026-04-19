@@ -120,14 +120,14 @@ func (tc *taskListConverter) convertParagraphToMarkdown(paragraph adf_types.ADFN
 //	- [x] Completed task
 //	</taskList>
 func (tc *taskListConverter) FromMarkdown(lines []string, startIndex int, context converter.ConversionContext) (adf_types.ADFNode, int, error) {
-	emptyNode := adf_types.ADFNode{Type: "taskList", Attrs: map[string]interface{}{}, Content: nil}
+	emptyNode := adf_types.ADFNode{Type: "taskList", Attrs: map[string]any{}, Content: nil}
 
 	if startIndex >= len(lines) {
 		return emptyNode, 0, nil
 	}
 
 	firstLine := strings.TrimSpace(lines[startIndex])
-	attrs := make(map[string]interface{})
+	attrs := make(map[string]any)
 
 	// XML-wrapped taskList
 	if strings.HasPrefix(firstLine, "<taskList") {
@@ -183,7 +183,7 @@ func (tc *taskListConverter) countTaskListLines(lines []string, startIndex int) 
 	return lastTaskLine
 }
 
-func (tc *taskListConverter) extractFromXMLWrapper(lines []string) ([]string, map[string]interface{}) {
+func (tc *taskListConverter) extractFromXMLWrapper(lines []string) ([]string, map[string]any) {
 	attrs := internal.ParseXMLAttributes(strings.TrimSpace(lines[0]))
 	var contentLines []string
 	for i := 1; i < len(lines); i++ {
@@ -196,7 +196,7 @@ func (tc *taskListConverter) extractFromXMLWrapper(lines []string) ([]string, ma
 }
 
 // parseTaskItems parses markdown task list lines into ADF taskItem nodes
-func (tc *taskListConverter) parseTaskItems(lines []string, taskListAttrs map[string]interface{}) []adf_types.ADFNode {
+func (tc *taskListConverter) parseTaskItems(lines []string, taskListAttrs map[string]any) []adf_types.ADFNode {
 	var taskItems []adf_types.ADFNode
 
 	for _, line := range lines {
@@ -222,7 +222,7 @@ func (tc *taskListConverter) parseTaskItems(lines []string, taskListAttrs map[st
 		// Create task item node
 		taskItem := adf_types.ADFNode{
 			Type: "taskItem",
-			Attrs: map[string]interface{}{
+			Attrs: map[string]any{
 				"state": state,
 			},
 			Content: []adf_types.ADFNode{
@@ -257,7 +257,7 @@ func (tc *taskListConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.MarkdownTaskList
 }
 
-func (tc *taskListConverter) ValidateInput(input interface{}) error {
+func (tc *taskListConverter) ValidateInput(input any) error {
 	if input == nil {
 		return fmt.Errorf("input cannot be nil")
 	}
@@ -283,4 +283,3 @@ func generateLocalId() string {
 	_, _ = rand.Read(b)
 	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
-

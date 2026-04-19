@@ -21,7 +21,7 @@ func TestDateConverter_ToMarkdown(t *testing.T) {
 			name: "basic date with unix millis",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeDate,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"timestamp": "1743724800000",
 				},
 			},
@@ -38,7 +38,7 @@ func TestDateConverter_ToMarkdown(t *testing.T) {
 			name: "date with empty timestamp",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeDate,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"timestamp": "",
 				},
 			},
@@ -48,7 +48,7 @@ func TestDateConverter_ToMarkdown(t *testing.T) {
 			name: "date with non-midnight timestamp",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeDate,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"timestamp": "1743771600000",
 				},
 			},
@@ -110,7 +110,7 @@ func TestDateConverter_Roundtrip(t *testing.T) {
 					adf_types.NewTextNode("Due: "),
 					{
 						Type: adf_types.NodeTypeDate,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"timestamp": "1743724800000",
 						},
 					},

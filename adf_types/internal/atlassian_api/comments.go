@@ -15,7 +15,7 @@ type MarkScheme = adf_types.ADFMark
 // CommentPayload represents a comment payload structure compatible with go-atlassian
 // while using our ADFDocument for the body content.
 type CommentPayload struct {
-	Visibility *CommentVisibility    `json:"visibility,omitempty"`
+	Visibility *CommentVisibility     `json:"visibility,omitempty"`
 	Body       *adf_types.ADFDocument `json:"body,omitempty"`
 }
 

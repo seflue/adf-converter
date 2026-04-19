@@ -3,10 +3,10 @@ package converter
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/placeholder"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ============================================================================

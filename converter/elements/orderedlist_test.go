@@ -510,7 +510,7 @@ func TestOrderedListConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		wantErr bool
 	}{
 		{
@@ -552,17 +552,17 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 	t.Run("ToMarkdown", func(t *testing.T) {
 		tests := []struct {
 			name     string
-			attrs    map[string]interface{}
+			attrs    map[string]any
 			expected string
 		}{
 			{
 				name:     "start at 5",
-				attrs:    map[string]interface{}{"order": float64(5)},
+				attrs:    map[string]any{"order": float64(5)},
 				expected: "5. First\n6. Second\n\n",
 			},
 			{
 				name:     "start at 0",
-				attrs:    map[string]interface{}{"order": float64(0)},
+				attrs:    map[string]any{"order": float64(0)},
 				expected: "0. First\n1. Second\n\n",
 			},
 			{
@@ -572,7 +572,7 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 			},
 			{
 				name:     "explicit start at 1 (default)",
-				attrs:    map[string]interface{}{"order": float64(1)},
+				attrs:    map[string]any{"order": float64(1)},
 				expected: "1. First\n2. Second\n\n",
 			},
 		}
@@ -620,17 +620,17 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 		tests := []struct {
 			name          string
 			lines         []string
-			expectedAttrs map[string]interface{}
+			expectedAttrs map[string]any
 		}{
 			{
 				name:          "start at 5",
 				lines:         []string{"5. First", "6. Second", ""},
-				expectedAttrs: map[string]interface{}{"order": float64(5)},
+				expectedAttrs: map[string]any{"order": float64(5)},
 			},
 			{
 				name:          "start at 0",
 				lines:         []string{"0. First", "1. Second", ""},
-				expectedAttrs: map[string]interface{}{"order": float64(0)},
+				expectedAttrs: map[string]any{"order": float64(0)},
 			},
 			{
 				name:          "start at 1 (default, no attrs)",
@@ -668,12 +668,12 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 	t.Run("RoundTrip", func(t *testing.T) {
 		tests := []struct {
 			name     string
-			attrs    map[string]interface{}
+			attrs    map[string]any
 			markdown string
 		}{
 			{
 				name:     "start at 5 survives roundtrip",
-				attrs:    map[string]interface{}{"order": float64(5)},
+				attrs:    map[string]any{"order": float64(5)},
 				markdown: "5. Alpha\n6. Beta\n\n",
 			},
 			{

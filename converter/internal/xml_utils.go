@@ -8,8 +8,8 @@ import (
 // ParseXMLAttributes extracts attributes from an XML opening tag.
 // Matches: attribute="value" or attribute='value'
 // Converts boolean strings ("true"/"false") and numeric strings to appropriate types.
-func ParseXMLAttributes(xmlTag string) map[string]interface{} {
-	attrs := make(map[string]interface{})
+func ParseXMLAttributes(xmlTag string) map[string]any {
+	attrs := make(map[string]any)
 
 	// Simple regex-based attribute parsing
 	// Matches: attribute="value" or attribute='value'

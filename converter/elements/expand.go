@@ -112,7 +112,7 @@ func (ec *expandConverter) FromMarkdown(lines []string, startIndex int, context 
 	}
 
 	// Parse attributes from opening tag
-	attributes := make(map[string]interface{})
+	attributes := make(map[string]any)
 
 	if idMatch := idAttrRegex.FindStringSubmatch(firstLine); len(idMatch) > 1 {
 		attributes["localId"] = idMatch[1]
@@ -230,7 +230,7 @@ func (ec *expandConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (ec *expandConverter) ValidateInput(input interface{}) error {
+func (ec *expandConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/forPelevin/gomoji"
+	"github.com/seflue/adf-converter/adf_types"
+	"github.com/seflue/adf-converter/placeholder"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
 	east "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
-	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/placeholder"
 )
 
 // PlaceholderPattern matches placeholder HTML comments
@@ -237,7 +237,7 @@ func detectAndConvertEmojis(text string, parentMarks []adf_types.ADFMark) []adf_
 
 // createEmojiNode creates an ADF emoji node from gomoji emoji info
 func createEmojiNode(emoji gomoji.Emoji) adf_types.ADFNode {
-	attrs := map[string]interface{}{
+	attrs := map[string]any{
 		"text": emoji.Character,
 	}
 
@@ -426,7 +426,7 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 		if isOpeningHTMLTag(n, source, "span") {
 			content := rawHTMLContent(n, source)
 			if color, ok := extractColorFromSpan(content); ok {
-				colorMark := adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+				colorMark := adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]any{
 					"color": color,
 				})
 				collected, nextNode, err := collectNodesUntilClosingTag(node.NextSibling(), source, "span", colorMark, parentMarks)
@@ -443,7 +443,7 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 			}
 		}
 		if isOpeningHTMLTag(n, source, "sub") {
-			subMark := adf_types.NewMark(adf_types.MarkTypeSubsup, map[string]interface{}{"type": "sub"})
+			subMark := adf_types.NewMark(adf_types.MarkTypeSubsup, map[string]any{"type": "sub"})
 			collected, nextNode, err := collectNodesUntilClosingTag(node.NextSibling(), source, "sub", subMark, parentMarks)
 			if err == nil {
 				if nextNode != nil {
@@ -457,7 +457,7 @@ func convertSingleInlineNode(node ast.Node, source []byte, parentMarks []adf_typ
 			}
 		}
 		if isOpeningHTMLTag(n, source, "sup") {
-			supMark := adf_types.NewMark(adf_types.MarkTypeSubsup, map[string]interface{}{"type": "sup"})
+			supMark := adf_types.NewMark(adf_types.MarkTypeSubsup, map[string]any{"type": "sup"})
 			collected, nextNode, err := collectNodesUntilClosingTag(node.NextSibling(), source, "sup", supMark, parentMarks)
 			if err == nil {
 				if nextNode != nil {
@@ -574,7 +574,7 @@ func marksEqual(a, b []adf_types.ADFMark) bool {
 }
 
 // attrsEqual checks if two attribute maps are equal
-func attrsEqual(a, b map[string]interface{}) bool {
+func attrsEqual(a, b map[string]any) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -603,11 +603,11 @@ func convertLinkNode(n *ast.Link, source []byte, parentMarks []adf_types.ADFMark
 	if isInlineCardLink(linkText, href) {
 		return []adf_types.ADFNode{{
 			Type:  adf_types.NodeTypeInlineCard,
-			Attrs: map[string]interface{}{"url": href},
+			Attrs: map[string]any{"url": href},
 		}}, nil
 	}
 
-	attrs := map[string]interface{}{"href": href}
+	attrs := map[string]any{"href": href}
 	if len(n.Title) > 0 {
 		attrs["title"] = string(n.Title)
 	}
@@ -624,7 +624,7 @@ func parseMentionLink(href, linkText string) (adf_types.ADFNode, bool) {
 		displayName := strings.TrimPrefix(linkText, "@")
 		return adf_types.ADFNode{
 			Type: adf_types.NodeTypeMention,
-			Attrs: map[string]interface{}{
+			Attrs: map[string]any{
 				"id":   displayName,
 				"text": linkText,
 			},
@@ -655,7 +655,7 @@ func parseMentionLink(href, linkText string) (adf_types.ADFNode, bool) {
 		decodedID = id
 	}
 
-	attrs := map[string]interface{}{
+	attrs := map[string]any{
 		"id":   decodedID,
 		"text": linkText,
 	}
@@ -735,7 +735,7 @@ func restoreTextWithDates(textNode adf_types.ADFNode, dates map[string]string) [
 	millis := dateToMillisUnchecked(dates[marker])
 	result = append(result, adf_types.ADFNode{
 		Type:  adf_types.NodeTypeDate,
-		Attrs: map[string]interface{}{"timestamp": millis},
+		Attrs: map[string]any{"timestamp": millis},
 	})
 
 	if len(after) > 0 {
@@ -808,7 +808,7 @@ func restoreTextWithStatuses(textNode adf_types.ADFNode, statuses map[string]sta
 
 	result = append(result, adf_types.ADFNode{
 		Type: adf_types.NodeTypeStatus,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"text":  info.text,
 			"color": info.color,
 		},

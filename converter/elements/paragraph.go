@@ -6,8 +6,8 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/inline"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -167,7 +167,7 @@ func (pc *paragraphConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (pc *paragraphConverter) ValidateInput(input interface{}) error {
+func (pc *paragraphConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

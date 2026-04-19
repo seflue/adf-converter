@@ -135,4 +135,3 @@ func parsePlaceholderNode(lines []string, manager placeholder.Manager) (*adf_typ
 
 	return &node, 1, nil
 }
-

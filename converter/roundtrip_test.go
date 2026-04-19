@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/placeholder"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ============================================================================
@@ -122,7 +122,7 @@ func TestRoundTripConversion_MultipleHeadings(t *testing.T) {
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 1,
 				},
 				Content: []adf_types.ADFNode{
@@ -134,7 +134,7 @@ func TestRoundTripConversion_MultipleHeadings(t *testing.T) {
 			},
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 2,
 				},
 				Content: []adf_types.ADFNode{
@@ -287,7 +287,7 @@ func TestRoundTripConversion_TextColorText(t *testing.T) {
 						Type: adf_types.NodeTypeText,
 						Text: "red text",
 						Marks: []adf_types.ADFMark{
-							adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+							adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]any{
 								"color": "#ff0000",
 							}),
 						},
@@ -321,7 +321,7 @@ func TestRoundTripConversion_TextColorBoldText(t *testing.T) {
 						Type: adf_types.NodeTypeText,
 						Text: "bold red",
 						Marks: []adf_types.ADFMark{
-							adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+							adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]any{
 								"color": "#ff0000",
 							}),
 							{Type: adf_types.MarkTypeStrong},
@@ -382,7 +382,7 @@ func TestRoundTripConversion_SubscriptText(t *testing.T) {
 						Marks: []adf_types.ADFMark{
 							{
 								Type: adf_types.MarkTypeSubsup,
-								Attrs: map[string]interface{}{
+								Attrs: map[string]any{
 									"type": "sub",
 								},
 							},
@@ -423,7 +423,7 @@ func TestRoundTripConversion_SuperscriptText(t *testing.T) {
 						Marks: []adf_types.ADFMark{
 							{
 								Type: adf_types.MarkTypeSubsup,
-								Attrs: map[string]interface{}{
+								Attrs: map[string]any{
 									"type": "sup",
 								},
 							},
@@ -460,7 +460,7 @@ func TestRoundTripConversion_BoldSubscriptText(t *testing.T) {
 						Marks: []adf_types.ADFMark{
 							{
 								Type: adf_types.MarkTypeSubsup,
-								Attrs: map[string]interface{}{
+								Attrs: map[string]any{
 									"type": "sub",
 								},
 							},
@@ -518,7 +518,7 @@ func TestEnhancedLinkRoundtrip_BasicExternalLinks(t *testing.T) {
 						Marks: []adf_types.ADFMark{
 							{
 								Type: adf_types.MarkTypeLink,
-								Attrs: map[string]interface{}{
+								Attrs: map[string]any{
 									"href": "https://google.com",
 								},
 							},
@@ -584,7 +584,7 @@ func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeExpand,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"title": "Click to expand",
 				},
 				Content: []adf_types.ADFNode{
@@ -638,7 +638,7 @@ func TestRoundTrip_ComplexDocument(t *testing.T) {
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 1,
 				},
 				Content: []adf_types.ADFNode{
@@ -672,7 +672,7 @@ func TestRoundTrip_ComplexDocument(t *testing.T) {
 						Marks: []adf_types.ADFMark{
 							{
 								Type: adf_types.MarkTypeLink,
-								Attrs: map[string]interface{}{
+								Attrs: map[string]any{
 									"href": "https://example.com",
 								},
 							},
@@ -803,7 +803,7 @@ func TestRoundTripFidelity_PreservesAllContent(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type:  adf_types.NodeTypeHeading,
-						Attrs: map[string]interface{}{"level": 2},
+						Attrs: map[string]any{"level": 2},
 						Content: []adf_types.ADFNode{
 							{Type: adf_types.NodeTypeText, Text: "Level 2 Heading"},
 						},
@@ -915,7 +915,7 @@ func TestExpandRoundtrip_NestedExpandWithContent(t *testing.T) {
 		Content: []adf_types.ADFNode{
 			{
 				Type:  adf_types.NodeTypeExpand,
-				Attrs: map[string]interface{}{"title": "Outer"},
+				Attrs: map[string]any{"title": "Outer"},
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeParagraph,
@@ -925,7 +925,7 @@ func TestExpandRoundtrip_NestedExpandWithContent(t *testing.T) {
 					},
 					{
 						Type:  adf_types.NodeTypeNestedExpand,
-						Attrs: map[string]interface{}{"title": "Inner"},
+						Attrs: map[string]any{"title": "Inner"},
 						Content: []adf_types.ADFNode{
 							{
 								Type: adf_types.NodeTypeParagraph,
@@ -1000,7 +1000,7 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeExpand,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"title":    "Expanded Section",
 							"expanded": true,
 						},
@@ -1025,7 +1025,7 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeExpand,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"title":   "Section with ID",
 							"localId": "my-expand-123",
 						},
@@ -1050,7 +1050,7 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeExpand,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"title":    "Full Featured Section",
 							"expanded": true,
 							"localId":  "full-expand",
@@ -1247,7 +1247,7 @@ Regular content after all details.`,
 				Content: []adf_types.ADFNode{
 					{
 						Type: "heading",
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"level": 1,
 						},
 						Content: []adf_types.ADFNode{
@@ -1299,13 +1299,13 @@ func TestRoundTrip_OrderedList_StartNumber(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		attrs         map[string]interface{}
+		attrs         map[string]any
 		expectedStart string
 		expectAttrs   bool
 	}{
 		{
 			name:          "start at 5 survives full pipeline",
-			attrs:         map[string]interface{}{"order": float64(5)},
+			attrs:         map[string]any{"order": float64(5)},
 			expectedStart: "5.",
 			expectAttrs:   true,
 		},
@@ -1511,8 +1511,8 @@ func TestRoundTripConversion_InlineCardDataOnly(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeInlineCard,
-						Attrs: map[string]interface{}{
-							"data": map[string]interface{}{
+						Attrs: map[string]any{
+							"data": map[string]any{
 								"@type": "Document",
 								"name":  "My Document",
 							},
@@ -1550,7 +1550,7 @@ func TestRoundTrip_MediaInline_InParagraph(t *testing.T) {
 	// mediaInline node with typical attrs (id, collection, type)
 	mediaInlineNode := adf_types.ADFNode{
 		Type: adf_types.NodeTypeMediaInline,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"id":         "abc-123",
 			"collection": "contentId-456",
 			"type":       "file",
@@ -1616,7 +1616,7 @@ func TestRoundTrip_MediaInline_StandaloneInParagraph(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeMediaInline,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"id":         "media-solo",
 							"collection": "col-1",
 							"type":       "image",
@@ -1646,7 +1646,7 @@ func TestMediaInline_PlaceholderPreview(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeMediaInline,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"id":   "img-42",
 			"type": "image",
 		},

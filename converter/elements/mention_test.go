@@ -20,7 +20,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			name: "basic mention",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":   "abc123",
 					"text": "@john.doe",
 				},
@@ -31,7 +31,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			name: "mention with accessLevel and userType",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":          "abc123",
 					"text":        "@john.doe",
 					"accessLevel": "CONTAINER",
@@ -44,7 +44,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			name: "mention with only accessLevel",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":          "abc123",
 					"text":        "@john.doe",
 					"accessLevel": "CONTAINER",
@@ -56,7 +56,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			name: "mention with only userType",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":       "abc123",
 					"text":     "@john.doe",
 					"userType": "DEFAULT",
@@ -68,7 +68,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			name: "mention without text falls back to id",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id": "abc123",
 				},
 			},
@@ -78,7 +78,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			name: "mention with spaces in id gets URL-encoded",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":   "Some Name",
 					"text": "@Some Name",
 				},
@@ -96,7 +96,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 			name: "mention with empty id",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeMention,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"text": "@john",
 				},
 			},

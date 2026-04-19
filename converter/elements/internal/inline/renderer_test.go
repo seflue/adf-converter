@@ -68,7 +68,7 @@ func TestRenderInlineNodes_MarkSpanning(t *testing.T) {
 				{Type: adf_types.NodeTypeText, Text: "text ", Marks: []adf_types.ADFMark{{Type: adf_types.MarkTypeStrong}}},
 				{Type: adf_types.NodeTypeText, Text: "link", Marks: []adf_types.ADFMark{
 					{Type: adf_types.MarkTypeStrong},
-					{Type: adf_types.MarkTypeLink, Attrs: map[string]interface{}{"href": "https://example.com"}},
+					{Type: adf_types.MarkTypeLink, Attrs: map[string]any{"href": "https://example.com"}},
 				}},
 			},
 			want: "**text [link](https://example.com)**",

@@ -61,7 +61,7 @@ func (c *emojiConverter) GetStrategy() converter.ConversionStrategy {
 }
 
 // ValidateInput validates that the input is a valid emoji node
-func (c *emojiConverter) ValidateInput(input interface{}) error {
+func (c *emojiConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("invalid input type: expected ADFNode, got %T", input)

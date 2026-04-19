@@ -21,7 +21,7 @@ func TestTextNodeRegression(t *testing.T) {
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 1,
 				},
 				Content: []adf_types.ADFNode{
@@ -30,7 +30,7 @@ func TestTextNodeRegression(t *testing.T) {
 			},
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 3,
 				},
 				Content: []adf_types.ADFNode{
@@ -39,13 +39,13 @@ func TestTextNodeRegression(t *testing.T) {
 			},
 			{
 				Type: adf_types.NodeTypeExpand,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"title": "Also expandable",
 				},
 				Content: []adf_types.ADFNode{
 					{
 						Type: adf_types.NodeTypeHeading,
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"level": 2,
 						},
 						Content: []adf_types.ADFNode{
@@ -62,7 +62,7 @@ func TestTextNodeRegression(t *testing.T) {
 			},
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 1,
 				},
 				Content: []adf_types.ADFNode{
@@ -84,7 +84,7 @@ func TestTextNodeRegression(t *testing.T) {
 										Marks: []adf_types.ADFMark{
 											{
 												Type: adf_types.MarkTypeLink,
-												Attrs: map[string]interface{}{
+												Attrs: map[string]any{
 													"href": "https://opensource.com/article/23/3/python-loves-rust",
 												},
 											},

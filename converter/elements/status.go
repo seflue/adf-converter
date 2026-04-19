@@ -49,7 +49,7 @@ func (sc *statusConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (sc *statusConverter) ValidateInput(input interface{}) error {
+func (sc *statusConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

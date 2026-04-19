@@ -121,11 +121,11 @@ func (tc *tableConverter) ToMarkdown(node adf_types.ADFNode, context converter.C
 
 // filterDefaultTableAttrs returns a copy of attrs with ADF spec defaults removed.
 // Defaults per spec: layout="center", isNumberColumnEnabled=false, displayMode="default".
-func filterDefaultTableAttrs(attrs map[string]interface{}) map[string]interface{} {
+func filterDefaultTableAttrs(attrs map[string]any) map[string]any {
 	if len(attrs) == 0 {
 		return nil
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	for k, v := range attrs {
 		switch k {
 		case "localId":
@@ -290,7 +290,7 @@ func (tc *tableConverter) parseXMLWrappedTable(lines []string) (adf_types.ADFNod
 	// Add the preserved XML attributes to the table node
 	if len(attrs) > 0 {
 		if tableNode.Attrs == nil {
-			tableNode.Attrs = make(map[string]interface{})
+			tableNode.Attrs = make(map[string]any)
 		}
 		for key, value := range attrs {
 			tableNode.Attrs[key] = value
@@ -315,7 +315,7 @@ func (tc *tableConverter) GetStrategy() converter.ConversionStrategy {
 }
 
 // ValidateInput validates that the input can be processed
-func (tc *tableConverter) ValidateInput(input interface{}) error {
+func (tc *tableConverter) ValidateInput(input any) error {
 	if input == nil {
 		return fmt.Errorf("input cannot be nil")
 	}
@@ -340,7 +340,7 @@ func (tc *tableConverter) ValidateInput(input interface{}) error {
 // Writes all attrs from the map in a stable order (localId first, then sorted).
 //
 //nolint:unparam // error return reserved for future use
-func (tc *tableConverter) wrapTableWithXML(markdownTable string, attrs map[string]interface{}) (string, error) {
+func (tc *tableConverter) wrapTableWithXML(markdownTable string, attrs map[string]any) (string, error) {
 	var xmlBuilder strings.Builder
 	xmlBuilder.WriteString("<table")
 
@@ -360,7 +360,7 @@ func (tc *tableConverter) wrapTableWithXML(markdownTable string, attrs map[strin
 }
 
 // sortedAttrKeys returns attr keys with localId first, rest alphabetically.
-func sortedAttrKeys(attrs map[string]interface{}) []string {
+func sortedAttrKeys(attrs map[string]any) []string {
 	var keys []string
 	hasLocalId := false
 	for k := range attrs {

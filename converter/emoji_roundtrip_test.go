@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/placeholder"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestEmojiRoundTrip tests that emoji nodes survive a full ADF → Markdown → ADF round-trip
@@ -16,9 +16,10 @@ import (
 // detected back during markdown → ADF conversion using gomoji library.
 //
 // Round-trip flow:
-//   ADF with emoji → Markdown with unicode emoji → ADF conversion
-//   Expected: Emoji node recreated from unicode with gomoji metadata
-//   Result: Full round-trip fidelity with editable emojis
+//
+//	ADF with emoji → Markdown with unicode emoji → ADF conversion
+//	Expected: Emoji node recreated from unicode with gomoji metadata
+//	Result: Full round-trip fidelity with editable emojis
 func TestEmojiRoundTrip(t *testing.T) {
 	// Create original ADF document with emoji in list item (matches real Jira structure)
 	originalADF := adf_types.ADFDocument{
@@ -36,7 +37,7 @@ func TestEmojiRoundTrip(t *testing.T) {
 								Content: []adf_types.ADFNode{
 									{
 										Type: adf_types.NodeTypeEmoji,
-										Attrs: map[string]interface{}{
+										Attrs: map[string]any{
 											"id":        "2705",
 											"shortName": ":white_check_mark:",
 											"text":      "✅",
@@ -140,7 +141,7 @@ func TestEmojiRoundTrip_MultipleEmojis(t *testing.T) {
 								Content: []adf_types.ADFNode{
 									{
 										Type: adf_types.NodeTypeEmoji,
-										Attrs: map[string]interface{}{
+										Attrs: map[string]any{
 											"id":        "2705",
 											"shortName": ":white_check_mark:",
 											"text":      "✅",
@@ -162,7 +163,7 @@ func TestEmojiRoundTrip_MultipleEmojis(t *testing.T) {
 								Content: []adf_types.ADFNode{
 									{
 										Type: adf_types.NodeTypeEmoji,
-										Attrs: map[string]interface{}{
+										Attrs: map[string]any{
 											"id":        "1f44d",
 											"shortName": ":thumbsup:",
 											"text":      "👍",
@@ -211,7 +212,7 @@ func TestEmojiRoundTrip_MultipleEmojis(t *testing.T) {
 }
 
 // Helper function for debugging
-func jsonPrettyPrint(v interface{}) string {
+func jsonPrettyPrint(v any) string {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return ""

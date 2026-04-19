@@ -50,7 +50,7 @@ type ElementConverter interface {
 	//
 	// For ToMarkdown: validates node structure
 	// For FromMarkdown: validates markdown format
-	ValidateInput(input interface{}) error
+	ValidateInput(input any) error
 }
 
 // BlockParser extends ElementConverter with line-based dispatch for MD→ADF parsing.

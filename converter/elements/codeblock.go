@@ -92,7 +92,7 @@ func (c *codeBlockConverter) FromMarkdown(lines []string, startIndex int, contex
 
 		node := adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock}
 		if language != "" {
-			node.Attrs = map[string]interface{}{"language": language}
+			node.Attrs = map[string]any{"language": language}
 		}
 		node.Content = []adf_types.ADFNode{
 			{Type: adf_types.NodeTypeText, Text: content},
@@ -116,7 +116,7 @@ func (c *codeBlockConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.MarkdownCodeBlock
 }
 
-func (c *codeBlockConverter) ValidateInput(input interface{}) error {
+func (c *codeBlockConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

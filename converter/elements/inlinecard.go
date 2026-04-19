@@ -19,7 +19,7 @@ func NewInlineCardConverter() converter.ElementConverter {
 
 var complexMetadataAttrs = []string{"id", "space", "type", "version", "status", "localId", "key"}
 
-func hasComplexMetadata(attrs map[string]interface{}) bool {
+func hasComplexMetadata(attrs map[string]any) bool {
 	for _, attr := range complexMetadataAttrs {
 		if _, exists := attrs[attr]; exists {
 			return true
@@ -28,7 +28,7 @@ func hasComplexMetadata(attrs map[string]interface{}) bool {
 	return false
 }
 
-func buildComplexMetadataHTML(attrs map[string]interface{}, linkURL string) string {
+func buildComplexMetadataHTML(attrs map[string]any, linkURL string) string {
 	var b strings.Builder
 	b.WriteString("<a")
 	for _, attr := range complexMetadataAttrs {
@@ -116,7 +116,7 @@ func (ic *inlineCardConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (ic *inlineCardConverter) ValidateInput(input interface{}) error {
+func (ic *inlineCardConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

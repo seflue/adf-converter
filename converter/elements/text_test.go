@@ -200,7 +200,7 @@ func TestTextConverter_ToMarkdown_TextColor(t *testing.T) {
 			name: "red text",
 			text: "colored text",
 			marks: []adf_types.ADFMark{
-				adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+				adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]any{
 					"color": "#ff0000",
 				}),
 			},
@@ -210,7 +210,7 @@ func TestTextConverter_ToMarkdown_TextColor(t *testing.T) {
 			name: "blue text",
 			text: "blue words",
 			marks: []adf_types.ADFMark{
-				adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+				adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]any{
 					"color": "#0000ff",
 				}),
 			},
@@ -253,7 +253,7 @@ func TestTextConverter_ToMarkdown_TextColorBold(t *testing.T) {
 		Type: adf_types.NodeTypeText,
 		Text: "bold red",
 		Marks: []adf_types.ADFMark{
-			adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]interface{}{
+			adf_types.NewMark(adf_types.MarkTypeTextColor, map[string]any{
 				"color": "#ff0000",
 			}),
 			{Type: adf_types.MarkTypeStrong},
@@ -284,7 +284,7 @@ func TestTextConverter_ToMarkdown_LinkText(t *testing.T) {
 		Marks: []adf_types.ADFMark{
 			{
 				Type: adf_types.MarkTypeLink,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"href": "https://example.com",
 				},
 			},
@@ -314,7 +314,7 @@ func TestTextConverter_ToMarkdown_LinkWithoutHref(t *testing.T) {
 		Marks: []adf_types.ADFMark{
 			{
 				Type:  adf_types.MarkTypeLink,
-				Attrs: map[string]interface{}{}, // No href
+				Attrs: map[string]any{},
 			},
 		},
 	}
@@ -399,7 +399,7 @@ func TestTextConverter_ToMarkdown_SubscriptText(t *testing.T) {
 		Marks: []adf_types.ADFMark{
 			{
 				Type: adf_types.MarkTypeSubsup,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"type": "sub",
 				},
 			},
@@ -454,7 +454,7 @@ func TestTextConverter_ToMarkdown_SuperscriptText(t *testing.T) {
 		Marks: []adf_types.ADFMark{
 			{
 				Type: adf_types.MarkTypeSubsup,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"type": "sup",
 				},
 			},

@@ -146,4 +146,3 @@ func (c *DefaultConverter) GetClassifier() ContentClassifier {
 func (c *DefaultConverter) GetManager() placeholder.Manager {
 	return c.manager
 }
-

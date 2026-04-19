@@ -109,7 +109,7 @@ func (pc *panelConverter) parseFencedDiv(lines []string, startIndex int, context
 
 	node := adf_types.ADFNode{
 		Type:    adf_types.NodeTypePanel,
-		Attrs:   map[string]interface{}{"panelType": panelType},
+		Attrs:   map[string]any{"panelType": panelType},
 		Content: contentNodes,
 	}
 
@@ -129,7 +129,7 @@ func (pc *panelConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.MarkdownPanel
 }
 
-func (pc *panelConverter) ValidateInput(input interface{}) error {
+func (pc *panelConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")
@@ -204,7 +204,7 @@ func (pc *panelConverter) parseGitHubAdmonition(lines []string, startIndex int, 
 
 	node := adf_types.ADFNode{
 		Type:    adf_types.NodeTypePanel,
-		Attrs:   map[string]interface{}{"panelType": panelType},
+		Attrs:   map[string]any{"panelType": panelType},
 		Content: contentNodes,
 	}
 

@@ -3,10 +3,10 @@ package converter
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/placeholder"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ============================================================================
@@ -23,7 +23,7 @@ func TestFromMarkdown_DeletedPlaceholder(t *testing.T) {
 	// Store multiple placeholders to test selective deletion
 	codeBlock := adf_types.ADFNode{
 		Type: adf_types.NodeTypeCodeBlock,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"language": "go",
 		},
 		Content: []adf_types.ADFNode{
@@ -36,7 +36,7 @@ func TestFromMarkdown_DeletedPlaceholder(t *testing.T) {
 
 	panel := adf_types.ADFNode{
 		Type: adf_types.NodeTypePanel,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"panelType": "info",
 		},
 		Content: []adf_types.ADFNode{
@@ -168,7 +168,7 @@ func TestToMarkdown_HeadingWithText(t *testing.T) {
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": 2,
 				},
 				Content: []adf_types.ADFNode{

@@ -6,9 +6,9 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/dedent"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 // bulletListConverter handles conversion of ADF bullet list nodes to/from markdown
@@ -124,7 +124,7 @@ func (blc *bulletListConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (blc *bulletListConverter) ValidateInput(input interface{}) error {
+func (blc *bulletListConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

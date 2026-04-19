@@ -23,7 +23,7 @@ func TestUnknownInlineNodeRoundtrip(t *testing.T) {
 			name: "unknown inline node with scalar attrs",
 			node: adf_types.ADFNode{
 				Type: "mention2",
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"id":          "u-42",
 					"accessLevel": "ADMIN",
 				},
@@ -39,10 +39,10 @@ func TestUnknownInlineNodeRoundtrip(t *testing.T) {
 			name: "unknown inline node with nested attrs",
 			node: adf_types.ADFNode{
 				Type: "inlineExtension2",
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"extensionKey":  "com.example.widget",
 					"extensionType": "com.example",
-					"parameters": map[string]interface{}{
+					"parameters": map[string]any{
 						"foo": "bar",
 					},
 				},

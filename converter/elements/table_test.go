@@ -23,15 +23,15 @@ func TestTableConverter_FromMarkdown(t *testing.T) {
 	ctx := converter.ConversionContext{}
 
 	tests := []struct {
-		name            string
-		lines           []string
-		startIndex      int
-		wantType        string
-		wantRows        int
-		wantConsumed    int
-		wantHeaderCells int
+		name              string
+		lines             []string
+		startIndex        int
+		wantType          string
+		wantRows          int
+		wantConsumed      int
+		wantHeaderCells   int
 		wantFirstCellType string
-		wantErr         bool
+		wantErr           bool
 	}{
 		{
 			name: "plain table",
@@ -337,7 +337,7 @@ func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: "table",
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"layout": "wide",
 		},
 		Content: []adf_types.ADFNode{
@@ -385,43 +385,43 @@ func TestTableConverter_ToMarkdown_DefaultAttrsOmitWrapper(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		attrs      map[string]interface{}
+		name        string
+		attrs       map[string]any
 		wantWrapper bool
 	}{
 		{
 			name:        "only defaults produces no wrapper",
-			attrs:       map[string]interface{}{"isNumberColumnEnabled": false, "layout": "center"},
+			attrs:       map[string]any{"isNumberColumnEnabled": false, "layout": "center"},
 			wantWrapper: false,
 		},
 		{
 			name:        "layout default produces no wrapper",
-			attrs:       map[string]interface{}{"layout": "default"},
+			attrs:       map[string]any{"layout": "default"},
 			wantWrapper: false,
 		},
 		{
 			name:        "only default displayMode produces no wrapper",
-			attrs:       map[string]interface{}{"displayMode": "default"},
+			attrs:       map[string]any{"displayMode": "default"},
 			wantWrapper: false,
 		},
 		{
 			name:        "localId alone produces no wrapper",
-			attrs:       map[string]interface{}{"localId": "abc123", "isNumberColumnEnabled": false},
+			attrs:       map[string]any{"localId": "abc123", "isNumberColumnEnabled": false},
 			wantWrapper: false,
 		},
 		{
 			name:        "non-default layout triggers wrapper",
-			attrs:       map[string]interface{}{"layout": "align-start"},
+			attrs:       map[string]any{"layout": "align-start"},
 			wantWrapper: true,
 		},
 		{
 			name:        "isNumberColumnEnabled true triggers wrapper",
-			attrs:       map[string]interface{}{"isNumberColumnEnabled": true},
+			attrs:       map[string]any{"isNumberColumnEnabled": true},
 			wantWrapper: true,
 		},
 		{
 			name:        "width always triggers wrapper",
-			attrs:       map[string]interface{}{"width": 960},
+			attrs:       map[string]any{"width": 960},
 			wantWrapper: true,
 		},
 	}
@@ -606,7 +606,7 @@ func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
 	}{
 		{
 			name:     "textColor",
-			marks:    []adf_types.ADFMark{{Type: "textColor", Attrs: map[string]interface{}{"color": "#ff5630"}}},
+			marks:    []adf_types.ADFMark{{Type: "textColor", Attrs: map[string]any{"color": "#ff5630"}}},
 			text:     "red",
 			wantCell: `<span style="color: #ff5630">red</span>`,
 		},
@@ -618,7 +618,7 @@ func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
 		},
 		{
 			name:     "subscript",
-			marks:    []adf_types.ADFMark{{Type: "subsup", Attrs: map[string]interface{}{"type": "sub"}}},
+			marks:    []adf_types.ADFMark{{Type: "subsup", Attrs: map[string]any{"type": "sub"}}},
 			text:     "2",
 			wantCell: "<sub>2</sub>",
 		},
@@ -626,7 +626,7 @@ func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
 			name: "bold with textColor",
 			marks: []adf_types.ADFMark{
 				{Type: "strong"},
-				{Type: "textColor", Attrs: map[string]interface{}{"color": "#36b37e"}},
+				{Type: "textColor", Attrs: map[string]any{"color": "#36b37e"}},
 			},
 			text:     "green bold",
 			wantCell: `**<span style="color: #36b37e">green bold</span>**`,

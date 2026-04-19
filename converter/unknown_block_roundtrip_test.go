@@ -24,7 +24,7 @@ func TestUnknownBlockNodeRoundtrip(t *testing.T) {
 			name: "unknown block node with scalar attrs",
 			node: adf_types.ADFNode{
 				Type: "futureBlockThing",
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"key":   "value",
 					"count": float64(3),
 				},
@@ -40,7 +40,7 @@ func TestUnknownBlockNodeRoundtrip(t *testing.T) {
 			name: "unknown block node with nested content",
 			node: adf_types.ADFNode{
 				Type: "bodiedExtension2",
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"extensionKey": "com.example.widget",
 				},
 				Content: []adf_types.ADFNode{

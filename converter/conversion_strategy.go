@@ -94,4 +94,3 @@ func (cs ConversionStrategy) SupportsAttributes() bool {
 		return false
 	}
 }
-

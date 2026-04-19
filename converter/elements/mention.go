@@ -45,7 +45,7 @@ func (mc *mentionConverter) ToMarkdown(node adf_types.ADFNode, context converter
 }
 
 // buildMentionQuery builds query parameters from optional mention attributes
-func buildMentionQuery(attrs map[string]interface{}) string {
+func buildMentionQuery(attrs map[string]any) string {
 	params := url.Values{}
 
 	if accessLevel, ok := attrs["accessLevel"].(string); ok && accessLevel != "" {
@@ -70,7 +70,7 @@ func (mc *mentionConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (mc *mentionConverter) ValidateInput(input interface{}) error {
+func (mc *mentionConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

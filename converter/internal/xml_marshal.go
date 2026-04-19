@@ -325,7 +325,7 @@ func (m *DefaultXMLMarshaler) unmarshalExpandNode(data []byte) (adf_types.ADFNod
 
 	node := adf_types.ADFNode{
 		Type:  "expand",
-		Attrs: make(map[string]interface{}),
+		Attrs: make(map[string]any),
 	}
 
 	// Restore attributes — empty title is valid (idiomatic in Jira)
@@ -360,7 +360,7 @@ func (m *DefaultXMLMarshaler) unmarshalMentionNode(data []byte) (adf_types.ADFNo
 
 	node := adf_types.ADFNode{
 		Type:  "mention",
-		Attrs: make(map[string]interface{}),
+		Attrs: make(map[string]any),
 	}
 
 	// Restore attributes
@@ -389,7 +389,7 @@ func (m *DefaultXMLMarshaler) unmarshalTaskListNode(data []byte) (adf_types.ADFN
 
 	node := adf_types.ADFNode{
 		Type:  "taskList",
-		Attrs: make(map[string]interface{}),
+		Attrs: make(map[string]any),
 	}
 
 	// Restore attributes
@@ -401,7 +401,7 @@ func (m *DefaultXMLMarshaler) unmarshalTaskListNode(data []byte) (adf_types.ADFN
 	for _, taskElement := range taskList.Children {
 		taskItemNode := adf_types.ADFNode{
 			Type:  "taskItem",
-			Attrs: make(map[string]interface{}),
+			Attrs: make(map[string]any),
 		}
 
 		if taskElement.LocalID != "" {
@@ -446,7 +446,7 @@ func (m *DefaultXMLMarshaler) unmarshalTaskItemNode(data []byte) (adf_types.ADFN
 
 	node := adf_types.ADFNode{
 		Type:  "taskItem",
-		Attrs: make(map[string]interface{}),
+		Attrs: make(map[string]any),
 	}
 
 	// Restore attributes
@@ -489,7 +489,7 @@ func (m *DefaultXMLMarshaler) unmarshalHardBreakNode(data []byte) (adf_types.ADF
 
 	node := adf_types.ADFNode{
 		Type:  "hardBreak",
-		Attrs: make(map[string]interface{}),
+		Attrs: make(map[string]any),
 	}
 
 	if hardBreak.LocalID != "" {
@@ -508,7 +508,7 @@ func (m *DefaultXMLMarshaler) unmarshalGenericNode(data []byte) (adf_types.ADFNo
 
 	node := adf_types.ADFNode{
 		Type:  generic.Type,
-		Attrs: make(map[string]interface{}),
+		Attrs: make(map[string]any),
 	}
 
 	if generic.LocalID != "" {
@@ -524,7 +524,7 @@ func (m *DefaultXMLMarshaler) unmarshalGenericNode(data []byte) (adf_types.ADFNo
 // ValidateXML validates that XML data is well-formed and complete
 func (m *DefaultXMLMarshaler) ValidateXML(data []byte) error {
 	// Basic XML well-formedness check
-	var temp interface{}
+	var temp any
 	if err := xml.Unmarshal(data, &temp); err != nil {
 		return fmt.Errorf("XML is not well-formed: %w", err)
 	}
@@ -566,7 +566,7 @@ func (m *DefaultXMLMarshaler) ValidateExpandStructure(data []byte) error {
 }
 
 // ExtractAllAttributes extracts all attributes from XML data representing an ADF element
-func (m *DefaultXMLMarshaler) ExtractAllAttributes(data []byte) (map[string]interface{}, error) {
+func (m *DefaultXMLMarshaler) ExtractAllAttributes(data []byte) (map[string]any, error) {
 	// For expand elements, parse as ExpandElement to extract attributes
 	var expand ExpandElement
 	if err := xml.Unmarshal(data, &expand); err != nil {
@@ -574,7 +574,7 @@ func (m *DefaultXMLMarshaler) ExtractAllAttributes(data []byte) (map[string]inte
 	}
 
 	// Extract all known attributes from the parsed expand element
-	attrs := make(map[string]interface{})
+	attrs := make(map[string]any)
 
 	// Empty title is valid (idiomatic in Jira)
 	attrs["title"] = expand.Title

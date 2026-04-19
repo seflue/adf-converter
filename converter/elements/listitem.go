@@ -120,7 +120,7 @@ func (lic *listItemConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (lic *listItemConverter) ValidateInput(input interface{}) error {
+func (lic *listItemConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

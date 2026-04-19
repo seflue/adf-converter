@@ -14,11 +14,11 @@ import (
 
 // externalMediaNode builds a mediaSingle node with a media[type=external] child.
 func externalMediaNode(layout, url, alt string) adf_types.ADFNode {
-	attrs := map[string]interface{}{}
+	attrs := map[string]any{}
 	if layout != "" {
 		attrs["layout"] = layout
 	}
-	mediaAttrs := map[string]interface{}{
+	mediaAttrs := map[string]any{
 		"type": "external",
 		"url":  url,
 	}
@@ -38,11 +38,11 @@ func externalMediaNode(layout, url, alt string) adf_types.ADFNode {
 func internalMediaNode() adf_types.ADFNode {
 	return adf_types.ADFNode{
 		Type:  adf_types.NodeTypeMediaSingle,
-		Attrs: map[string]interface{}{"layout": "center"},
+		Attrs: map[string]any{"layout": "center"},
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeMedia,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"type":       "file",
 					"id":         "abc-123",
 					"collection": "contentId-456",
@@ -131,7 +131,7 @@ func TestMediaSingleConverter_ToMarkdown_NoContent_UsesPlaceholder(t *testing.T)
 	mc := NewMediaSingleConverter()
 	node := adf_types.ADFNode{
 		Type:    adf_types.NodeTypeMediaSingle,
-		Attrs:   map[string]interface{}{"layout": "center"},
+		Attrs:   map[string]any{"layout": "center"},
 		Content: nil,
 	}
 

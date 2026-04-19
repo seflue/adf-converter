@@ -7,9 +7,9 @@ import (
 
 	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/converter"
-	"github.com/seflue/adf-converter/converter/internal/convresult"
 	"github.com/seflue/adf-converter/converter/elements/internal/dedent"
 	"github.com/seflue/adf-converter/converter/elements/internal/lists"
+	"github.com/seflue/adf-converter/converter/internal/convresult"
 )
 
 var orderedListLinePattern = regexp.MustCompile(`^\s*\d+\.\s`)
@@ -151,7 +151,7 @@ func (olc *orderedListConverter) GetStrategy() converter.ConversionStrategy {
 	return converter.StandardMarkdown
 }
 
-func (olc *orderedListConverter) ValidateInput(input interface{}) error {
+func (olc *orderedListConverter) ValidateInput(input any) error {
 	node, ok := input.(adf_types.ADFNode)
 	if !ok {
 		return fmt.Errorf("input must be an ADFNode")

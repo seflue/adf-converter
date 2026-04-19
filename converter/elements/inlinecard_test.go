@@ -22,7 +22,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "simple_inline_card_with_url",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "https://example.com/page",
 				},
 			},
@@ -40,7 +40,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_empty_url",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "",
 				},
 			},
@@ -50,7 +50,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_jira_browse_url",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "/browse/PROJ-123",
 				},
 			},
@@ -60,7 +60,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_confluence_page_url",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "/pages/viewpage.action?pageId=12345",
 				},
 			},
@@ -70,7 +70,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_complex_metadata",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url":   "https://example.com/page",
 					"id":    "page-id-123",
 					"space": "SPACE",
@@ -83,7 +83,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_version_metadata",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url":     "https://example.com/page",
 					"version": 42,
 					"status":  "published",
@@ -95,7 +95,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_key_metadata",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "/browse/PROJ-456",
 					"key": "PROJ-456",
 				},
@@ -106,7 +106,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_localId_metadata",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url":     "https://example.com/page",
 					"localId": "local-123",
 				},
@@ -117,7 +117,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 			name: "inline_card_with_all_complex_metadata",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url":     "https://example.com/page",
 					"id":      "page-id",
 					"space":   "SPACE",
@@ -177,7 +177,7 @@ func TestInlineCardConverter_ToMarkdown_RoundTripFidelity(t *testing.T) {
 			name: "url_as_text_and_target",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "https://jira.example.com/browse/PROJ-123",
 				},
 			},
@@ -187,7 +187,7 @@ func TestInlineCardConverter_ToMarkdown_RoundTripFidelity(t *testing.T) {
 			name: "confluence_url_pattern",
 			node: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "/wiki/spaces/SPACE/pages/123456/Page+Title",
 				},
 			},
@@ -268,7 +268,7 @@ func TestInlineCardConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     interface{}
+		input     any
 		wantError bool
 		errorMsg  string
 	}{
@@ -276,7 +276,7 @@ func TestInlineCardConverter_ValidateInput(t *testing.T) {
 			name: "valid_inline_card_node",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeInlineCard,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"url": "https://example.com",
 				},
 			},
@@ -324,7 +324,7 @@ func TestInlineCardConverter_ToMarkdown_Strategy(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeInlineCard,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"url": "https://example.com",
 		},
 	}
@@ -346,7 +346,7 @@ func TestInlineCardConverter_ToMarkdown_ComplexAttributePreservation(t *testing.
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeInlineCard,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"url":     "https://confluence.example.com/pages/123",
 			"id":      "page-123",
 			"space":   "DOCS",
@@ -396,8 +396,8 @@ func TestInlineCardConverter_ToMarkdown_DataOnlyPlaceholder(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeInlineCard,
-		Attrs: map[string]interface{}{
-			"data": map[string]interface{}{
+		Attrs: map[string]any{
+			"data": map[string]any{
 				"@type": "Document",
 				"name":  "My Document",
 			},
@@ -426,8 +426,8 @@ func TestInlineCardConverter_ToMarkdown_DataOnlyFallback(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeInlineCard,
-		Attrs: map[string]interface{}{
-			"data": map[string]interface{}{
+		Attrs: map[string]any{
+			"data": map[string]any{
 				"@type": "Document",
 			},
 		},

@@ -3,9 +3,9 @@ package converter
 import (
 	"testing"
 
+	"github.com/seflue/adf-converter/adf_types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/seflue/adf-converter/adf_types"
 )
 
 // TestDetailsContentParsingRegression tests the specific production issue
@@ -18,13 +18,13 @@ func TestDetailsContentParsingRegression(t *testing.T) {
 		Content: []adf_types.ADFNode{
 			{
 				Type: "expand",
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"title": "This is for testing",
 				},
 				Content: []adf_types.ADFNode{
 					{
 						Type: "heading",
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"level": 1,
 						},
 						Content: []adf_types.ADFNode{
@@ -151,7 +151,7 @@ func TestDetailsContentParsingEdgeCases(t *testing.T) {
 				Content: []adf_types.ADFNode{
 					{
 						Type: "expand",
-						Attrs: map[string]interface{}{
+						Attrs: map[string]any{
 							"title": "Outer Section",
 						},
 						Content: []adf_types.ADFNode{
@@ -163,13 +163,13 @@ func TestDetailsContentParsingEdgeCases(t *testing.T) {
 							},
 							{
 								Type: "expand",
-								Attrs: map[string]interface{}{
+								Attrs: map[string]any{
 									"title": "Inner Section",
 								},
 								Content: []adf_types.ADFNode{
 									{
 										Type:  "heading",
-										Attrs: map[string]interface{}{"level": 2},
+										Attrs: map[string]any{"level": 2},
 										Content: []adf_types.ADFNode{
 											{Type: "text", Text: "Nested Heading"},
 										},

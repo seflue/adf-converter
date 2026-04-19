@@ -61,14 +61,14 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     interface{}
+		input     any
 		expectErr bool
 	}{
 		{
 			name: "valid expand node",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeExpand,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"title": "Test Title",
 				},
 			},
@@ -78,7 +78,7 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 			name: "valid nestedExpand node",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeNestedExpand,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"title": "Test Title",
 				},
 			},
@@ -88,7 +88,7 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 			name: "missing title attribute",
 			input: adf_types.ADFNode{
 				Type:  adf_types.NodeTypeExpand,
-				Attrs: map[string]interface{}{},
+				Attrs: map[string]any{},
 			},
 			expectErr: false,
 		},
@@ -96,7 +96,7 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 			name: "empty title string",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeExpand,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"title": "",
 				},
 			},
@@ -114,7 +114,7 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 			name: "wrong node type",
 			input: adf_types.ADFNode{
 				Type: adf_types.NodeTypeParagraph,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"title": "Test",
 				},
 			},
@@ -146,7 +146,7 @@ func TestExpandConverter_ToMarkdown_BasicExpand(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "Click to expand",
 		},
 		Content: []adf_types.ADFNode{
@@ -182,7 +182,7 @@ func TestExpandConverter_ToMarkdown_NestedExpand(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeNestedExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "Nested section",
 		},
 		Content: []adf_types.ADFNode{
@@ -208,7 +208,6 @@ func TestExpandConverter_ToMarkdown_NestedExpand(t *testing.T) {
 	assert.Contains(t, result.Content, "Nested content")
 }
 
-
 func TestExpandConverter_ToMarkdown_WithLocalId(t *testing.T) {
 	// Register necessary converters
 	// Converters already registered in TestMain
@@ -218,7 +217,7 @@ func TestExpandConverter_ToMarkdown_WithLocalId(t *testing.T) {
 
 	node := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title":   "Section with ID",
 			"localId": "my-section-123",
 		},
@@ -248,15 +247,15 @@ func TestExpandConverter_ToMarkdown_EmptyTitle(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		attrs map[string]interface{}
+		attrs map[string]any
 	}{
 		{
 			name:  "empty title string",
-			attrs: map[string]interface{}{"title": ""},
+			attrs: map[string]any{"title": ""},
 		},
 		{
 			name:  "title key missing",
-			attrs: map[string]interface{}{},
+			attrs: map[string]any{},
 		},
 	}
 
@@ -452,7 +451,7 @@ func TestExpandConverter_RoundTrip_BasicExpand(t *testing.T) {
 	// Create original node
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "Round Trip Test",
 		},
 		Content: []adf_types.ADFNode{
@@ -493,7 +492,7 @@ func TestExpandConverter_RoundTrip_NestedExpand(t *testing.T) {
 	// Create original nestedExpand node
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeNestedExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "Nested Round Trip",
 		},
 		Content: []adf_types.ADFNode{
@@ -538,7 +537,7 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	// Create node with all optional attributes
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title":   "Complete Attributes",
 			"localId": "test-id-456",
 		},
@@ -581,7 +580,7 @@ func TestExpandConverter_RoundTrip_EmptyTitle(t *testing.T) {
 
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "",
 		},
 		Content: []adf_types.ADFNode{
@@ -641,7 +640,7 @@ func TestExpandConverter_FromMarkdown_WithPlaceholderContent(t *testing.T) {
 	// Store a placeholder via the manager
 	placeholderID, _, err := manager.Store(adf_types.ADFNode{
 		Type: "mediaInline",
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"id":         "abc-123",
 			"collection": "test-collection",
 			"type":       "file",
@@ -699,7 +698,7 @@ func TestExpandConverter_RoundTrip_WithBulletList(t *testing.T) {
 
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "List content",
 		},
 		Content: []adf_types.ADFNode{
@@ -754,13 +753,13 @@ func TestExpandConverter_RoundTrip_WithHeading(t *testing.T) {
 
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "Heading content",
 		},
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeHeading,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"level": float64(2),
 				},
 				Content: []adf_types.ADFNode{
@@ -790,13 +789,13 @@ func TestExpandConverter_RoundTrip_WithCodeBlock(t *testing.T) {
 
 	original := adf_types.ADFNode{
 		Type: adf_types.NodeTypeExpand,
-		Attrs: map[string]interface{}{
+		Attrs: map[string]any{
 			"title": "Code example",
 		},
 		Content: []adf_types.ADFNode{
 			{
 				Type: adf_types.NodeTypeCodeBlock,
-				Attrs: map[string]interface{}{
+				Attrs: map[string]any{
 					"language": "go",
 				},
 				Content: []adf_types.ADFNode{
