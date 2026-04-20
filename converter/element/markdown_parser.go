@@ -8,23 +8,17 @@ import (
 	"github.com/seflue/adf-converter/placeholder"
 )
 
-// MarkdownParser processes markdown using stack-based iterative parsing.
+// MarkdownParser processes markdown using iterative block-parser dispatch.
 type MarkdownParser struct {
-	stack       []*parseFrame
 	session     *placeholder.EditSession
 	manager     placeholder.Manager
 	registry    Registry
 	nestedLevel int // Nesting depth inherited from parent parser (for recursive content)
 }
 
-// parseFrame represents a parsing context on the stack.
-// Currently only used for stack-depth tracking in ParseMarkdownToADFNodes.
-type parseFrame struct{}
-
 // NewMarkdownParser creates a new parser instance bound to the given registry.
 func NewMarkdownParser(session *placeholder.EditSession, manager placeholder.Manager, registry Registry) *MarkdownParser {
 	return &MarkdownParser{
-		stack:    make([]*parseFrame, 0, 100),
 		session:  session,
 		manager:  manager,
 		registry: registry,
@@ -34,7 +28,6 @@ func NewMarkdownParser(session *placeholder.EditSession, manager placeholder.Man
 // NewMarkdownParserWithNesting creates a parser that inherits a nesting level from a parent context.
 func NewMarkdownParserWithNesting(session *placeholder.EditSession, manager placeholder.Manager, registry Registry, nestedLevel int) *MarkdownParser {
 	return &MarkdownParser{
-		stack:       make([]*parseFrame, 0, 100),
 		session:     session,
 		manager:     manager,
 		registry:    registry,
@@ -56,11 +49,9 @@ func (p *MarkdownParser) conversionContext() ConversionContext {
 	}
 }
 
-// ParseMarkdownToADFNodes converts markdown lines to ADF nodes using iterative stack processing.
+// ParseMarkdownToADFNodes converts markdown lines to ADF nodes.
 func (p *MarkdownParser) ParseMarkdownToADFNodes(lines []string) ([]adf_types.ADFNode, error) {
 	var result []adf_types.ADFNode
-
-	p.stack = p.stack[:0]
 
 	i := 0
 	for i < len(lines) {
@@ -81,10 +72,6 @@ func (p *MarkdownParser) ParseMarkdownToADFNodes(lines []string) ([]adf_types.AD
 		}
 
 		i += consumed
-	}
-
-	if len(p.stack) > 0 {
-		return nil, fmt.Errorf("unclosed elements detected: %d frames remain on stack", len(p.stack))
 	}
 
 	return result, nil
@@ -118,14 +105,4 @@ func (p *MarkdownParser) parseNext(lines []string) (*adf_types.ADFNode, int, err
 	}
 	node, consumed, err := conv.FromMarkdown(lines, 0, p.conversionContext())
 	return &node, consumed, err
-}
-
-// GetStackDepth returns current stack depth for debugging/monitoring.
-func (p *MarkdownParser) GetStackDepth() int {
-	return len(p.stack)
-}
-
-// IsStackEmpty checks if parser stack is clean.
-func (p *MarkdownParser) IsStackEmpty() bool {
-	return len(p.stack) == 0
 }

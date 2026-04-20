@@ -120,30 +120,6 @@ Deeply nested content
 	}
 }
 
-// TestStreamingParser_StackManagement validates stack-based architecture works correctly
-func TestStreamingParser_StackManagement(t *testing.T) {
-	markdown := `<details>
-<summary>Test</summary>
-Content here
-</details>`
-
-	manager := placeholder.NewManager()
-	session := manager.GetSession()
-	parser := converter.NewMarkdownParser(session, manager, defaults.NewRegistry())
-
-	// Stack should be empty initially
-	assert.True(t, parser.IsStackEmpty(), "Stack should be empty initially")
-	assert.Equal(t, 0, parser.GetStackDepth(), "Stack depth should be 0 initially")
-
-	result, err := parser.ParseMarkdownToADFNodes(strings.Split(markdown, "\n"))
-	require.NoError(t, err)
-	assert.NotEmpty(t, result)
-
-	// Stack should be clean after parsing
-	assert.True(t, parser.IsStackEmpty(), "Stack should be empty after parsing")
-	assert.Equal(t, 0, parser.GetStackDepth(), "Stack depth should be 0 after parsing")
-}
-
 // TestStreamingParser_ComplexMixedContent tests realistic content scenarios
 func TestStreamingParser_ComplexMixedContent(t *testing.T) {
 	complexMarkdown := `# Document Title

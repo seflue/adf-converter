@@ -153,17 +153,3 @@ func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.Ed
 	}, nil
 }
 
-// GetClassifier returns the content classifier used by this converter
-func (c *DefaultConverter) GetClassifier() ContentClassifier {
-	return c.classifier
-}
-
-// GetManager returns the placeholder manager used by this converter
-func (c *DefaultConverter) GetManager() placeholder.Manager {
-	return c.manager
-}
-
-// GetRegistry returns the converter registry used by this converter.
-func (c *DefaultConverter) GetRegistry() *ConverterRegistry {
-	return c.registry
-}
