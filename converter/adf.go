@@ -1,11 +1,6 @@
 package converter
 
 import (
-	"fmt"
-	"log/slog"
-	"strings"
-
-	"github.com/seflue/adf-converter/adf_types"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
@@ -61,47 +56,3 @@ func (dt *deletionTracker) GetSummary() *DeletionSummary {
 		OriginalCount:         dt.originalCount,
 	}
 }
-
-// FromMarkdown converts edited Markdown back to ADF, restoring preserved content from placeholders
-func FromMarkdown(markdown string, session *placeholder.EditSession, manager placeholder.Manager, registry *ConverterRegistry) (adf_types.ADFDocument, error) {
-	// PHASE 5: Comprehensive error handling with recovery
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("FromMarkdown: critical error recovered", "error", r, "markdownLength", len(markdown))
-		}
-	}()
-
-	if session == nil {
-		return adf_types.ADFDocument{}, fmt.Errorf("session cannot be nil")
-	}
-
-	// PHASE 5: Additional input validation
-	if len(markdown) > 1000000 { // 1MB limit
-		return adf_types.ADFDocument{}, fmt.Errorf("markdown input too large: %d bytes (max 1MB)", len(markdown))
-	}
-
-	// Split markdown into lines for processing
-	lines := strings.Split(markdown, "\n")
-
-	// PHASE 5: Validate line count
-	if len(lines) > 10000 {
-		slog.Warn("FromMarkdown: processing extremely large document", "lineCount", len(lines))
-	}
-
-	// Parse the markdown into ADF nodes
-	parser := NewMarkdownParser(session, manager, registry)
-	nodes, err := parser.ParseMarkdownToADFNodes(lines)
-	if err != nil {
-		return adf_types.ADFDocument{}, fmt.Errorf("failed to parse markdown: %w", err)
-	}
-
-	// Create the ADF document
-	doc := adf_types.ADFDocument{
-		Version: 1,
-		Type:    "doc",
-		Content: nodes,
-	}
-
-	return doc, nil
-}
-

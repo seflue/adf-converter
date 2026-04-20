@@ -78,7 +78,7 @@ This is after the second element.
 `
 
 	// First, test that both placeholders work
-	doc, err := converter.FromMarkdown(markdownWithBothPlaceholders, session, manager, defaults.NewRegistry())
+	doc, err := testFromMarkdown(markdownWithBothPlaceholders, session, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("FromMarkdown failed with both placeholders: %v", err)
 	}
@@ -99,7 +99,7 @@ This is after the second element.
 `
 
 	// This should succeed after our fix - deleted placeholder is gracefully skipped
-	doc, err = converter.FromMarkdown(markdownWithDeletedPlaceholder, session, manager, defaults.NewRegistry())
+	doc, err = testFromMarkdown(markdownWithDeletedPlaceholder, session, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("FromMarkdown failed with deleted placeholder (should succeed after fix): %v", err)
 	}
@@ -143,7 +143,7 @@ func TestToMarkdown_BasicDocument(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -186,7 +186,7 @@ func TestToMarkdown_HeadingWithText(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	markdown, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -232,7 +232,7 @@ func TestToMarkdown_TextWithMarks(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	markdown, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -305,14 +305,14 @@ func TestBasicLinks(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	expectedMarkdown := "Visit [Google](https://google.com) for search and [GitHub](https://github.com) for code.\n\n"
 	assert.Equal(t, expectedMarkdown, markdown)
 
 	// Verify round-trip conversion
-	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	convertedBack, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve link structure
@@ -398,7 +398,7 @@ func TestLinksWithFormatting(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should contain both formatted links (formatting around whole link)
@@ -406,7 +406,7 @@ func TestLinksWithFormatting(t *testing.T) {
 	assert.Contains(t, markdown, "*[italic link](https://github.com)*")
 
 	// Verify round-trip conversion
-	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	convertedBack, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve both links and formatting
@@ -465,14 +465,14 @@ func TestLinksInLists(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should contain bullet list with link
 	assert.Contains(t, markdown, "- External: [Stack Overflow](https://stackoverflow.com)")
 
 	// Verify round-trip conversion
-	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	convertedBack, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve list structure
@@ -513,14 +513,14 @@ func TestLinksWithSpecialCharacters(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should handle special characters in link text
 	assert.Contains(t, markdown, "[Link with (parentheses)](https://company.atlassian.com/browse/PAREN-123)")
 
 	// Verify round-trip conversion
-	convertedBack, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	convertedBack, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Should preserve link structure

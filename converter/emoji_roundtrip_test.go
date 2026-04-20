@@ -68,7 +68,7 @@ func TestEmojiRoundTrip(t *testing.T) {
 	manager := placeholder.NewManager()
 
 	// Phase 1: ADF → Markdown
-	markdown, session, err := converter.ToMarkdown(originalADF, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(originalADF, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "ADF → Markdown conversion should succeed")
 	require.NotNil(t, session, "Session should not be nil")
 
@@ -79,7 +79,7 @@ func TestEmojiRoundTrip(t *testing.T) {
 	assert.Contains(t, markdown, "Task completed successfully", "Markdown should contain task text")
 
 	// Phase 2: Markdown → ADF (the failing part)
-	reconvertedADF, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	reconvertedADF, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Markdown → ADF conversion should succeed")
 
 	t.Logf("Reconverted ADF: %+v", jsonPrettyPrint(reconvertedADF))
@@ -187,10 +187,10 @@ func TestEmojiRoundTrip_MultipleEmojis(t *testing.T) {
 	manager := placeholder.NewManager()
 
 	// Round-trip conversion
-	markdown, session, err := converter.ToMarkdown(originalADF, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(originalADF, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
-	reconvertedADF, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	reconvertedADF, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify structure

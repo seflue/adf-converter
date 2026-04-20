@@ -451,7 +451,8 @@ func TestPanelConverter_Roundtrip_AdmonitionNormalization(t *testing.T) {
 
 func TestPanelConverter_Integration_MixedDocument(t *testing.T) {
 
-	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	conv, err := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	require.NoError(t, err)
 
 	doc := adf_types.ADFDocument{
 		Version: 1,

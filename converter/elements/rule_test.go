@@ -215,7 +215,8 @@ func TestRuleConverter_FromMarkdown_Invalid(t *testing.T) {
 }
 
 func TestRuleConverter_ADFToMarkdown_Integration(t *testing.T) {
-	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	conv, err := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	require.NoError(t, err)
 
 	doc := adf_types.ADFDocument{
 		Version: 1,
@@ -246,7 +247,8 @@ func TestRuleConverter_ADFToMarkdown_Integration(t *testing.T) {
 }
 
 func TestRuleConverter_Roundtrip(t *testing.T) {
-	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	conv, err := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	require.NoError(t, err)
 
 	doc := adf_types.ADFDocument{
 		Version: 1,
@@ -292,7 +294,8 @@ func TestRuleConverter_GetStrategy(t *testing.T) {
 }
 
 func TestRuleConverter_EdgeCases(t *testing.T) {
-	conv := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	conv, err := converter.NewConverter(converter.WithRegistry(newTestRegistry()))
+	require.NoError(t, err)
 
 	tests := []struct {
 		name     string

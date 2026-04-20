@@ -13,10 +13,9 @@ type markdownConversionContext struct {
 	ListDepth int // Current nesting depth for lists (0 = top level)
 }
 
-// ToMarkdown converts an ADF document to Markdown, preserving complex content as placeholders.
-// The registry must be populated with the element converters to dispatch to;
-// use converter/defaults.NewRegistry() for the standard set.
-func ToMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager placeholder.Manager, registry *ConverterRegistry) (string, *placeholder.EditSession, error) {
+// toMarkdown converts an ADF document to Markdown, preserving complex content as placeholders.
+// Internal helper shared by DefaultConverter.ToMarkdown.
+func toMarkdown(doc adf_types.ADFDocument, classifier ContentClassifier, manager placeholder.Manager, registry *ConverterRegistry) (string, *placeholder.EditSession, error) {
 	if doc.Type != "doc" {
 		return "", nil, fmt.Errorf("expected document type 'doc', got '%s'", doc.Type)
 	}

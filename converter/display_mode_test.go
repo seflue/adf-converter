@@ -37,7 +37,7 @@ func TestDisplayMode_NoPlaceholderComments(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	md, session, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 	require.NotNil(t, session)
 
@@ -66,7 +66,7 @@ func TestDisplayMode_UnknownNodeShowsPreviewText(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	md, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Contains(t, md, "Before")
@@ -95,7 +95,7 @@ func TestDisplayMode_InlinePreservedNodes(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	md, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.NotContains(t, md, "<!--", "inline preserved nodes must not produce comments")
@@ -141,7 +141,7 @@ func TestDisplayMode_MixedEditableAndPreserved(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewNullManager()
 
-	md, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	md, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Contains(t, md, "# Title")

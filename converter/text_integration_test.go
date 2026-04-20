@@ -84,7 +84,7 @@ func TestTextConverter_Integration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			markdown, _, err := converter.ToMarkdown(tt.adf, classifier, manager, registry)
+			markdown, _, err := testToMarkdown(tt.adf, classifier, manager, registry)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

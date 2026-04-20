@@ -125,7 +125,15 @@ func TestDateConverter_Roundtrip(t *testing.T) {
 
 	// ADF → Markdown
 	registry := newTestRegistry()
-	markdown, _, err := converter.ToMarkdown(original, classifier, manager, registry)
+	conv, err := converter.NewConverter(
+		converter.WithClassifier(classifier),
+		converter.WithPlaceholderManager(manager),
+		converter.WithRegistry(registry),
+	)
+	if err != nil {
+		t.Fatalf("NewConverter failed: %v", err)
+	}
+	markdown, session, err := conv.ToMarkdown(original)
 	if err != nil {
 		t.Fatalf("ToMarkdown failed: %v", err)
 	}
@@ -136,10 +144,11 @@ func TestDateConverter_Roundtrip(t *testing.T) {
 	}
 
 	// Markdown → ADF
-	restored, err := converter.FromMarkdown(markdown, manager.GetSession(), manager, registry)
+	result, err := conv.FromMarkdown(markdown, session)
 	if err != nil {
 		t.Fatalf("FromMarkdown failed: %v", err)
 	}
+	restored := result.Document
 
 	// Verify date node roundtripped
 	if len(restored.Content) != 1 {

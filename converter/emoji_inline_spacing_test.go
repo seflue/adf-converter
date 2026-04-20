@@ -36,7 +36,7 @@ func TestEmojiInlineSpacing(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Failed to convert ADF to Markdown")
 	require.NotNil(t, session, "Session should not be nil")
 
@@ -126,7 +126,7 @@ func TestEmojiInlineSpacing_VerifyInlineVsBlockSpacing(t *testing.T) {
 		},
 	}
 
-	markdown, _, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+	markdown, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "Conversion should succeed")
 
 	// Emoji should be rendered as unicode (inline spacing)
@@ -186,7 +186,7 @@ func TestEmojiInlineSpacing_RoundTrip(t *testing.T) {
 	}
 
 	// Convert to Markdown
-	markdown, session, err := converter.ToMarkdown(originalDoc, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(originalDoc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err, "ADF to Markdown conversion should succeed")
 	require.NotNil(t, session, "Session should not be nil")
 

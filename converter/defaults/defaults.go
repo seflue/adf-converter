@@ -9,57 +9,25 @@
 package defaults
 
 import (
+	"fmt"
+
 	"github.com/seflue/adf-converter/converter"
 	"github.com/seflue/adf-converter/converter/elements"
 	"github.com/seflue/adf-converter/placeholder"
 )
 
-// NewRegistry builds a fresh registry with all 21 standard element converters
-// registered and the block-parser dispatch order wired.
+// NewRegistry builds a fresh registry with all standard element converters
+// registered and the block-parser dispatch order wired. The node list and the
+// dispatch order are sourced from elements.StandardNodes and
+// elements.StandardBlockParserOrder so defaults and the elements-package test
+// helpers share a single source of truth (ac-0114).
 func NewRegistry() *converter.ConverterRegistry {
 	r := converter.NewConverterRegistry()
 
-	converters := []struct {
-		nodeType  converter.ADFNodeType
-		converter converter.ElementConverter
-	}{
-		{"text", elements.NewTextConverter()},
-		{"hardBreak", elements.NewHardBreakConverter()},
-		{"paragraph", elements.NewParagraphConverter()},
-		{"heading", elements.NewHeadingConverter()},
-		{"listItem", elements.NewListItemConverter()},
-		{"bulletList", elements.NewBulletListConverter()},
-		{"orderedList", elements.NewOrderedListConverter()},
-		{"expand", elements.NewExpandConverter()},
-		{"nestedExpand", elements.NewExpandConverter()},
-		{"inlineCard", elements.NewInlineCardConverter()},
-		{"blockCard", elements.NewBlockCardConverter()},
-		{"emoji", elements.NewEmojiConverter()},
-		{"codeBlock", elements.NewCodeBlockConverter()},
-		{"rule", elements.NewRuleConverter()},
-		{"mention", elements.NewMentionConverter()},
-		{"table", elements.NewTableConverter()},
-		{"panel", elements.NewPanelConverter()},
-		{"date", elements.NewDateConverter()},
-		{"status", elements.NewStatusConverter()},
-		{"blockquote", elements.NewBlockquoteConverter()},
-		{"taskList", elements.NewTaskListConverter()},
-		{"mediaSingle", elements.NewMediaSingleConverter()},
+	for _, reg := range elements.StandardNodes() {
+		r.MustRegister(reg.NodeType, reg.Converter)
 	}
-	for _, c := range converters {
-		r.MustRegister(c.nodeType, c.converter)
-	}
-
-	// Block parser dispatch order (MD→ADF, first match wins). Specific before general:
-	// - panel before blockquote (> [!TYPE] vs >)
-	// - taskList before bulletList (- [ ] vs -)
-	// - rule before bulletList (--- vs -)
-	blockParserOrder := []converter.ADFNodeType{
-		"expand", "blockCard", "panel", "table", "taskList",
-		"blockquote", "codeBlock", "heading", "mediaSingle", "rule",
-		"bulletList", "orderedList",
-	}
-	for _, nodeType := range blockParserOrder {
+	for _, nodeType := range elements.StandardBlockParserOrder {
 		r.MustRegisterBlockParser(nodeType)
 	}
 
@@ -69,16 +37,24 @@ func NewRegistry() *converter.ConverterRegistry {
 // NewDefaultConverter returns a converter wired with all standard element
 // converters and the default classifier and placeholder manager.
 func NewDefaultConverter() *converter.DefaultConverter {
-	return converter.NewConverter(
+	c, err := converter.NewConverter(
 		converter.WithRegistry(NewRegistry()),
 	)
+	if err != nil {
+		panic(fmt.Sprintf("defaults: unreachable: %v", err))
+	}
+	return c
 }
 
 // NewDisplayConverter returns a converter for read-only display mode.
 // It uses a NullManager that produces preview text instead of placeholder comments.
 func NewDisplayConverter() *converter.DefaultConverter {
-	return converter.NewConverter(
+	c, err := converter.NewConverter(
 		converter.WithRegistry(NewRegistry()),
 		converter.WithPlaceholderManager(placeholder.NewNullManager()),
 	)
+	if err != nil {
+		panic(fmt.Sprintf("defaults: unreachable: %v", err))
+	}
+	return c
 }

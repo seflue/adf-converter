@@ -81,11 +81,11 @@ func TestUnknownBlockNodeRoundtrip(t *testing.T) {
 			classifier := converter.NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
-			markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+			markdown, session, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 			t.Logf("Markdown: %q", markdown)
 
-			resultDoc, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+			resultDoc, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			require.Len(t, resultDoc.Content, 3, "expected 3 top-level nodes (para, unknown, para)")

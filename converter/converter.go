@@ -108,7 +108,11 @@ func WithPlaceholderManager(m placeholder.Manager) Option {
 //
 // Defaults: DefaultClassifier, placeholder.NewManager, empty registry.
 // Use WithRegistry to supply a populated registry (see converter/defaults).
-func NewConverter(opts ...Option) *DefaultConverter {
+//
+// Returns an error if the registry is empty after applying options, because a
+// converter without registered element converters cannot process any content
+// and every FromMarkdown/ToMarkdown call would fail at dispatch time (ac-0115).
+func NewConverter(opts ...Option) (*DefaultConverter, error) {
 	c := &DefaultConverter{
 		classifier: NewDefaultClassifier(),
 		manager:    placeholder.NewManager(),
@@ -117,12 +121,15 @@ func NewConverter(opts ...Option) *DefaultConverter {
 	for _, opt := range opts {
 		opt(c)
 	}
-	return c
+	if c.registry == nil || c.registry.Count() == 0 {
+		return nil, fmt.Errorf("converter: empty registry; use defaults.NewDefaultConverter() or pass WithRegistry(...)")
+	}
+	return c, nil
 }
 
 // ToMarkdown converts an ADF document to editable Markdown with placeholders for complex content
 func (c *DefaultConverter) ToMarkdown(doc adf_types.ADFDocument) (string, *placeholder.EditSession, error) {
-	return ToMarkdown(doc, c.classifier, c.manager, c.registry)
+	return toMarkdown(doc, c.classifier, c.manager, c.registry)
 }
 
 // FromMarkdown converts edited Markdown back to ADF with deletion tracking

@@ -539,7 +539,7 @@ func TestEnhancedLinkRoundtrip_BasicExternalLinks(t *testing.T) {
 	manager := placeholder.NewManager()
 
 	// Convert to markdown
-	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify markdown format
@@ -547,7 +547,7 @@ func TestEnhancedLinkRoundtrip_BasicExternalLinks(t *testing.T) {
 	assert.Equal(t, expectedMarkdown, markdown)
 
 	// Convert back to ADF
-	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify round-trip fidelity for structure
@@ -607,7 +607,7 @@ func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 	classifier := converter.NewDefaultClassifier()
 	manager := placeholder.NewManager()
 
-	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// No data-adf-type attribute — node type is derived from structural context
@@ -617,7 +617,7 @@ func TestExpandRoundtrip_BasicExpandElement(t *testing.T) {
 	assert.Contains(t, markdown, "Hidden content here.")
 	assert.Contains(t, markdown, "</details>")
 
-	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	assert.Equal(t, original.Type, restored.Type)
@@ -726,7 +726,7 @@ func TestRoundTrip_ComplexDocument(t *testing.T) {
 	manager := placeholder.NewManager()
 
 	// Convert to markdown
-	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify markdown contains expected elements
@@ -737,7 +737,7 @@ func TestRoundTrip_ComplexDocument(t *testing.T) {
 	assert.Contains(t, markdown, "- Second item")
 
 	// Convert back to ADF
-	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Verify document structure is preserved
@@ -821,10 +821,10 @@ func TestRoundTripFidelity_PreservesAllContent(t *testing.T) {
 			manager := placeholder.NewManager()
 
 			// Convert ADF → Markdown → ADF
-			markdown, session, err := converter.ToMarkdown(tc.doc, classifier, manager, defaults.NewRegistry())
+			markdown, session, err := testToMarkdown(tc.doc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err, "ADF to Markdown conversion failed")
 
-			restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+			restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err, "Markdown to ADF conversion failed")
 
 			// Verify 100% fidelity for basic structure
@@ -848,7 +848,7 @@ func TestExpandBackwardCompatibility_DetailsFormat(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := converter.FromMarkdown(markdownWithDetails, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdownWithDetails, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Equal(t, 3, len(restored.Content), "Should have 3 top-level elements")
@@ -867,7 +867,7 @@ func TestExpandNested_NoBlankLineBeforeInnerDetails(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// Find the expand node
@@ -901,7 +901,7 @@ func TestParagraph_InlineHTMLNotBlockBoundary(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	// All three lines should be in a single paragraph
@@ -945,10 +945,10 @@ func TestExpandRoundtrip_NestedExpandWithContent(t *testing.T) {
 	manager := placeholder.NewManager()
 	classifier := converter.NewDefaultClassifier()
 
-	markdown, session, err := converter.ToMarkdown(original, classifier, manager, defaults.NewRegistry())
+	markdown, session, err := testToMarkdown(original, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
-	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Equal(t, 1, len(restored.Content))
@@ -978,7 +978,7 @@ func TestExpandParsing_BackToBackExpands(t *testing.T) {
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	require.Equal(t, 2, len(restored.Content), "Should parse two separate expand nodes")
@@ -1077,7 +1077,7 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 			classifier := converter.NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
-			markdown, _, err := converter.ToMarkdown(test.input, classifier, manager, defaults.NewRegistry())
+			markdown, _, err := testToMarkdown(test.input, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			for _, expected := range test.expected {
@@ -1085,7 +1085,7 @@ func TestExpandDetails_AttributeHandling(t *testing.T) {
 			}
 
 			session := manager.GetSession()
-			restored, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+			restored, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			assert.Equal(t, test.input.Type, restored.Type)
@@ -1139,7 +1139,7 @@ Some **bold text** here.
 			manager := placeholder.NewManager()
 			session := manager.GetSession()
 
-			restored, err := converter.FromMarkdown(test.markdownIn, session, manager, defaults.NewRegistry())
+			restored, err := testFromMarkdown(test.markdownIn, session, manager, defaults.NewRegistry())
 
 			if test.expectError {
 				assert.Error(t, err)
@@ -1167,7 +1167,7 @@ Some **bold text** here.
 	manager := placeholder.NewManager()
 	session := manager.GetSession()
 
-	restored, err := converter.FromMarkdown(markdownIn, session, manager, defaults.NewRegistry())
+	restored, err := testFromMarkdown(markdownIn, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(restored.Content), "should be single expand node")
 
@@ -1263,13 +1263,13 @@ Regular content after all details.`,
 			manager := placeholder.NewManager()
 
 			// First convert ADF to markdown
-			_, session, err := converter.ToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
+			_, session, err := testToMarkdown(testDoc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err, "Initial conversion should work")
 			require.NotNil(t, session, "Session should be created")
 
 			// Now test the problematic conversion: markdown with nested details back to ADF
 			// This would hang before the fix due to infinite recursion
-			result, err := converter.FromMarkdown(test.markdown, session, manager, defaults.NewRegistry())
+			result, err := testFromMarkdown(test.markdown, session, manager, defaults.NewRegistry())
 
 			if test.expectError {
 				assert.Error(t, err)
@@ -1282,7 +1282,7 @@ Regular content after all details.`,
 				assert.True(t, len(result.Content) > 0, "Should have some content nodes")
 
 				// Test round-trip to ensure full functionality
-				backToMarkdown, _, err := converter.ToMarkdown(result, classifier, manager, defaults.NewRegistry())
+				backToMarkdown, _, err := testToMarkdown(result, classifier, manager, defaults.NewRegistry())
 				assert.NoError(t, err, "Round-trip conversion should work")
 				// Check for details element - matches both <details> and <details attr="value">
 				assert.Regexp(t, `<details(?:\s|>)`, backToMarkdown, "Should contain details elements")

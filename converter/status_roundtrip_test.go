@@ -104,12 +104,12 @@ func TestStatusRoundTrip(t *testing.T) {
 			require.NoError(t, json.Unmarshal([]byte(tt.adfJSON), &doc))
 
 			// ADF → Markdown
-			md, session, err := converter.ToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
+			md, session, err := testToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
 			require.NoError(t, err)
 			assert.Contains(t, md, tt.wantMD)
 
 			// Markdown → ADF
-			result, err := converter.FromMarkdown(md, session, mgr, defaults.NewRegistry())
+			result, err := testFromMarkdown(md, session, mgr, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			// Find status node in result
@@ -156,11 +156,11 @@ func TestStatusRoundTrip_MixedParagraph(t *testing.T) {
 	var doc adf_types.ADFDocument
 	require.NoError(t, json.Unmarshal([]byte(adfJSON), &doc))
 
-	md, session, err := converter.ToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
+	md, session, err := testToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
 	require.NoError(t, err)
 	assert.Contains(t, md, "Task [status:In Progress|blue] is active")
 
-	result, err := converter.FromMarkdown(md, session, mgr, defaults.NewRegistry())
+	result, err := testFromMarkdown(md, session, mgr, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	para := result.Content[0]
@@ -189,12 +189,12 @@ func TestStatusRoundTrip_MultipleStatuses(t *testing.T) {
 	var doc adf_types.ADFDocument
 	require.NoError(t, json.Unmarshal([]byte(adfJSON), &doc))
 
-	md, session, err := converter.ToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
+	md, session, err := testToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
 	require.NoError(t, err)
 	assert.Contains(t, md, "[status:Done|green]")
 	assert.Contains(t, md, "[status:Blocked|red]")
 
-	result, err := converter.FromMarkdown(md, session, mgr, defaults.NewRegistry())
+	result, err := testFromMarkdown(md, session, mgr, defaults.NewRegistry())
 	require.NoError(t, err)
 
 	para := result.Content[0]
@@ -232,10 +232,10 @@ func TestStatusRoundTrip_SpecialChars(t *testing.T) {
 			var doc adf_types.ADFDocument
 			require.NoError(t, json.Unmarshal([]byte(adfJSON), &doc))
 
-			md, session, err := converter.ToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
+			md, session, err := testToMarkdown(doc, classifier, mgr, defaults.NewRegistry())
 			require.NoError(t, err)
 
-			result, err := converter.FromMarkdown(md, session, mgr, defaults.NewRegistry())
+			result, err := testFromMarkdown(md, session, mgr, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			para := result.Content[0]

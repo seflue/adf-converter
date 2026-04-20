@@ -71,11 +71,11 @@ func TestUnknownInlineNodeRoundtrip(t *testing.T) {
 			classifier := converter.NewDefaultClassifier()
 			manager := placeholder.NewManager()
 
-			markdown, session, err := converter.ToMarkdown(doc, classifier, manager, defaults.NewRegistry())
+			markdown, session, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 			t.Logf("Markdown: %q", markdown)
 
-			resultDoc, err := converter.FromMarkdown(markdown, session, manager, defaults.NewRegistry())
+			resultDoc, err := testFromMarkdown(markdown, session, manager, defaults.NewRegistry())
 			require.NoError(t, err)
 
 			require.Len(t, resultDoc.Content, 1, "expected 1 paragraph")
