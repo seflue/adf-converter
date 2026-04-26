@@ -1,6 +1,7 @@
 package inline
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -115,7 +116,10 @@ func ParseContentWithPlaceholders(markdown string, manager placeholder.Manager) 
 
 	// Step 3: Restore placeholder nodes from manager
 	if manager != nil && len(placeholders) > 0 {
-		result = restorePlaceholders(result, placeholders, manager)
+		result, err = restorePlaceholders(result, placeholders, manager)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Step 3b: Restore date nodes
@@ -162,21 +166,26 @@ func extractPlaceholders(markdown string) (map[string]string, string) {
 	return placeholders, cleaned
 }
 
-// restorePlaceholders replaces marker text nodes with actual ADF nodes from manager
-func restorePlaceholders(nodes []adf.Node, placeholders map[string]string, manager placeholder.Manager) []adf.Node {
+// restorePlaceholders replaces marker text nodes with actual ADF nodes from manager.
+// Manager-internal Restore errors are propagated; missing placeholders (deleted
+// from markdown) are silently skipped via the ErrPlaceholderNotFound sentinel.
+func restorePlaceholders(nodes []adf.Node, placeholders map[string]string, manager placeholder.Manager) ([]adf.Node, error) {
 	result := make([]adf.Node, 0, len(nodes))
 
 	for _, node := range nodes {
 		if node.Type == adf.NodeTypeText {
 			// Check if text contains a placeholder marker
-			restored := restoreTextWithPlaceholders(node, placeholders, manager)
+			restored, err := restoreTextWithPlaceholders(node, placeholders, manager)
+			if err != nil {
+				return nil, err
+			}
 			result = append(result, restored...)
 		} else {
 			result = append(result, node)
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 // detectAndConvertEmojis detects unicode emojis in text and converts to ADF emoji nodes
@@ -291,8 +300,10 @@ func splitOnMarker(textNode adf.Node, pos, markerLen int) (before []adf.Node, af
 	return
 }
 
-// restoreTextWithPlaceholders splits text node on markers and restores placeholders
-func restoreTextWithPlaceholders(textNode adf.Node, placeholders map[string]string, manager placeholder.Manager) []adf.Node {
+// restoreTextWithPlaceholders splits text node on markers and restores placeholders.
+// Manager-internal Restore errors propagate; ErrPlaceholderNotFound is treated as
+// a deletion (marker dropped, surrounding text retained).
+func restoreTextWithPlaceholders(textNode adf.Node, placeholders map[string]string, manager placeholder.Manager) ([]adf.Node, error) {
 	keys := make([]string, 0, len(placeholders))
 	for k := range placeholders {
 		keys = append(keys, k)
@@ -300,24 +311,34 @@ func restoreTextWithPlaceholders(textNode adf.Node, placeholders map[string]stri
 
 	marker, pos := findLeftmostMarker(textNode.Text, keys)
 	if pos == -1 {
-		return []adf.Node{textNode}
+		return []adf.Node{textNode}, nil
 	}
 
 	before, after := splitOnMarker(textNode, pos, len(marker))
 	var result []adf.Node
 	result = append(result, before...)
 
-	if originalNode, err := manager.Restore(placeholders[marker]); err == nil {
+	originalNode, err := manager.Restore(placeholders[marker])
+	switch {
+	case err == nil:
 		result = append(result, originalNode)
+	case errors.Is(err, placeholder.ErrPlaceholderNotFound):
+		// Placeholder was deleted from markdown - skip it (allows intentional deletion)
+	default:
+		return nil, fmt.Errorf("restoring placeholder %s: %w", placeholders[marker], err)
 	}
 
 	if len(after) > 0 {
 		afterNode := adf.NewTextNode(after)
 		afterNode.Marks = textNode.Marks
-		result = append(result, restoreTextWithPlaceholders(afterNode, placeholders, manager)...)
+		rest, err := restoreTextWithPlaceholders(afterNode, placeholders, manager)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, rest...)
 	}
 
-	return result
+	return result, nil
 }
 
 // extractColorFromSpan parses the color value from a <span style="color: ..."> tag

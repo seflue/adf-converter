@@ -32,12 +32,12 @@ func (m *nullManager) Store(node adf.Node) (string, string, error) {
 	return "", generatePreview(node), nil
 }
 
-// Restore is a no-op: the noop manager never stores anything, so there
-// is nothing to recover. Returning a zero Node with nil error keeps the
-// display converter from blowing up on placeholder comments embedded in
-// the markdown.
-func (m *nullManager) Restore(_ string) (adf.Node, error) {
-	return adf.Node{}, nil
+// Restore always returns ErrPlaceholderNotFound: the noop manager never
+// stores anything, so there is nothing to recover. Callers detect this
+// with errors.Is(err, ErrPlaceholderNotFound) and treat it the same as
+// a user-deleted placeholder, keeping display-mode flows working.
+func (m *nullManager) Restore(placeholderID string) (adf.Node, error) {
+	return adf.Node{}, fmt.Errorf("placeholder ID %s: %w", placeholderID, ErrPlaceholderNotFound)
 }
 
 func (m *nullManager) GeneratePreview(node adf.Node) string {

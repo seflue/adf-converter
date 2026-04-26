@@ -86,7 +86,7 @@ func (m *DefaultManager) Store(node adf.Node) (string, string, error) {
 func (m *DefaultManager) Restore(placeholderID string) (adf.Node, error) {
 	node, exists := m.session.Preserved[placeholderID]
 	if !exists {
-		return adf.Node{}, fmt.Errorf("placeholder ID %s not found", placeholderID)
+		return adf.Node{}, fmt.Errorf("placeholder ID %s: %w", placeholderID, ErrPlaceholderNotFound)
 	}
 
 	return node, nil

@@ -1,6 +1,7 @@
 package placeholder
 
 import (
+	"errors"
 	"testing"
 
 	adf "github.com/seflue/adf-converter/adf/adftypes"
@@ -75,19 +76,22 @@ func TestNoop_StoreDoesNotAccumulate(t *testing.T) {
 	assert.Equal(t, 0, m.Count(), "noop manager should never accumulate stored nodes")
 }
 
-func TestNoop_RestoreIsNoOp(t *testing.T) {
+func TestNoop_RestoreReturnsNotFound(t *testing.T) {
 	m := NewNoop()
 	node, err := m.Restore("ADF_PLACEHOLDER_001")
 
-	require.NoError(t, err, "noop Restore must not error — it is idempotent passthrough")
+	require.Error(t, err, "noop Restore must report not-found via sentinel")
+	assert.True(t, errors.Is(err, ErrPlaceholderNotFound),
+		"expected errors.Is(err, ErrPlaceholderNotFound), got %v", err)
 	assert.Equal(t, adf.Node{}, node, "noop Restore returns zero-value Node")
 }
 
-func TestNoop_RestoreEmptyIDIsNoOp(t *testing.T) {
+func TestNoop_RestoreEmptyIDReturnsNotFound(t *testing.T) {
 	m := NewNoop()
 	node, err := m.Restore("")
 
-	require.NoError(t, err)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrPlaceholderNotFound))
 	assert.Equal(t, adf.Node{}, node)
 }
 

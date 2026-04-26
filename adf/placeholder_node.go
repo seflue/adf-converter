@@ -1,6 +1,8 @@
 package adf
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/seflue/adf-converter/placeholder"
@@ -19,9 +21,12 @@ func parsePlaceholderNode(lines []string, manager placeholder.Manager) (*Node, i
 	}
 
 	node, err := manager.Restore(placeholderID)
-	if err != nil {
+	if errors.Is(err, placeholder.ErrPlaceholderNotFound) {
 		// Placeholder was deleted from markdown - skip it (allows intentional deletion)
 		return nil, 1, nil
+	}
+	if err != nil {
+		return nil, 0, fmt.Errorf("restoring placeholder %s: %w", placeholderID, err)
 	}
 
 	// Inline nodes live inside paragraphs; wrap them to restore the original structure
