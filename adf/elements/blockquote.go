@@ -70,29 +70,13 @@ func (bc *blockquoteRenderer) ToMarkdown(node adf.Node, context adf.ConversionCo
 			builder.AppendContent(nestedResult.Content)
 			builder.AddConverted(nestedResult.ElementsConverted)
 
-		case "bulletList":
-			listResult, err := NewBulletListRenderer().ToMarkdown(contentNode, context)
+		case "bulletList", "orderedList", "codeBlock":
+			childResult, err := bc.renderChildViaRegistry(contentNode, context)
 			if err != nil {
-				builder.AddWarningf("Failed to convert bulletList: %v", err)
+				builder.AddWarningf("Failed to convert %s: %v", contentNode.Type, err)
 				continue
 			}
-			builder.AppendContent(bc.prefixLines(listResult.Content, context.NestedLevel) + "\n")
-
-		case "orderedList":
-			listResult, err := NewOrderedListRenderer().ToMarkdown(contentNode, context)
-			if err != nil {
-				builder.AddWarningf("Failed to convert orderedList: %v", err)
-				continue
-			}
-			builder.AppendContent(bc.prefixLines(listResult.Content, context.NestedLevel) + "\n")
-
-		case "codeBlock":
-			codeResult, err := NewCodeBlockRenderer().ToMarkdown(contentNode, context)
-			if err != nil {
-				builder.AddWarningf("Failed to convert codeBlock: %v", err)
-				continue
-			}
-			builder.AppendContent(bc.prefixLines(codeResult.Content, context.NestedLevel) + "\n")
+			builder.AppendContent(bc.prefixLines(childResult.Content, context.NestedLevel) + "\n")
 
 		default:
 			text := bc.extractTextContent(contentNode)
@@ -118,6 +102,22 @@ func (bc *blockquoteRenderer) ToMarkdown(node adf.Node, context adf.ConversionCo
 	}
 
 	return result, nil
+}
+
+// renderChildViaRegistry dispatches a blockquote child through the per-instance
+// Registry (ac-0094) so callers using WithRegistry can override the converters
+// for bulletList / orderedList / codeBlock children. Without this indirection,
+// directly instantiating the standard renderers would silently bypass the
+// override (ac-0121).
+func (bc *blockquoteRenderer) renderChildViaRegistry(child adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
+	if context.Registry == nil {
+		return adf.RenderResult{}, fmt.Errorf("no registry in conversion context")
+	}
+	renderer, ok := context.Registry.Lookup(child.Type)
+	if !ok {
+		return adf.RenderResult{}, fmt.Errorf("no renderer registered for %s", child.Type)
+	}
+	return renderer.ToMarkdown(child, context)
 }
 
 func (bc *blockquoteRenderer) extractTextContent(node adf.Node) string {

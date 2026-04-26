@@ -706,5 +706,100 @@ func TestBlockquoteConverter_shouldPreserveAttrs(t *testing.T) {
 	}
 }
 
+// markerRenderer is a stub Renderer used to verify that container converters
+// dispatch their children via the per-instance Registry rather than directly
+// instantiating the standard renderers.
+type markerRenderer struct {
+	nodeType adf.NodeType
+	marker   string
+}
+
+func (m markerRenderer) ToMarkdown(_ adf.Node, _ adf.ConversionContext) (adf.RenderResult, error) {
+	return adf.RenderResult{
+		Content:           m.marker + "\n",
+		ElementsConverted: 1,
+		Strategy:          adf.StandardMarkdown,
+	}, nil
+}
+
+func (m markerRenderer) FromMarkdown(_ []string, _ int, _ adf.ConversionContext) (adf.Node, int, error) {
+	return adf.Node{}, 0, nil
+}
+
+func (m markerRenderer) CanHandle(t adf.NodeType) bool        { return t == m.nodeType }
+func (m markerRenderer) GetStrategy() adf.ConversionStrategy  { return adf.StandardMarkdown }
+func (m markerRenderer) ValidateInput(_ any) error            { return nil }
+
+// TestBlockquoteRenderer_ToMarkdown_DispatchesChildrenViaRegistry verifies that
+// blockquote children (bulletList / orderedList / codeBlock) are rendered
+// through context.Registry.Lookup, so that callers using WithRegistry can
+// override these converters per instance (ac-0094, ac-0121).
+func TestBlockquoteRenderer_ToMarkdown_DispatchesChildrenViaRegistry(t *testing.T) {
+	tests := []struct {
+		name     string
+		nodeType adf.NodeType
+		marker   string
+		child    adf.Node
+	}{
+		{
+			name:     "bulletList via registry",
+			nodeType: adf.NodeTypeBulletList,
+			marker:   "CUSTOM_BL_MARKER",
+			child: adf.Node{
+				Type: adf.NodeTypeBulletList,
+				Content: []adf.Node{{
+					Type: adf.NodeTypeListItem,
+					Content: []adf.Node{{
+						Type:    adf.NodeTypeParagraph,
+						Content: []adf.Node{{Type: adf.NodeTypeText, Text: "x"}},
+					}},
+				}},
+			},
+		},
+		{
+			name:     "orderedList via registry",
+			nodeType: adf.NodeTypeOrderedList,
+			marker:   "CUSTOM_OL_MARKER",
+			child: adf.Node{
+				Type: adf.NodeTypeOrderedList,
+				Content: []adf.Node{{
+					Type: adf.NodeTypeListItem,
+					Content: []adf.Node{{
+						Type:    adf.NodeTypeParagraph,
+						Content: []adf.Node{{Type: adf.NodeTypeText, Text: "x"}},
+					}},
+				}},
+			},
+		},
+		{
+			name:     "codeBlock via registry",
+			nodeType: adf.NodeTypeCodeBlock,
+			marker:   "CUSTOM_CB_MARKER",
+			child: adf.Node{
+				Type:    adf.NodeTypeCodeBlock,
+				Content: []adf.Node{{Type: adf.NodeTypeText, Text: "x"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			registry := newTestRegistry()
+			registry.MustRegister(tt.nodeType, markerRenderer{nodeType: tt.nodeType, marker: tt.marker})
+
+			bc := NewBlockquoteRenderer()
+			node := adf.Node{
+				Type:    adf.NodeTypeBlockquote,
+				Content: []adf.Node{tt.child},
+			}
+
+			result, err := bc.ToMarkdown(node, adf.ConversionContext{Registry: registry})
+			require.NoError(t, err)
+			assert.Contains(t, result.Content, tt.marker,
+				"blockquote should dispatch %s child through Registry override", tt.nodeType)
+		})
+	}
+}
+
 // Suppress unused import warning
 var _ = strings.Split
