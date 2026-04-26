@@ -10,7 +10,7 @@ import (
 
 // markDelimiter maps spannable mark types to their markdown delimiters.
 // These marks can be opened once and span across multiple text nodes.
-var markDelimiter = map[string]string{
+var markDelimiter = map[adf.MarkType]string{
 	adf.MarkTypeStrong: "**",
 	adf.MarkTypeEm:     "*",
 	adf.MarkTypeStrike: "~~",
@@ -18,13 +18,13 @@ var markDelimiter = map[string]string{
 
 // markPriority determines nesting order: lower = outermost.
 // Strong wraps everything, em is innermost.
-var markPriority = map[string]int{
+var markPriority = map[adf.MarkType]int{
 	adf.MarkTypeStrong: 0,
 	adf.MarkTypeStrike: 1,
 	adf.MarkTypeEm:     2,
 }
 
-func isSpannable(markType string) bool {
+func isSpannable(markType adf.MarkType) bool {
 	_, ok := markDelimiter[markType]
 	return ok
 }
@@ -39,7 +39,7 @@ func isSpannable(markType string) bool {
 // transition function, preserving mark spanning for shared marks.
 func RenderInlineNodes(nodes []adf.Node, context adf.ConversionContext) (string, error) {
 	var result strings.Builder
-	var openMarks []string // stack of currently open spannable marks (sorted by priority)
+	var openMarks []adf.MarkType // stack of currently open spannable marks (sorted by priority)
 	var deferredSpace string
 
 	for _, node := range nodes {
@@ -90,7 +90,7 @@ func RenderInlineNodes(nodes []adf.Node, context adf.ConversionContext) (string,
 
 // splitMarks separates marks into spannable (strong/em/strike) and
 // non-spannable (link/code/underline/textColor/subsup).
-func splitMarks(marks []adf.Mark) (spannable []string, nonSpannable []adf.Mark) {
+func splitMarks(marks []adf.Mark) (spannable []adf.MarkType, nonSpannable []adf.Mark) {
 	for _, m := range marks {
 		if isSpannable(m.Type) {
 			spannable = append(spannable, m.Type)
@@ -107,7 +107,7 @@ func splitMarks(marks []adf.Mark) (spannable []string, nonSpannable []adf.Mark) 
 // transition closes marks that are no longer needed and opens new ones.
 // The separator (extruded whitespace) is placed between closing and opening
 // delimiters to prevent ambiguous sequences like ***.
-func transition(w *strings.Builder, openMarks *[]string, target []string, separator string) {
+func transition(w *strings.Builder, openMarks *[]adf.MarkType, target []adf.MarkType, separator string) {
 	commonLen := 0
 	for commonLen < len(*openMarks) && commonLen < len(target) {
 		if (*openMarks)[commonLen] != target[commonLen] {
@@ -129,12 +129,12 @@ func transition(w *strings.Builder, openMarks *[]string, target []string, separa
 		w.WriteString(markDelimiter[target[i]])
 	}
 
-	*openMarks = make([]string, len(target))
+	*openMarks = make([]adf.MarkType, len(target))
 	copy(*openMarks, target)
 }
 
 // closeAll closes all currently open marks (innermost first).
-func closeAll(w *strings.Builder, openMarks *[]string) {
+func closeAll(w *strings.Builder, openMarks *[]adf.MarkType) {
 	for i := len(*openMarks) - 1; i >= 0; i-- {
 		w.WriteString(markDelimiter[(*openMarks)[i]])
 	}

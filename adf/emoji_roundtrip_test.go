@@ -84,7 +84,7 @@ func TestEmojiRoundTrip(t *testing.T) {
 	t.Logf("Reconverted ADF: %+v", jsonPrettyPrint(reconvertedADF))
 
 	// Validation: Structure should match
-	require.Equal(t, "doc", reconvertedADF.Type, "Document type should be 'doc'")
+	require.Equal(t, adf.NodeTypeDoc, reconvertedADF.Type, "Document type should be 'doc'")
 	require.Len(t, reconvertedADF.Content, 1, "Should have 1 top-level node (bulletList)")
 
 	bulletList := reconvertedADF.Content[0]

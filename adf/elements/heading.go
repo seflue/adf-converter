@@ -93,7 +93,7 @@ func (hc *headingRenderer) CanParseLine(line string) bool {
 }
 
 func (hc *headingRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeHeading)
+	return nodeType == adf.NodeTypeHeading
 }
 
 func (hc *headingRenderer) GetStrategy() adf.ConversionStrategy {

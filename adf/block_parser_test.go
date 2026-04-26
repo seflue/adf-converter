@@ -248,7 +248,7 @@ func TestBlockParserDispatchOrder(t *testing.T) {
 	tests := []struct {
 		name     string
 		line     string
-		wantType string
+		wantType adf.NodeType
 	}{
 		{"admonition goes to panel, not blockquote", "> [!INFO]", "panel"},
 		{"plain blockquote goes to blockquote", "> some text", "blockquote"},
@@ -265,7 +265,7 @@ func TestBlockParserDispatchOrder(t *testing.T) {
 			matched := false
 			for _, entry := range registry.BlockParsers() {
 				if entry.Parser.CanParseLine(tt.line) {
-					assert.Equal(t, tt.wantType, string(entry.NodeType),
+					assert.Equal(t, tt.wantType, entry.NodeType,
 						"line %q should dispatch to %s", tt.line, tt.wantType)
 					matched = true
 					break

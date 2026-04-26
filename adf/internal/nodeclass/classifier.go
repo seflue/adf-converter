@@ -29,27 +29,27 @@ func NewNodeClassifier() *NodeClassifier {
 // registerDefaultClassifications sets up the default node type to strategy mappings
 func (nc *NodeClassifier) registerDefaultClassifications() {
 	// Markdown-native elements
-	nc.RegisterNodeType(adf.NodeTable, adf.MarkdownTable, 100)
-	nc.RegisterNodeType(adf.NodeTableRow, adf.MarkdownTable, 100)
-	nc.RegisterNodeType(adf.NodeTableCell, adf.MarkdownTable, 100)
-	nc.RegisterNodeType(adf.NodeTableHeader, adf.MarkdownTable, 100)
-	nc.RegisterNodeType(adf.NodeTaskList, adf.MarkdownTaskList, 100)
-	nc.RegisterNodeType(adf.NodeTaskItem, adf.MarkdownTaskList, 100)
-	nc.RegisterNodeType(adf.NodeBlockquote, adf.MarkdownBlockquote, 100)
-	nc.RegisterNodeType(adf.NodeCodeBlock, adf.MarkdownCodeBlock, 100)
+	nc.RegisterNodeType(adf.NodeTypeTable, adf.MarkdownTable, 100)
+	nc.RegisterNodeType(adf.NodeTypeTableRow, adf.MarkdownTable, 100)
+	nc.RegisterNodeType(adf.NodeTypeTableCell, adf.MarkdownTable, 100)
+	nc.RegisterNodeType(adf.NodeTypeTableHeader, adf.MarkdownTable, 100)
+	nc.RegisterNodeType(adf.NodeTypeTaskList, adf.MarkdownTaskList, 100)
+	nc.RegisterNodeType(adf.NodeTypeTaskItem, adf.MarkdownTaskList, 100)
+	nc.RegisterNodeType(adf.NodeTypeBlockquote, adf.MarkdownBlockquote, 100)
+	nc.RegisterNodeType(adf.NodeTypeCodeBlock, adf.MarkdownCodeBlock, 100)
 
 	// HTML details elements
-	nc.RegisterNodeType(adf.NodeExpand, adf.HTMLDetails, 100)
-	nc.RegisterNodeType(adf.NodeMention, adf.StandardMarkdown, 100)
-	nc.RegisterNodeType(adf.NodeHardBreak, adf.XMLPreserved, 50)
+	nc.RegisterNodeType(adf.NodeTypeExpand, adf.HTMLDetails, 100)
+	nc.RegisterNodeType(adf.NodeTypeMention, adf.StandardMarkdown, 100)
+	nc.RegisterNodeType(adf.NodeTypeHardBreak, adf.XMLPreserved, 50)
 
 	// Standard markdown for basic elements
-	nc.RegisterNodeType(adf.NodeParagraph, adf.StandardMarkdown, 100)
-	nc.RegisterNodeType(adf.NodeHeading, adf.StandardMarkdown, 100)
-	nc.RegisterNodeType(adf.NodeBulletList, adf.StandardMarkdown, 80)
-	nc.RegisterNodeType(adf.NodeOrderedList, adf.StandardMarkdown, 100)
-	nc.RegisterNodeType(adf.NodeListItem, adf.StandardMarkdown, 100)
-	nc.RegisterNodeType(adf.NodeText, adf.StandardMarkdown, 100)
+	nc.RegisterNodeType(adf.NodeTypeParagraph, adf.StandardMarkdown, 100)
+	nc.RegisterNodeType(adf.NodeTypeHeading, adf.StandardMarkdown, 100)
+	nc.RegisterNodeType(adf.NodeTypeBulletList, adf.StandardMarkdown, 80)
+	nc.RegisterNodeType(adf.NodeTypeOrderedList, adf.StandardMarkdown, 100)
+	nc.RegisterNodeType(adf.NodeTypeListItem, adf.StandardMarkdown, 100)
+	nc.RegisterNodeType(adf.NodeTypeText, adf.StandardMarkdown, 100)
 
 	// Placeholder fallback for unhandled types
 	nc.RegisterNodeType("unknown", adf.Placeholder, 1)
@@ -72,7 +72,7 @@ func (nc *NodeClassifier) ClassifyNode(node adf.Node) adf.ConversionStrategy {
 		return classification.Strategy
 	}
 
-	if nodeType == adf.NodeBulletList {
+	if nodeType == adf.NodeTypeBulletList {
 		if nc.isTaskList(node) {
 			return adf.MarkdownTaskList
 		}
@@ -84,12 +84,12 @@ func (nc *NodeClassifier) ClassifyNode(node adf.Node) adf.ConversionStrategy {
 
 // isTaskList determines if a bullet list is actually a task list
 func (nc *NodeClassifier) isTaskList(node adf.Node) bool {
-	if node.Type != string(adf.NodeBulletList) {
+	if node.Type != adf.NodeTypeBulletList {
 		return false
 	}
 
 	for _, item := range node.Content {
-		if item.Type == string(adf.NodeListItem) {
+		if item.Type == adf.NodeTypeListItem {
 			if state, exists := item.Attrs["state"]; exists {
 				if stateStr, ok := state.(string); ok {
 					if stateStr == "TODO" || stateStr == "DONE" {

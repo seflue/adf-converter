@@ -164,14 +164,14 @@ Final paragraph content.`
 		assert.NotEmpty(t, result, "Should parse complex mixed content")
 
 		// Verify we got expected node types
-		nodeTypes := make([]string, len(result))
+		nodeTypes := make([]adf.NodeType, len(result))
 		for i, node := range result {
-			nodeTypes[i] = string(node.Type)
+			nodeTypes[i] = node.Type
 		}
 
-		assert.Contains(t, nodeTypes, string(adf.NodeTypeHeading), "Should contain heading")
-		assert.Contains(t, nodeTypes, string(adf.NodeTypeExpand), "Should contain expand element")
-		assert.Contains(t, nodeTypes, string(adf.NodeTypeParagraph), "Should contain paragraphs")
+		assert.Contains(t, nodeTypes, adf.NodeTypeHeading, "Should contain heading")
+		assert.Contains(t, nodeTypes, adf.NodeTypeExpand, "Should contain expand element")
+		assert.Contains(t, nodeTypes, adf.NodeTypeParagraph, "Should contain paragraphs")
 
 	case <-time.After(5 * time.Second):
 		t.Fatal("CRITICAL: Parser hung on complex mixed content!")

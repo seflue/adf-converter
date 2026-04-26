@@ -478,11 +478,11 @@ func TestOrderedListConverter_CanHandle(t *testing.T) {
 		nodeType adf.NodeType
 		expected bool
 	}{
-		{adf.NodeType(adf.NodeTypeOrderedList), true},
-		{adf.NodeType(adf.NodeTypeBulletList), false},
-		{adf.NodeType(adf.NodeTypeListItem), false},
-		{adf.NodeType(adf.NodeTypeParagraph), false},
-		{adf.NodeType(adf.NodeTypeText), false},
+		{adf.NodeTypeOrderedList, true},
+		{adf.NodeTypeBulletList, false},
+		{adf.NodeTypeListItem, false},
+		{adf.NodeTypeParagraph, false},
+		{adf.NodeTypeText, false},
 	}
 
 	for _, tt := range tests {

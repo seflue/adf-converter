@@ -161,7 +161,7 @@ func TestParagraphConverter_FromMarkdown(t *testing.T) {
 		name          string
 		lines         []string
 		startIndex    int
-		expectedType  string
+		expectedType  adf.NodeType
 		expectedText  string
 		expectedLines int
 		wantErr       bool
@@ -343,10 +343,10 @@ func TestParagraphConverter_CanHandle(t *testing.T) {
 		nodeType adf.NodeType
 		expected bool
 	}{
-		{adf.NodeType(adf.NodeTypeParagraph), true},
-		{adf.NodeType(adf.NodeTypeText), false},
-		{adf.NodeType(adf.NodeTypeHeading), false},
-		{adf.NodeType(adf.NodeTypeHardBreak), false},
+		{adf.NodeTypeParagraph, true},
+		{adf.NodeTypeText, false},
+		{adf.NodeTypeHeading, false},
+		{adf.NodeTypeHardBreak, false},
 	}
 
 	for _, tt := range tests {

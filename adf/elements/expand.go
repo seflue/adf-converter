@@ -223,8 +223,8 @@ func (ec *expandRenderer) CanParseLine(line string) bool {
 }
 
 func (ec *expandRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeExpand) ||
-		nodeType == adf.NodeType(adf.NodeTypeNestedExpand)
+	return nodeType == adf.NodeTypeExpand ||
+		nodeType == adf.NodeTypeNestedExpand
 }
 
 func (ec *expandRenderer) GetStrategy() adf.ConversionStrategy {

@@ -91,13 +91,13 @@ func TestDetailsContentParsingRegression(t *testing.T) {
 	require.Equal(t, 1, len(restoredADF.Content), "Should have one top-level element")
 
 	expand := restoredADF.Content[0]
-	assert.Equal(t, "expand", string(expand.Type), "Top-level element should be expand")
+	assert.Equal(t, adf.NodeTypeExpand, expand.Type, "Top-level element should be expand")
 	assert.Equal(t, "This is for testing", expand.Attrs["title"], "Title should be preserved")
 
 	// CRITICAL: Check that heading text is clean (not malformed)
 	require.Greater(t, len(expand.Content), 0, "Expand should have content")
 	heading := expand.Content[0]
-	assert.Equal(t, "heading", string(heading.Type), "First content should be heading")
+	assert.Equal(t, adf.NodeTypeHeading, heading.Type, "First content should be heading")
 
 	require.Greater(t, len(heading.Content), 0, "Heading should have text content")
 	headingText := heading.Content[0]
@@ -108,7 +108,7 @@ func TestDetailsContentParsingRegression(t *testing.T) {
 	// CRITICAL: Check that markdown formatting is processed into ADF marks
 	require.Greater(t, len(expand.Content), 1, "Expand should have bullet list")
 	bulletList := expand.Content[1]
-	assert.Equal(t, "bulletList", string(bulletList.Type), "Second content should be bullet list")
+	assert.Equal(t, adf.NodeTypeBulletList, bulletList.Type, "Second content should be bullet list")
 
 	require.Greater(t, len(bulletList.Content), 0, "Bullet list should have items")
 
@@ -121,7 +121,7 @@ func TestDetailsContentParsingRegression(t *testing.T) {
 	assert.Equal(t, "bold item", boldText.Text, "Bold text content should be correct")
 	// This was the production bug: markdown "**bold** item" was not converted to ADF marks
 	assert.Equal(t, 1, len(boldText.Marks), "Bold text should have exactly one mark")
-	assert.Equal(t, "strong", string(boldText.Marks[0].Type), "First item should have strong mark")
+	assert.Equal(t, adf.MarkTypeStrong, boldText.Marks[0].Type, "First item should have strong mark")
 
 	// Check second list item (italic)
 	require.Greater(t, len(bulletList.Content), 1, "Should have second list item")
@@ -133,7 +133,7 @@ func TestDetailsContentParsingRegression(t *testing.T) {
 	assert.Equal(t, "italic item", italicText.Text, "Italic text content should be correct")
 	// This was the production bug: markdown "_italic_ item" was not converted to ADF marks
 	assert.Equal(t, 1, len(italicText.Marks), "Italic text should have exactly one mark")
-	assert.Equal(t, "em", string(italicText.Marks[0].Type), "Second item should have em mark")
+	assert.Equal(t, adf.MarkTypeEm, italicText.Marks[0].Type, "Second item should have em mark")
 }
 
 // TestDetailsContentParsingEdgeCases tests additional edge cases around details content

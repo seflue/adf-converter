@@ -18,6 +18,12 @@ type Node = adftypes.Node
 // Mark represents text formatting marks (bold, italic, etc.).
 type Mark = adftypes.Mark
 
+// NodeType is the typed enumeration of ADF node types.
+type NodeType = adftypes.NodeType
+
+// MarkType is the typed enumeration of ADF mark (text formatting) types.
+type MarkType = adftypes.MarkType
+
 const (
 	NodeTypeDoc          = adftypes.NodeTypeDoc
 	NodeTypeParagraph    = adftypes.NodeTypeParagraph
@@ -26,6 +32,9 @@ const (
 	NodeTypeTable        = adftypes.NodeTypeTable
 	NodeTypeTableRow     = adftypes.NodeTypeTableRow
 	NodeTypeTableCell    = adftypes.NodeTypeTableCell
+	NodeTypeTableHeader  = adftypes.NodeTypeTableHeader
+	NodeTypeTaskList     = adftypes.NodeTypeTaskList
+	NodeTypeTaskItem     = adftypes.NodeTypeTaskItem
 	NodeTypePanel        = adftypes.NodeTypePanel
 	NodeTypeBlockquote   = adftypes.NodeTypeBlockquote
 	NodeTypeRule         = adftypes.NodeTypeRule
@@ -58,7 +67,7 @@ const (
 )
 
 // IsInlineNode returns true if the node type is an inline node.
-func IsInlineNode(nodeType string) bool { return adftypes.IsInlineNode(nodeType) }
+func IsInlineNode(nodeType NodeType) bool { return adftypes.IsInlineNode(nodeType) }
 
 // NewDocument creates a new ADF document with the standard version.
 func NewDocument() *Document { return adftypes.NewDocument() }
@@ -72,4 +81,4 @@ func NewTextNode(text string, marks ...Mark) Node {
 func NewParagraphNode(content ...Node) Node { return adftypes.NewParagraphNode(content...) }
 
 // NewMark creates a new text mark.
-func NewMark(markType string, attrs map[string]any) Mark { return adftypes.NewMark(markType, attrs) }
+func NewMark(markType MarkType, attrs map[string]any) Mark { return adftypes.NewMark(markType, attrs) }

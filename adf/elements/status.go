@@ -41,7 +41,7 @@ func (sc *statusRenderer) FromMarkdown(lines []string, startIndex int, context a
 }
 
 func (sc *statusRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeStatus)
+	return nodeType == adf.NodeTypeStatus
 }
 
 func (sc *statusRenderer) GetStrategy() adf.ConversionStrategy {

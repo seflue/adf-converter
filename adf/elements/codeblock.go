@@ -108,7 +108,7 @@ func (c *codeBlockRenderer) CanParseLine(line string) bool {
 }
 
 func (c *codeBlockRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeCodeBlock)
+	return nodeType == adf.NodeTypeCodeBlock
 }
 
 func (c *codeBlockRenderer) GetStrategy() adf.ConversionStrategy {

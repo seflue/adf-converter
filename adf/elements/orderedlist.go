@@ -136,7 +136,7 @@ func (olc *orderedListRenderer) CanParseLine(line string) bool {
 }
 
 func (olc *orderedListRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeOrderedList)
+	return nodeType == adf.NodeTypeOrderedList
 }
 
 func (olc *orderedListRenderer) GetStrategy() adf.ConversionStrategy {

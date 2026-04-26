@@ -88,7 +88,7 @@ func TestRuleConverter_FromMarkdown(t *testing.T) {
 		name         string
 		lines        []string
 		startIndex   int
-		expectedType string
+		expectedType adf.NodeType
 		consumed     int
 	}{
 		{

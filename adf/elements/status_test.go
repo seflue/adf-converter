@@ -108,8 +108,8 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 
 func TestStatusConverter_CanHandle(t *testing.T) {
 	sc := NewStatusRenderer()
-	assert.True(t, sc.CanHandle(adf.NodeType(adf.NodeTypeStatus)))
-	assert.False(t, sc.CanHandle(adf.NodeType(adf.NodeTypeDate)))
+	assert.True(t, sc.CanHandle(adf.NodeTypeStatus))
+	assert.False(t, sc.CanHandle(adf.NodeTypeDate))
 }
 
 func TestStatusConverter_GetStrategy(t *testing.T) {

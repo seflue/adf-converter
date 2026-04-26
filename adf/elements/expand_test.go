@@ -21,22 +21,22 @@ func TestExpandConverter_CanHandle(t *testing.T) {
 	}{
 		{
 			name:     "handles expand",
-			nodeType: adf.NodeType(adf.NodeTypeExpand),
+			nodeType: adf.NodeTypeExpand,
 			expected: true,
 		},
 		{
 			name:     "handles nestedExpand",
-			nodeType: adf.NodeType(adf.NodeTypeNestedExpand),
+			nodeType: adf.NodeTypeNestedExpand,
 			expected: true,
 		},
 		{
 			name:     "does not handle paragraph",
-			nodeType: adf.NodeType(adf.NodeTypeParagraph),
+			nodeType: adf.NodeTypeParagraph,
 			expected: false,
 		},
 		{
 			name:     "does not handle heading",
-			nodeType: adf.NodeType(adf.NodeTypeHeading),
+			nodeType: adf.NodeTypeHeading,
 			expected: false,
 		},
 	}
@@ -386,7 +386,7 @@ func TestExpandConverter_FromMarkdown_NotDetailsElement(t *testing.T) {
 	node, consumed, err := ec.FromMarkdown(markdown, 0, ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 0, consumed)
-	assert.Equal(t, "", node.Type)
+	assert.Equal(t, adf.NodeType(""), node.Type)
 }
 
 func TestExpandConverter_FromMarkdown_NoSummary(t *testing.T) {

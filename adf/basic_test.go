@@ -109,7 +109,7 @@ This is after the second
 	}
 
 	// Verify correct node types
-	expectedTypes := []string{adf.NodeTypeParagraph, adf.NodeTypeCodeBlock, adf.NodeTypeParagraph, adf.NodeTypeParagraph}
+	expectedTypes := []adf.NodeType{adf.NodeTypeParagraph, adf.NodeTypeCodeBlock, adf.NodeTypeParagraph, adf.NodeTypeParagraph}
 	for i, expectedType := range expectedTypes {
 		if doc.Content[i].Type != expectedType {
 			t.Errorf("Node %d: expected %s, got %s", i, expectedType, doc.Content[i].Type)
@@ -534,7 +534,7 @@ func TestDefaultClassifier_IsEditable(t *testing.T) {
 	classifier := adf.NewDefaultClassifier()
 
 	tests := []struct {
-		nodeType string
+		nodeType adf.NodeType
 		expected bool
 	}{
 		{adf.NodeTypeParagraph, true},
@@ -551,7 +551,7 @@ func TestDefaultClassifier_IsEditable(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.nodeType, func(t *testing.T) {
+		t.Run(string(tt.nodeType), func(t *testing.T) {
 			result := classifier.IsEditable(tt.nodeType)
 			if result != tt.expected {
 				t.Errorf("IsEditable(%s) = %v, want %v", tt.nodeType, result, tt.expected)
@@ -564,7 +564,7 @@ func TestDefaultClassifier_IsPreserved(t *testing.T) {
 	classifier := adf.NewDefaultClassifier()
 
 	tests := []struct {
-		nodeType string
+		nodeType adf.NodeType
 		expected bool
 	}{
 		{adf.NodeTypeCodeBlock, false},
@@ -580,7 +580,7 @@ func TestDefaultClassifier_IsPreserved(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.nodeType, func(t *testing.T) {
+		t.Run(string(tt.nodeType), func(t *testing.T) {
 			result := classifier.IsPreserved(tt.nodeType)
 			if result != tt.expected {
 				t.Errorf("IsPreserved(%s) = %v, want %v", tt.nodeType, result, tt.expected)

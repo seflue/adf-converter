@@ -80,7 +80,7 @@ func (mc *mediaSingleRenderer) CanParseLine(line string) bool {
 }
 
 func (mc *mediaSingleRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeMediaSingle)
+	return nodeType == adf.NodeTypeMediaSingle
 }
 
 func (mc *mediaSingleRenderer) GetStrategy() adf.ConversionStrategy {

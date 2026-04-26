@@ -162,7 +162,7 @@ func appendPreservedChild(
 }
 
 func (pc *paragraphRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeParagraph)
+	return nodeType == adf.NodeTypeParagraph
 }
 
 func (pc *paragraphRenderer) GetStrategy() adf.ConversionStrategy {

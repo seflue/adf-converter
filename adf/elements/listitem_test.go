@@ -414,11 +414,11 @@ func TestListItemConverter_CanHandle(t *testing.T) {
 		nodeType adf.NodeType
 		want     bool
 	}{
-		{adf.NodeType(adf.NodeTypeListItem), true},
-		{adf.NodeType(adf.NodeTypeParagraph), false},
-		{adf.NodeType(adf.NodeTypeHeading), false},
-		{adf.NodeType(adf.NodeTypeText), false},
-		{adf.NodeType(adf.NodeTypeBulletList), false},
+		{adf.NodeTypeListItem, true},
+		{adf.NodeTypeParagraph, false},
+		{adf.NodeTypeHeading, false},
+		{adf.NodeTypeText, false},
+		{adf.NodeTypeBulletList, false},
 	}
 
 	for _, tt := range tests {

@@ -25,11 +25,11 @@ func TestTableConverter_FromMarkdown(t *testing.T) {
 		name              string
 		lines             []string
 		startIndex        int
-		wantType          string
+		wantType          adf.NodeType
 		wantRows          int
 		wantConsumed      int
 		wantHeaderCells   int
-		wantFirstCellType string
+		wantFirstCellType adf.NodeType
 		wantErr           bool
 	}{
 		{
@@ -148,7 +148,7 @@ func TestTableConverter_FromMarkdown(t *testing.T) {
 
 			if tt.wantHeaderCells > 0 && tt.wantRows > 0 {
 				headerRow := result.Content[0]
-				assert.Equal(t, "tableRow", headerRow.Type)
+				assert.Equal(t, adf.NodeTypeTableRow, headerRow.Type)
 				assert.Len(t, headerRow.Content, tt.wantHeaderCells)
 				assert.Equal(t, tt.wantFirstCellType, headerRow.Content[0].Type)
 			}
@@ -156,7 +156,7 @@ func TestTableConverter_FromMarkdown(t *testing.T) {
 			// Data rows should use tableCell
 			if tt.wantRows > 1 && tt.wantFirstCellType == "tableHeader" {
 				dataRow := result.Content[1]
-				assert.Equal(t, "tableCell", dataRow.Content[0].Type)
+				assert.Equal(t, adf.NodeTypeTableCell, dataRow.Content[0].Type)
 			}
 		})
 	}
@@ -528,7 +528,7 @@ func TestTableConverter_FromMarkdown_EmptyHeaderMeansNoHeader(t *testing.T) {
 	require.Len(t, result.Content, 2, "empty header row should be dropped")
 	for i, row := range result.Content {
 		for j, cell := range row.Content {
-			assert.Equal(t, "tableCell", cell.Type,
+			assert.Equal(t, adf.NodeTypeTableCell, cell.Type,
 				"row %d cell %d should be tableCell, not tableHeader", i, j)
 		}
 	}
@@ -583,7 +583,7 @@ func TestTableConverter_RoundTrip_NoHeader(t *testing.T) {
 	// All cells remain tableCell (not promoted to tableHeader)
 	for i, row := range roundtrippedNode.Content {
 		for j, cell := range row.Content {
-			assert.Equal(t, "tableCell", cell.Type,
+			assert.Equal(t, adf.NodeTypeTableCell, cell.Type,
 				"row %d cell %d should be tableCell after roundtrip", i, j)
 		}
 	}
@@ -686,28 +686,28 @@ func TestTableConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 	require.NotEmpty(t, cell1Para.Content)
 	assert.Equal(t, "Bold", cell1Para.Content[0].Text)
 	require.Len(t, cell1Para.Content[0].Marks, 1)
-	assert.Equal(t, "strong", cell1Para.Content[0].Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeStrong, cell1Para.Content[0].Marks[0].Type)
 
 	// Cell 2: *Italic* → text "Italic" with em mark
 	cell2Para := headerRow.Content[1].Content[0]
 	require.NotEmpty(t, cell2Para.Content)
 	assert.Equal(t, "Italic", cell2Para.Content[0].Text)
 	require.Len(t, cell2Para.Content[0].Marks, 1)
-	assert.Equal(t, "em", cell2Para.Content[0].Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeEm, cell2Para.Content[0].Marks[0].Type)
 
 	// Cell 3: `code` → text "code" with code mark
 	cell3Para := headerRow.Content[2].Content[0]
 	require.NotEmpty(t, cell3Para.Content)
 	assert.Equal(t, "code", cell3Para.Content[0].Text)
 	require.Len(t, cell3Para.Content[0].Marks, 1)
-	assert.Equal(t, "code", cell3Para.Content[0].Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeCode, cell3Para.Content[0].Marks[0].Type)
 
 	// Cell 4: [link](url) → text "link" with link mark
 	cell4Para := headerRow.Content[3].Content[0]
 	require.NotEmpty(t, cell4Para.Content)
 	assert.Equal(t, "link", cell4Para.Content[0].Text)
 	require.Len(t, cell4Para.Content[0].Marks, 1)
-	assert.Equal(t, "link", cell4Para.Content[0].Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeLink, cell4Para.Content[0].Marks[0].Type)
 	assert.Equal(t, "http://example.com", cell4Para.Content[0].Marks[0].Attrs["href"])
 }
 
@@ -785,7 +785,7 @@ func TestTableConverter_FromMarkdown_EdgeCases(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, "table", result.Type)
+			assert.Equal(t, adf.NodeTypeTable, result.Type)
 			assert.Equal(t, tt.wantConsumed, consumed)
 			assert.Len(t, result.Content, tt.wantRows)
 		})
@@ -819,7 +819,7 @@ func TestTableConverter_FromMarkdown_EmptyCellContent(t *testing.T) {
 
 func TestTableConverter_CanHandle(t *testing.T) {
 	tc := NewTableRenderer()
-	assert.True(t, tc.CanHandle(adf.NodeTable))
+	assert.True(t, tc.CanHandle(adf.NodeTypeTable))
 	assert.False(t, tc.CanHandle("paragraph"))
 }
 

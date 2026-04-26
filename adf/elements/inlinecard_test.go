@@ -236,10 +236,10 @@ func TestInlineCardConverter_CanHandle(t *testing.T) {
 		nodeType adf.NodeType
 		expected bool
 	}{
-		{adf.NodeType(adf.NodeTypeInlineCard), true},
-		{adf.NodeType(adf.NodeTypeParagraph), false},
-		{adf.NodeType(adf.NodeTypeHeading), false},
-		{adf.NodeType(adf.NodeTypeText), false},
+		{adf.NodeTypeInlineCard, true},
+		{adf.NodeTypeParagraph, false},
+		{adf.NodeTypeHeading, false},
+		{adf.NodeTypeText, false},
 		{adf.NodeType("unknown"), false},
 	}
 

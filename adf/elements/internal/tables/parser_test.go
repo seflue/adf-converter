@@ -12,6 +12,7 @@ import (
 	east "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
 
+	"github.com/seflue/adf-converter/adf"
 	"github.com/seflue/adf-converter/adf/elements/internal/tables"
 )
 
@@ -113,26 +114,26 @@ func TestParseTable_PlainTable(t *testing.T) {
 	node, err := tables.ParseTable(markdown)
 	require.NoError(t, err)
 
-	assert.Equal(t, "table", node.Type)
+	assert.Equal(t, adf.NodeTypeTable, node.Type)
 	require.Len(t, node.Content, 3, "header row + 2 data rows")
 
 	// First row: tableRow with tableHeader cells
 	headerRow := node.Content[0]
-	assert.Equal(t, "tableRow", headerRow.Type)
+	assert.Equal(t, adf.NodeTypeTableRow, headerRow.Type)
 	require.Len(t, headerRow.Content, 2)
-	assert.Equal(t, "tableHeader", headerRow.Content[0].Type)
-	assert.Equal(t, "tableHeader", headerRow.Content[1].Type)
+	assert.Equal(t, adf.NodeTypeTableHeader, headerRow.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableHeader, headerRow.Content[1].Type)
 
 	// Header cell content
 	headerCell1Para := headerRow.Content[0].Content[0]
-	assert.Equal(t, "paragraph", headerCell1Para.Type)
+	assert.Equal(t, adf.NodeTypeParagraph, headerCell1Para.Type)
 	require.NotEmpty(t, headerCell1Para.Content)
 	assert.Equal(t, "Header 1", headerCell1Para.Content[0].Text)
 
 	// Data rows: tableRow with tableCell
 	dataRow1 := node.Content[1]
-	assert.Equal(t, "tableRow", dataRow1.Type)
-	assert.Equal(t, "tableCell", dataRow1.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableRow, dataRow1.Type)
+	assert.Equal(t, adf.NodeTypeTableCell, dataRow1.Content[0].Type)
 	assert.Equal(t, "Cell 1", dataRow1.Content[0].Content[0].Content[0].Text)
 }
 
@@ -151,7 +152,7 @@ func TestParseTable_SyntheticEmptyHeader(t *testing.T) {
 
 	for i, row := range node.Content {
 		for j, cell := range row.Content {
-			assert.Equal(t, "tableCell", cell.Type,
+			assert.Equal(t, adf.NodeTypeTableCell, cell.Type,
 				"row %d cell %d should be tableCell", i, j)
 		}
 	}
@@ -169,7 +170,7 @@ func TestParseTable_HeaderOnly(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, node.Content, 1)
-	assert.Equal(t, "tableHeader", node.Content[0].Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableHeader, node.Content[0].Content[0].Type)
 	assert.Equal(t, "Header", node.Content[0].Content[0].Content[0].Content[0].Text)
 }
 
@@ -188,19 +189,19 @@ func TestParseTable_InlineFormattingInCells(t *testing.T) {
 	cell0 := headerRow.Content[0].Content[0].Content[0] // paragraph → text node
 	assert.Equal(t, "Bold", cell0.Text)
 	require.Len(t, cell0.Marks, 1)
-	assert.Equal(t, "strong", cell0.Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeStrong, cell0.Marks[0].Type)
 
 	// *Italic* → em mark
 	cell1 := headerRow.Content[1].Content[0].Content[0]
 	assert.Equal(t, "Italic", cell1.Text)
 	require.Len(t, cell1.Marks, 1)
-	assert.Equal(t, "em", cell1.Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeEm, cell1.Marks[0].Type)
 
 	// `code` → code mark
 	cell2 := headerRow.Content[2].Content[0].Content[0]
 	assert.Equal(t, "code", cell2.Text)
 	require.Len(t, cell2.Marks, 1)
-	assert.Equal(t, "code", cell2.Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeCode, cell2.Marks[0].Type)
 }
 
 func TestParseTable_EmptyCells(t *testing.T) {
@@ -223,7 +224,7 @@ func TestParseTable_EmptyCells(t *testing.T) {
 func TestParseTable_EmptyInput(t *testing.T) {
 	node, err := tables.ParseTable("")
 	require.NoError(t, err)
-	assert.Equal(t, "table", node.Type)
+	assert.Equal(t, adf.NodeTypeTable, node.Type)
 	assert.Empty(t, node.Content)
 }
 
@@ -235,7 +236,7 @@ func TestParseTable_NoSeparatorNotATable(t *testing.T) {
 
 	node, err := tables.ParseTable(markdown)
 	require.NoError(t, err)
-	assert.Equal(t, "table", node.Type)
+	assert.Equal(t, adf.NodeTypeTable, node.Type)
 	assert.Empty(t, node.Content, "input without separator is not a valid table")
 }
 
@@ -248,7 +249,7 @@ func TestParseTable_SingleColumn(t *testing.T) {
 	node, err := tables.ParseTable(markdown)
 	require.NoError(t, err)
 	require.Len(t, node.Content, 3)
-	assert.Equal(t, "tableHeader", node.Content[0].Content[0].Type)
-	assert.Equal(t, "tableCell", node.Content[1].Content[0].Type)
-	assert.Equal(t, "tableCell", node.Content[2].Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableHeader, node.Content[0].Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableCell, node.Content[1].Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableCell, node.Content[2].Content[0].Type)
 }

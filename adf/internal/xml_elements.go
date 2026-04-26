@@ -339,7 +339,7 @@ func (helper *XMLElementHelper) ValidateElementStructure(elementType string, dat
 
 // CreateXMLFromADFNode creates appropriate XML element from ADF node
 func (helper *XMLElementHelper) CreateXMLFromADFNode(node adf.Node) ([]byte, error) {
-	builder := NewXMLElementBuilder(node.Type)
+	builder := NewXMLElementBuilder(string(node.Type))
 
 	// Copy attributes
 	for key, value := range node.Attrs {

@@ -53,7 +53,7 @@ func (dc *dateRenderer) FromMarkdown(lines []string, startIndex int, context adf
 }
 
 func (dc *dateRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeDate)
+	return nodeType == adf.NodeTypeDate
 }
 
 func (dc *dateRenderer) GetStrategy() adf.ConversionStrategy {

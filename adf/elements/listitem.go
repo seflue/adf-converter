@@ -112,7 +112,7 @@ func (lic *listItemRenderer) FromMarkdown(lines []string, startIndex int, contex
 }
 
 func (lic *listItemRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeListItem)
+	return nodeType == adf.NodeTypeListItem
 }
 
 func (lic *listItemRenderer) GetStrategy() adf.ConversionStrategy {

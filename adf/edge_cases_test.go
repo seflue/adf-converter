@@ -79,7 +79,7 @@ Ut enim ad minim veniam:
 			if test.expectConversion {
 				require.NoError(t, err, "Conversion should succeed for: %s", test.description)
 				assert.NotNil(t, doc, "Document should be generated")
-				assert.Equal(t, "doc", doc.Type, "Should produce valid ADF document")
+				assert.Equal(t, adf.NodeTypeDoc, doc.Type, "Should produce valid ADF document")
 			} else {
 				assert.Error(t, err, "Conversion should fail for: %s", test.description)
 			}
@@ -128,7 +128,7 @@ func TestEdgeCases_EmptyInputs(t *testing.T) {
 
 			if test.shouldSucceed {
 				require.NoError(t, err, "Should handle empty/whitespace input gracefully")
-				assert.Equal(t, "doc", doc.Type, "Should produce valid ADF document type")
+				assert.Equal(t, adf.NodeTypeDoc, doc.Type, "Should produce valid ADF document type")
 				assert.Equal(t, 1, doc.Version, "Should have correct version")
 			} else {
 				assert.Error(t, err, "Should fail for invalid input")
@@ -327,7 +327,7 @@ func TestEdgeCases_LargeContent(t *testing.T) {
 	require.NoError(t, err, "Round-trip should succeed for large content")
 
 	// Verify document structure
-	assert.Equal(t, "doc", restored.Type)
+	assert.Equal(t, adf.NodeTypeDoc, restored.Type)
 	assert.Equal(t, 1, len(restored.Content))
 	assert.Equal(t, adf.NodeTypeParagraph, restored.Content[0].Type)
 }
@@ -345,13 +345,13 @@ func TestEdgeCases_PlainBlockquote(t *testing.T) {
 	doc, err := testFromMarkdown(blockquoteMarkdown, session, manager, defaults.NewRegistry())
 	require.NoError(t, err)
 
-	assert.Equal(t, "doc", doc.Type)
+	assert.Equal(t, adf.NodeTypeDoc, doc.Type)
 	require.Equal(t, 1, len(doc.Content), "Should have exactly one top-level node")
 
 	blockquote := doc.Content[0]
-	assert.Equal(t, "blockquote", blockquote.Type, "Top-level node should be blockquote, not paragraph")
+	assert.Equal(t, adf.NodeTypeBlockquote, blockquote.Type, "Top-level node should be blockquote, not paragraph")
 	require.Equal(t, 1, len(blockquote.Content), "Blockquote should have one paragraph")
-	assert.Equal(t, "paragraph", blockquote.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeParagraph, blockquote.Content[0].Type)
 	require.NotEmpty(t, blockquote.Content[0].Content)
 	assert.Equal(t, "This is a blockquote", blockquote.Content[0].Content[0].Text)
 }
@@ -372,7 +372,7 @@ func TestEdgeCases_NestedBlockquotes(t *testing.T) {
 	require.NoError(t, err, "Should handle nested blockquotes")
 
 	// Verify structure - blockquotes may be converted to placeholders
-	assert.Equal(t, "doc", doc.Type)
+	assert.Equal(t, adf.NodeTypeDoc, doc.Type)
 	assert.Greater(t, len(doc.Content), 0, "Should have content")
 
 	// Test round-trip
@@ -408,7 +408,7 @@ func TestEdgeCases_TaskListVariations(t *testing.T) {
 	require.NoError(t, err, "Should handle task list variations")
 
 	// Verify structure
-	assert.Equal(t, "doc", doc.Type)
+	assert.Equal(t, adf.NodeTypeDoc, doc.Type)
 	assert.Greater(t, len(doc.Content), 0, "Should have content")
 
 	// Test round-trip
@@ -434,11 +434,11 @@ func TestPlainMarkdownTaskList_ParsedAsTaskList(t *testing.T) {
 	require.Len(t, doc.Content, 1, "should produce a single top-level node")
 
 	node := doc.Content[0]
-	assert.Equal(t, "taskList", node.Type, "plain checkbox markdown must be parsed as taskList, not bulletList")
+	assert.Equal(t, adf.NodeTypeTaskList, node.Type, "plain checkbox markdown must be parsed as taskList, not bulletList")
 	require.Len(t, node.Content, 2, "should contain two task items")
-	assert.Equal(t, "taskItem", node.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTaskItem, node.Content[0].Type)
 	assert.Equal(t, "TODO", node.Content[0].Attrs["state"])
-	assert.Equal(t, "taskItem", node.Content[1].Type)
+	assert.Equal(t, adf.NodeTypeTaskItem, node.Content[1].Type)
 	assert.Equal(t, "DONE", node.Content[1].Attrs["state"])
 }
 
@@ -466,7 +466,7 @@ Mixed: "Smart quotes" and 'single quotes' and —em dash— and –en dash–`
 	require.NoError(t, err, "Should handle special characters")
 
 	// Verify structure
-	assert.Equal(t, "doc", doc.Type)
+	assert.Equal(t, adf.NodeTypeDoc, doc.Type)
 
 	// Test round-trip
 	classifier := adf.NewDefaultClassifier()
@@ -504,7 +504,7 @@ Final paragraph.`
 	require.NoError(t, err, "Should recover from individual element errors")
 
 	// Verify basic structure is preserved
-	assert.Equal(t, "doc", doc.Type)
+	assert.Equal(t, adf.NodeTypeDoc, doc.Type)
 	assert.Greater(t, len(doc.Content), 0, "Should preserve valid content")
 
 	// Test round-trip

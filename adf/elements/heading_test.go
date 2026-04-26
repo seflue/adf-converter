@@ -550,10 +550,10 @@ func TestHeadingConverter_CanHandle(t *testing.T) {
 		nodeType adf.NodeType
 		expected bool
 	}{
-		{adf.NodeType(adf.NodeTypeHeading), true},
-		{adf.NodeType(adf.NodeTypeText), false},
-		{adf.NodeType(adf.NodeTypeParagraph), false},
-		{adf.NodeType(adf.NodeTypeHardBreak), false},
+		{adf.NodeTypeHeading, true},
+		{adf.NodeTypeText, false},
+		{adf.NodeTypeParagraph, false},
+		{adf.NodeTypeHardBreak, false},
 	}
 
 	for _, tt := range tests {

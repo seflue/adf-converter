@@ -293,7 +293,7 @@ func TestParseContent_Mention(t *testing.T) {
 	tests := []struct {
 		name         string
 		input        string
-		wantType     string
+		wantType     adf.NodeType
 		wantID       string
 		wantText     string
 		wantAccess   string
@@ -542,7 +542,7 @@ func TestParseContent_TextColorWithBoldInside(t *testing.T) {
 		t.Errorf("expected 'bold red', got %q", nodes[0].Text)
 	}
 
-	markTypes := make(map[string]bool)
+	markTypes := make(map[adf.MarkType]bool)
 	for _, mark := range nodes[0].Marks {
 		markTypes[mark.Type] = true
 	}
@@ -565,7 +565,7 @@ func TestParseContent_BoldWrappingTextColor(t *testing.T) {
 		t.Errorf("expected 'bold red', got %q", nodes[0].Text)
 	}
 
-	markTypes := make(map[string]bool)
+	markTypes := make(map[adf.MarkType]bool)
 	for _, mark := range nodes[0].Marks {
 		markTypes[mark.Type] = true
 	}
@@ -714,13 +714,13 @@ func TestParseContent_Strikethrough(t *testing.T) {
 		name      string
 		input     string
 		wantText  string
-		wantMarks []string
+		wantMarks []adf.MarkType
 	}{
 		{
 			name:      "simple strikethrough",
 			input:     "~~deleted~~",
 			wantText:  "deleted",
-			wantMarks: []string{adf.MarkTypeStrike},
+			wantMarks: []adf.MarkType{adf.MarkTypeStrike},
 		},
 	}
 

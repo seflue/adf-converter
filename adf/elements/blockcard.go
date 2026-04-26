@@ -69,7 +69,7 @@ func (bc *blockCardRenderer) CanParseLine(line string) bool {
 }
 
 func (bc *blockCardRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeBlockCard)
+	return nodeType == adf.NodeTypeBlockCard
 }
 
 func (bc *blockCardRenderer) GetStrategy() adf.ConversionStrategy {

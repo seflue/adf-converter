@@ -6,7 +6,7 @@ import (
 
 func TestIsInlineNode(t *testing.T) {
 	tests := []struct {
-		nodeType string
+		nodeType NodeType
 		expected bool
 	}{
 		{NodeTypeText, true},
@@ -20,7 +20,7 @@ func TestIsInlineNode(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.nodeType, func(t *testing.T) {
+		t.Run(string(tt.nodeType), func(t *testing.T) {
 			result := IsInlineNode(tt.nodeType)
 			if result != tt.expected {
 				t.Errorf("IsInlineNode(%s) = %v, want %v", tt.nodeType, result, tt.expected)

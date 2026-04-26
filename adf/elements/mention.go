@@ -62,7 +62,7 @@ func (mc *mentionRenderer) FromMarkdown(lines []string, startIndex int, context 
 }
 
 func (mc *mentionRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeMention)
+	return nodeType == adf.NodeTypeMention
 }
 
 func (mc *mentionRenderer) GetStrategy() adf.ConversionStrategy {

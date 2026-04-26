@@ -249,7 +249,7 @@ func (tc *taskListRenderer) CanParseLine(line string) bool {
 }
 
 func (tc *taskListRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTaskList
+	return nodeType == adf.NodeTypeTaskList
 }
 
 func (tc *taskListRenderer) GetStrategy() adf.ConversionStrategy {

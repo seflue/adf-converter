@@ -108,7 +108,7 @@ func (ic *inlineCardRenderer) FromMarkdown(lines []string, startIndex int, conte
 }
 
 func (ic *inlineCardRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeInlineCard)
+	return nodeType == adf.NodeTypeInlineCard
 }
 
 func (ic *inlineCardRenderer) GetStrategy() adf.ConversionStrategy {

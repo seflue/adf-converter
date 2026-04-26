@@ -282,7 +282,7 @@ func (m *DefaultXMLMarshaler) marshalHardBreakNode(node adf.Node) ([]byte, error
 func (m *DefaultXMLMarshaler) marshalGenericNode(node adf.Node) ([]byte, error) {
 	generic := GenericADFElement{
 		XMLName: xml.Name{Local: "adf-node"},
-		Type:    node.Type,
+		Type:    string(node.Type),
 	}
 
 	// Add localId if present
@@ -507,7 +507,7 @@ func (m *DefaultXMLMarshaler) unmarshalGenericNode(data []byte) (adf.Node, error
 	}
 
 	node := adf.Node{
-		Type:  generic.Type,
+		Type:  adf.NodeType(generic.Type),
 		Attrs: make(map[string]any),
 	}
 

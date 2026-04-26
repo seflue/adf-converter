@@ -121,7 +121,7 @@ func (pc *panelRenderer) CanParseLine(line string) bool {
 }
 
 func (pc *panelRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypePanel)
+	return nodeType == adf.NodeTypePanel
 }
 
 func (pc *panelRenderer) GetStrategy() adf.ConversionStrategy {

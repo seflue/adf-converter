@@ -278,8 +278,8 @@ func TestMediaSingleConverter_CanParseLine(t *testing.T) {
 
 func TestMediaSingleConverter_CanHandle(t *testing.T) {
 	mc := NewMediaSingleRenderer()
-	assert.True(t, mc.CanHandle(adf.NodeType(adf.NodeTypeMediaSingle)))
-	assert.False(t, mc.CanHandle(adf.NodeType(adf.NodeTypeMediaInline)))
+	assert.True(t, mc.CanHandle(adf.NodeTypeMediaSingle))
+	assert.False(t, mc.CanHandle(adf.NodeTypeMediaInline))
 	assert.False(t, mc.CanHandle(adf.NodeType("paragraph")))
 }
 

@@ -107,7 +107,7 @@ func (blc *bulletListRenderer) CanParseLine(line string) bool {
 }
 
 func (blc *bulletListRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeType(adf.NodeTypeBulletList)
+	return nodeType == adf.NodeTypeBulletList
 }
 
 func (blc *bulletListRenderer) GetStrategy() adf.ConversionStrategy {

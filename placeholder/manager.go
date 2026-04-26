@@ -126,7 +126,7 @@ func generatePreview(node adf.Node) string {
 	case adf.NodeTypeInlineCard:
 		return "InlineCard (data object)"
 	default:
-		return fmt.Sprintf("%s (complex content)", cases.Title(language.English).String(node.Type))
+		return fmt.Sprintf("%s (complex content)", cases.Title(language.English).String(string(node.Type)))
 	}
 }
 

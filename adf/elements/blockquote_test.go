@@ -18,7 +18,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 		lines            []string
 		startIndex       int
 		ctx              adf.ConversionContext
-		expectedType     string
+		expectedType     adf.NodeType
 		expectedContent  int // number of content nodes
 		expectedConsumed int
 		expectedText     []string // expected text in each paragraph (optional)
@@ -172,7 +172,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 
 			for i, expected := range tt.expectedText {
 				paragraph := node.Content[i]
-				assert.Equal(t, "paragraph", paragraph.Type)
+				assert.Equal(t, adf.NodeTypeParagraph, paragraph.Type)
 				require.NotEmpty(t, paragraph.Content)
 				assert.Equal(t, expected, paragraph.Content[0].Text)
 			}
@@ -290,9 +290,9 @@ func TestBlockquoteConverter_ValidateInput(t *testing.T) {
 func TestBlockquoteConverter_CanHandle(t *testing.T) {
 	conv := NewBlockquoteRenderer()
 
-	assert.True(t, conv.CanHandle(adf.NodeBlockquote))
-	assert.False(t, conv.CanHandle(adf.NodeParagraph))
-	assert.False(t, conv.CanHandle(adf.NodeHeading))
+	assert.True(t, conv.CanHandle(adf.NodeTypeBlockquote))
+	assert.False(t, conv.CanHandle(adf.NodeTypeParagraph))
+	assert.False(t, conv.CanHandle(adf.NodeTypeHeading))
 }
 
 func TestBlockquoteConverter_GetStrategy(t *testing.T) {
@@ -340,12 +340,12 @@ func TestParseMarkdownBlockquote(t *testing.T) {
 			node, err := parseMarkdownBlockquote(tt.lines)
 			require.NoError(t, err)
 
-			assert.Equal(t, "blockquote", node.Type)
+			assert.Equal(t, adf.NodeTypeBlockquote, node.Type)
 			assert.Len(t, node.Content, tt.expectedParagraphs)
 
 			for i, expectedText := range tt.expectedText {
 				paragraph := node.Content[i]
-				assert.Equal(t, "paragraph", paragraph.Type)
+				assert.Equal(t, adf.NodeTypeParagraph, paragraph.Type)
 				require.Len(t, paragraph.Content, 1)
 				assert.Equal(t, expectedText, paragraph.Content[0].Text)
 			}
@@ -440,12 +440,12 @@ func TestBlockquoteConverter_FromMarkdown_NestedPrefix(t *testing.T) {
 	node, consumed, err := bc.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
 	require.NoError(t, err)
 	assert.Equal(t, 3, consumed)
-	assert.Equal(t, "blockquote", node.Type)
+	assert.Equal(t, adf.NodeTypeBlockquote, node.Type)
 
 	// Two paragraphs — no nested blockquote node
 	require.Len(t, node.Content, 2)
-	assert.Equal(t, "paragraph", node.Content[0].Type)
-	assert.Equal(t, "paragraph", node.Content[1].Type)
+	assert.Equal(t, adf.NodeTypeParagraph, node.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeParagraph, node.Content[1].Type)
 
 	// Second paragraph preserves literal > as text
 	require.Len(t, node.Content[1].Content, 1)
@@ -459,7 +459,7 @@ func TestBlockquoteConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 	tests := []struct {
 		name     string
 		lines    []string
-		wantMark string // mark type: "strong", "em", "code"
+		wantMark adf.MarkType // mark type: "strong", "em", "code"
 		wantText string // expected text value in the marked node
 	}{
 		{
@@ -489,7 +489,7 @@ func TestBlockquoteConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 			require.Len(t, node.Content, 1)
 
 			para := node.Content[0]
-			assert.Equal(t, "paragraph", para.Type)
+			assert.Equal(t, adf.NodeTypeParagraph, para.Type)
 
 			// Find a text node with the expected mark
 			found := false
@@ -512,7 +512,7 @@ func TestParseMarkdownBlockquote_Lists(t *testing.T) {
 	tests := []struct {
 		name             string
 		lines            []string
-		expectedType     string // type of first content node
+		expectedType     adf.NodeType // type of first content node
 		expectedItems    int    // expected list item count
 		expectedItemText []string
 	}{
@@ -536,7 +536,7 @@ func TestParseMarkdownBlockquote_Lists(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			node, err := parseMarkdownBlockquote(tt.lines)
 			require.NoError(t, err)
-			assert.Equal(t, "blockquote", node.Type)
+			assert.Equal(t, adf.NodeTypeBlockquote, node.Type)
 			require.Len(t, node.Content, 1)
 
 			listNode := node.Content[0]
@@ -545,10 +545,10 @@ func TestParseMarkdownBlockquote_Lists(t *testing.T) {
 
 			for i, expectedText := range tt.expectedItemText {
 				item := listNode.Content[i]
-				assert.Equal(t, "listItem", item.Type)
+				assert.Equal(t, adf.NodeTypeListItem, item.Type)
 				require.NotEmpty(t, item.Content)
 				para := item.Content[0]
-				assert.Equal(t, "paragraph", para.Type)
+				assert.Equal(t, adf.NodeTypeParagraph, para.Type)
 				require.NotEmpty(t, para.Content)
 				assert.Equal(t, expectedText, para.Content[0].Text)
 			}
@@ -561,11 +561,11 @@ func TestParseMarkdownBlockquote_CodeBlock(t *testing.T) {
 
 	node, err := parseMarkdownBlockquote(lines)
 	require.NoError(t, err)
-	assert.Equal(t, "blockquote", node.Type)
+	assert.Equal(t, adf.NodeTypeBlockquote, node.Type)
 	require.Len(t, node.Content, 1)
 
 	codeNode := node.Content[0]
-	assert.Equal(t, "codeBlock", codeNode.Type)
+	assert.Equal(t, adf.NodeTypeCodeBlock, codeNode.Type)
 	assert.Equal(t, "go", codeNode.Attrs["language"])
 	require.Len(t, codeNode.Content, 1)
 	assert.Equal(t, "x := 1", codeNode.Content[0].Text)

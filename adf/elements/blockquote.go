@@ -255,7 +255,7 @@ func (bc *blockquoteRenderer) CanParseLine(line string) bool {
 }
 
 func (bc *blockquoteRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeBlockquote
+	return nodeType == adf.NodeTypeBlockquote
 }
 
 func (bc *blockquoteRenderer) GetStrategy() adf.ConversionStrategy {

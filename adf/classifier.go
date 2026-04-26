@@ -6,9 +6,9 @@ import (
 
 // ContentClassifier determines how different ADF node types should be handled.
 type ContentClassifier interface {
-	IsEditable(nodeType string) bool
-	IsPreserved(nodeType string) bool
-	IsInlineFormattable(nodeType string) bool
+	IsEditable(nodeType NodeType) bool
+	IsPreserved(nodeType NodeType) bool
+	IsInlineFormattable(nodeType MarkType) bool
 }
 
 // NewDefaultClassifier creates a classifier with standard content type rules.

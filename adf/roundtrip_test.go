@@ -260,7 +260,7 @@ func TestRoundTripConversion_UnderlineBoldText(t *testing.T) {
 	assert.Equal(t, 2, len(restoredNode.Marks))
 
 	// Both marks must be present after roundtrip (order may differ due to parse direction)
-	markTypes := make(map[string]bool)
+	markTypes := make(map[adf.MarkType]bool)
 	for _, m := range restoredNode.Marks {
 		markTypes[m.Type] = true
 	}
@@ -347,7 +347,7 @@ func TestRoundTripConversion_TextColorBoldText(t *testing.T) {
 	assert.Equal(t, 2, len(restoredNode.Marks))
 
 	// Beide Marks muessen ueberleben (Reihenfolge kann abweichen)
-	markTypes := make(map[string]bool)
+	markTypes := make(map[adf.MarkType]bool)
 	for _, m := range restoredNode.Marks {
 		markTypes[m.Type] = true
 	}
@@ -488,7 +488,7 @@ func TestRoundTripConversion_BoldSubscriptText(t *testing.T) {
 	assert.Equal(t, 2, len(restoredNode.Marks))
 
 	// Both marks must survive (order may differ)
-	markTypes := make(map[string]bool)
+	markTypes := make(map[adf.MarkType]bool)
 	for _, m := range restoredNode.Marks {
 		markTypes[m.Type] = true
 	}
@@ -1175,7 +1175,7 @@ Some **bold text** here.
 	assert.Equal(t, "Section Title", expand.Attrs["title"])
 
 	require.Greater(t, len(expand.Content), 1, "expand content must have multiple block nodes")
-	types := make([]string, len(expand.Content))
+	types := make([]adf.NodeType, len(expand.Content))
 	for i, n := range expand.Content {
 		types[i] = n.Type
 	}
@@ -1427,16 +1427,16 @@ func TestRoundTrip_Table_PlainTable(t *testing.T) {
 
 	// Restored document should have table structure
 	require.Len(t, restored.Content, 1)
-	assert.Equal(t, "table", restored.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTable, restored.Content[0].Type)
 	assert.Len(t, restored.Content[0].Content, 2, "should have 2 rows")
 
 	// Header row preserved
 	headerRow := restored.Content[0].Content[0]
-	assert.Equal(t, "tableHeader", headerRow.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableHeader, headerRow.Content[0].Type)
 
 	// Data row preserved
 	dataRow := restored.Content[0].Content[1]
-	assert.Equal(t, "tableCell", dataRow.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTableCell, dataRow.Content[0].Type)
 }
 
 func TestRoundTrip_Table_WithFormattedContent(t *testing.T) {
@@ -1492,14 +1492,14 @@ func TestRoundTrip_Table_WithFormattedContent(t *testing.T) {
 
 	// Structure preserved
 	require.Len(t, restored.Content, 1)
-	assert.Equal(t, "table", restored.Content[0].Type)
+	assert.Equal(t, adf.NodeTypeTable, restored.Content[0].Type)
 
 	// Marks preserved after roundtrip
 	headerCell := restored.Content[0].Content[0].Content[0].Content[0]
 	require.NotEmpty(t, headerCell.Content)
 	assert.Equal(t, "Feature", headerCell.Content[0].Text)
 	require.Len(t, headerCell.Content[0].Marks, 1)
-	assert.Equal(t, "strong", headerCell.Content[0].Marks[0].Type)
+	assert.Equal(t, adf.MarkTypeStrong, headerCell.Content[0].Marks[0].Type)
 }
 
 func TestRoundTripConversion_InlineCardDataOnly(t *testing.T) {

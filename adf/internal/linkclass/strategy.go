@@ -67,9 +67,9 @@ func NewDefaultStrategyClassifier() *DefaultStrategyClassifier {
 }
 
 func (dsc *DefaultStrategyClassifier) ClassifyNode(node adf.Node) adf.ConversionStrategy {
-	if node.Type == string(adf.NodeText) && len(node.Marks) > 0 {
+	if node.Type == adf.NodeTypeText && len(node.Marks) > 0 {
 		for _, mark := range node.Marks {
-			if mark.Type == string(adf.MarkLink) {
+			if mark.Type == adf.MarkTypeLink {
 				classification := dsc.linkClassifier.ClassifyLink(mark)
 				return GetStrategyForLinkType(classification.Type)
 			}
@@ -101,11 +101,11 @@ func (dsc *DefaultStrategyClassifier) ClassifyWithContext(node adf.Node, context
 			return adf.XMLPreserved
 		}
 	case adf.MarkdownTable:
-		if node.Type == string(adf.NodeTableCell) || node.Type == string(adf.NodeTableHeader) {
+		if node.Type == adf.NodeTypeTableCell || node.Type == adf.NodeTypeTableHeader {
 			return adf.MarkdownTable
 		}
 	case adf.MarkdownTaskList:
-		if node.Type == string(adf.NodeTaskItem) {
+		if node.Type == adf.NodeTypeTaskItem {
 			return adf.MarkdownTaskList
 		}
 	}

@@ -66,9 +66,9 @@ func convertTable(table *east.Table, source []byte) adf.Node {
 			if allCellsEmpty(n, source) {
 				break
 			}
-			rows = append(rows, convertRowNode(n, source, "tableHeader"))
+			rows = append(rows, convertRowNode(n, source, adf.NodeTypeTableHeader))
 		case *east.TableRow:
-			rows = append(rows, convertRowNode(n, source, "tableCell"))
+			rows = append(rows, convertRowNode(n, source, adf.NodeTypeTableCell))
 		}
 	}
 
@@ -89,7 +89,7 @@ func allCellsEmpty(row gast.Node, source []byte) bool {
 
 // convertRowNode converts a TableHeader or TableRow node into an ADF tableRow.
 // cellType is "tableHeader" or "tableCell".
-func convertRowNode(row gast.Node, source []byte, cellType string) adf.Node {
+func convertRowNode(row gast.Node, source []byte, cellType adf.NodeType) adf.Node {
 	var cells []adf.Node
 	for child := row.FirstChild(); child != nil; child = child.NextSibling() {
 		tc, ok := child.(*east.TableCell)
@@ -101,11 +101,11 @@ func convertRowNode(row gast.Node, source []byte, cellType string) adf.Node {
 		cells = append(cells, adf.Node{
 			Type: cellType,
 			Content: []adf.Node{
-				{Type: "paragraph", Content: paragraphContent},
+				{Type: adf.NodeTypeParagraph, Content: paragraphContent},
 			},
 		})
 	}
-	return adf.Node{Type: "tableRow", Content: cells}
+	return adf.Node{Type: adf.NodeTypeTableRow, Content: cells}
 }
 
 // extractCellText returns the raw markdown content of a table cell.

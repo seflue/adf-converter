@@ -305,7 +305,7 @@ func (tc *tableRenderer) CanParseLine(line string) bool {
 }
 
 func (tc *tableRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTable
+	return nodeType == adf.NodeTypeTable
 }
 
 // GetStrategy returns the conversion strategy this converter implements

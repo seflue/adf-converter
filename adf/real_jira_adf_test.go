@@ -333,7 +333,7 @@ func TestRealJiraADF(t *testing.T) {
 	t.Run("Real Jira ADF Structure Validation", func(t *testing.T) {
 		// Validate that we can handle the real structure
 		assert.Equal(t, 1, adfDoc.Version, "Should have correct ADF version")
-		assert.Equal(t, "doc", adfDoc.Type, "Should have correct document type")
+		assert.Equal(t, adf.NodeTypeDoc, adfDoc.Type, "Should have correct document type")
 		assert.NotEmpty(t, adfDoc.Content, "Should have content")
 
 		// Find the expand element with nested content

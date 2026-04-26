@@ -154,12 +154,11 @@ func (r *ConverterRegistry) BlockParsers() []BlockParserEntry {
 // with the new ConversionContext structure expected by Renderer implementations.
 func adaptContext(ctx *markdownConversionContext, classifier ContentClassifier, manager placeholder.Manager, registry *ConverterRegistry, nodeType NodeType) ConversionContext {
 	var strategy ConversionStrategy
-	nodeTypeStr := string(nodeType)
 
 	switch {
-	case classifier.IsPreserved(nodeTypeStr):
+	case classifier.IsPreserved(nodeType):
 		strategy = Placeholder
-	case classifier.IsEditable(nodeTypeStr):
+	case classifier.IsEditable(nodeType):
 		strategy = StandardMarkdown
 	default:
 		strategy = Placeholder
