@@ -47,11 +47,12 @@ func NewDefaultConverter() *adf.DefaultConverter {
 }
 
 // NewDisplayConverter returns a converter for read-only display mode.
-// It uses a NullManager that produces preview text instead of placeholder comments.
+// It uses a noop placeholder manager that produces preview text instead
+// of placeholder comments.
 func NewDisplayConverter() *adf.DefaultConverter {
 	c, err := adf.NewConverter(
 		adf.WithRegistry(NewRegistry()),
-		adf.WithPlaceholderManager(placeholder.NewNullManager()),
+		adf.WithPlaceholderManager(placeholder.NewNoop()),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("defaults: unreachable: %v", err))

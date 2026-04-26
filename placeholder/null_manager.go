@@ -6,43 +6,50 @@ import (
 	adf "github.com/seflue/adf-converter/adf/adftypes"
 )
 
-// NullManager implements the Manager interface for display-only mode.
-// Store() returns preview text without generating placeholder IDs,
-// so callers can render readable markdown without comment wrappers.
-type NullManager struct {
+// nullManager implements Manager for display-only mode. Store returns
+// preview text without generating placeholder IDs, and Restore is a
+// no-op passthrough so callers that traverse markdown containing
+// placeholder comments do not blow up.
+type nullManager struct {
 	session *EditSession
 }
 
-// NewNullManager creates a NullManager with an empty but non-nil session.
-func NewNullManager() Manager {
-	return &NullManager{
+// NewNoop returns a Manager that never accumulates state. Use it for
+// read-only display flows where Store should yield preview text instead
+// of placeholder comments and Restore is not expected to recover nodes.
+func NewNoop() Manager {
+	return &nullManager{
 		session: &EditSession{
 			Preserved: make(map[string]adf.Node),
 		},
 	}
 }
 
-func (m *NullManager) Store(node adf.Node) (string, string, error) {
+func (m *nullManager) Store(node adf.Node) (string, string, error) {
 	if node.Type == "" {
 		return "", "", fmt.Errorf("cannot store node with empty type")
 	}
 	return "", generatePreview(node), nil
 }
 
-func (m *NullManager) Restore(_ string) (adf.Node, error) {
-	return adf.Node{}, fmt.Errorf("display mode: restore not supported")
+// Restore is a no-op: the noop manager never stores anything, so there
+// is nothing to recover. Returning a zero Node with nil error keeps the
+// display converter from blowing up on placeholder comments embedded in
+// the markdown.
+func (m *nullManager) Restore(_ string) (adf.Node, error) {
+	return adf.Node{}, nil
 }
 
-func (m *NullManager) GeneratePreview(node adf.Node) string {
+func (m *nullManager) GeneratePreview(node adf.Node) string {
 	return generatePreview(node)
 }
 
-func (m *NullManager) GetSession() *EditSession {
+func (m *nullManager) GetSession() *EditSession {
 	return m.session
 }
 
-func (m *NullManager) Clear() {}
+func (m *nullManager) Clear() {}
 
-func (m *NullManager) Count() int {
+func (m *nullManager) Count() int {
 	return 0
 }

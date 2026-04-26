@@ -34,7 +34,7 @@ func TestDisplayMode_NoPlaceholderComments(t *testing.T) {
 	}
 
 	classifier := adf.NewDefaultClassifier()
-	manager := placeholder.NewNullManager()
+	manager := placeholder.NewNoop()
 
 	md, session, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
@@ -63,7 +63,7 @@ func TestDisplayMode_UnknownNodeShowsPreviewText(t *testing.T) {
 	}
 
 	classifier := adf.NewDefaultClassifier()
-	manager := placeholder.NewNullManager()
+	manager := placeholder.NewNoop()
 
 	md, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestDisplayMode_InlinePreservedNodes(t *testing.T) {
 	}
 
 	classifier := adf.NewDefaultClassifier()
-	manager := placeholder.NewNullManager()
+	manager := placeholder.NewNoop()
 
 	md, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)
@@ -138,7 +138,7 @@ func TestDisplayMode_MixedEditableAndPreserved(t *testing.T) {
 	}
 
 	classifier := adf.NewDefaultClassifier()
-	manager := placeholder.NewNullManager()
+	manager := placeholder.NewNoop()
 
 	md, _, err := testToMarkdown(doc, classifier, manager, defaults.NewRegistry())
 	require.NoError(t, err)

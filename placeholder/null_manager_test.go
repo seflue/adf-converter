@@ -9,7 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNullManager_Store(t *testing.T) {
+// Compile-time assertion: NewNoop must return the Manager interface.
+var _ Manager = NewNoop()
+
+func TestNewNoop_ReturnsNonNil(t *testing.T) {
+	require.NotNil(t, NewNoop())
+}
+
+func TestNoop_Store(t *testing.T) {
 	tests := []struct {
 		name           string
 		node           adf.Node
@@ -44,7 +51,7 @@ func TestNullManager_Store(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := NewNullManager()
+			m := NewNoop()
 			id, preview, err := m.Store(tt.node)
 
 			if tt.wantErr {
@@ -59,43 +66,51 @@ func TestNullManager_Store(t *testing.T) {
 	}
 }
 
-func TestNullManager_StoreDoesNotAccumulate(t *testing.T) {
-	m := NewNullManager()
+func TestNoop_StoreDoesNotAccumulate(t *testing.T) {
+	m := NewNoop()
 
 	_, _, _ = m.Store(adf.Node{Type: adf.NodeTypeCodeBlock})
 	_, _, _ = m.Store(adf.Node{Type: adf.NodeTypeTable})
 
-	assert.Equal(t, 0, m.Count(), "NullManager should never accumulate stored nodes")
+	assert.Equal(t, 0, m.Count(), "noop manager should never accumulate stored nodes")
 }
 
-func TestNullManager_Restore(t *testing.T) {
-	m := NewNullManager()
-	_, err := m.Restore("ADF_PLACEHOLDER_001")
+func TestNoop_RestoreIsNoOp(t *testing.T) {
+	m := NewNoop()
+	node, err := m.Restore("ADF_PLACEHOLDER_001")
 
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "display mode")
+	require.NoError(t, err, "noop Restore must not error — it is idempotent passthrough")
+	assert.Equal(t, adf.Node{}, node, "noop Restore returns zero-value Node")
 }
 
-func TestNullManager_GetSession(t *testing.T) {
-	m := NewNullManager()
+func TestNoop_RestoreEmptyIDIsNoOp(t *testing.T) {
+	m := NewNoop()
+	node, err := m.Restore("")
+
+	require.NoError(t, err)
+	assert.Equal(t, adf.Node{}, node)
+}
+
+func TestNoop_GetSession(t *testing.T) {
+	m := NewNoop()
 	session := m.GetSession()
 
 	require.NotNil(t, session, "GetSession must return non-nil EditSession")
 	assert.NotNil(t, session.Preserved, "Preserved map must be initialized")
 }
 
-func TestNullManager_Count(t *testing.T) {
-	m := NewNullManager()
+func TestNoop_Count(t *testing.T) {
+	m := NewNoop()
 	assert.Equal(t, 0, m.Count())
 }
 
-func TestNullManager_Clear(t *testing.T) {
-	m := NewNullManager()
+func TestNoop_Clear(t *testing.T) {
+	m := NewNoop()
 	assert.NotPanics(t, func() { m.Clear() })
 }
 
-func TestNullManager_GeneratePreview(t *testing.T) {
-	m := NewNullManager()
+func TestNoop_GeneratePreview(t *testing.T) {
+	m := NewNoop()
 
 	tests := []struct {
 		name    string
