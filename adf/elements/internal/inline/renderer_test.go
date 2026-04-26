@@ -54,6 +54,40 @@ func TestRenderInlineNodes_MarkSpanning(t *testing.T) {
 			},
 			want: "before **bold** after",
 		},
+		{
+			name: "adjacent different marks with trailing space",
+			nodes: []adf.Node{
+				{Type: adf.NodeTypeText, Text: "bold ", Marks: []adf.Mark{{Type: adf.MarkTypeStrong}}},
+				{Type: adf.NodeTypeText, Text: "italic", Marks: []adf.Mark{{Type: adf.MarkTypeEm}}},
+			},
+			want: "**bold** *italic*",
+		},
+		{
+			name: "adjacent different marks with leading space",
+			nodes: []adf.Node{
+				{Type: adf.NodeTypeText, Text: "bold", Marks: []adf.Mark{{Type: adf.MarkTypeStrong}}},
+				{Type: adf.NodeTypeText, Text: " italic", Marks: []adf.Mark{{Type: adf.MarkTypeEm}}},
+			},
+			want: "**bold** *italic*",
+		},
+		{
+			name: "strike wrapping em",
+			nodes: []adf.Node{
+				{Type: adf.NodeTypeText, Text: "deleted ", Marks: []adf.Mark{{Type: adf.MarkTypeStrike}}},
+				{Type: adf.NodeTypeText, Text: "and italic", Marks: []adf.Mark{{Type: adf.MarkTypeStrike}, {Type: adf.MarkTypeEm}}},
+			},
+			want: "~~deleted *and italic*~~",
+		},
+		{
+			name: "real jira nested bold italic",
+			nodes: []adf.Node{
+				{Type: adf.NodeTypeText, Text: "Bold mit ", Marks: []adf.Mark{{Type: adf.MarkTypeStrong}}},
+				{Type: adf.NodeTypeText, Text: "italic nested", Marks: []adf.Mark{{Type: adf.MarkTypeEm}, {Type: adf.MarkTypeStrong}}},
+				{Type: adf.NodeTypeText, Text: " drin", Marks: []adf.Mark{{Type: adf.MarkTypeStrong}}},
+				{Type: adf.NodeTypeText, Text: " — verschachtelte Marks."},
+			},
+			want: "**Bold mit *italic nested* drin** — verschachtelte Marks.",
+		},
 	}
 
 	for _, tt := range tests {
