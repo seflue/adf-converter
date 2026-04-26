@@ -13,6 +13,14 @@ This library converts ADF to Markdown and back with full roundtrip fidelity:
 non-editable nodes are preserved as placeholders instead of being silently
 downgraded.
 
+## The Promise
+
+> If you pass a valid ADF document through `ToMarkdown` and then
+> `FromMarkdown`, you get back a semantically equivalent ADF document.
+> No node type is silently changed or lost.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md#2-roundtrip-mechanics) for how the conversion is implemented.
+
 ## Status
 
 Early development, pre-v1.0, API may change.
