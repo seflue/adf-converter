@@ -3,7 +3,7 @@ package placeholder
 import (
 	"testing"
 
-	"github.com/seflue/adf-converter/adf_types"
+	adf "github.com/seflue/adf-converter/adf/adftypes"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,32 +12,32 @@ import (
 func TestNullManager_Store(t *testing.T) {
 	tests := []struct {
 		name           string
-		node           adf_types.ADFNode
+		node           adf.Node
 		wantID         string
 		wantPreviewSub string
 		wantErr        bool
 	}{
 		{
 			name:           "code block returns empty ID and preview",
-			node:           adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock, Attrs: map[string]any{"language": "go"}},
+			node:           adf.Node{Type: adf.NodeTypeCodeBlock, Attrs: map[string]any{"language": "go"}},
 			wantID:         "",
 			wantPreviewSub: "Code Block",
 		},
 		{
 			name:           "table returns empty ID and preview",
-			node:           adf_types.ADFNode{Type: adf_types.NodeTypeTable},
+			node:           adf.Node{Type: adf.NodeTypeTable},
 			wantID:         "",
 			wantPreviewSub: "Table",
 		},
 		{
 			name:           "mention returns empty ID and preview",
-			node:           adf_types.ADFNode{Type: adf_types.NodeTypeMention, Attrs: map[string]any{"text": "@alice"}},
+			node:           adf.Node{Type: adf.NodeTypeMention, Attrs: map[string]any{"text": "@alice"}},
 			wantID:         "",
 			wantPreviewSub: "Mention: @alice",
 		},
 		{
 			name:    "empty type returns error",
-			node:    adf_types.ADFNode{Type: ""},
+			node:    adf.Node{Type: ""},
 			wantErr: true,
 		},
 	}
@@ -62,8 +62,8 @@ func TestNullManager_Store(t *testing.T) {
 func TestNullManager_StoreDoesNotAccumulate(t *testing.T) {
 	m := NewNullManager()
 
-	_, _, _ = m.Store(adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock})
-	_, _, _ = m.Store(adf_types.ADFNode{Type: adf_types.NodeTypeTable})
+	_, _, _ = m.Store(adf.Node{Type: adf.NodeTypeCodeBlock})
+	_, _, _ = m.Store(adf.Node{Type: adf.NodeTypeTable})
 
 	assert.Equal(t, 0, m.Count(), "NullManager should never accumulate stored nodes")
 }
@@ -99,27 +99,27 @@ func TestNullManager_GeneratePreview(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		node    adf_types.ADFNode
+		node    adf.Node
 		wantSub string
 	}{
 		{
 			name:    "code block",
-			node:    adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock, Attrs: map[string]any{"language": "python"}},
+			node:    adf.Node{Type: adf.NodeTypeCodeBlock, Attrs: map[string]any{"language": "python"}},
 			wantSub: "Code Block (python",
 		},
 		{
 			name:    "panel",
-			node:    adf_types.ADFNode{Type: adf_types.NodeTypePanel, Attrs: map[string]any{"panelType": "warning"}},
+			node:    adf.Node{Type: adf.NodeTypePanel, Attrs: map[string]any{"panelType": "warning"}},
 			wantSub: "Warning Panel",
 		},
 		{
 			name:    "rule",
-			node:    adf_types.ADFNode{Type: adf_types.NodeTypeRule},
+			node:    adf.Node{Type: adf.NodeTypeRule},
 			wantSub: "Horizontal Rule",
 		},
 		{
 			name:    "unknown type",
-			node:    adf_types.ADFNode{Type: "customNode"},
+			node:    adf.Node{Type: "customNode"},
 			wantSub: "complex content",
 		},
 	}

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/seflue/adf-converter/adf_types"
+	adf "github.com/seflue/adf-converter/adf/adftypes"
 )
 
 func TestNewManager(t *testing.T) {
@@ -34,31 +34,31 @@ func TestManager_Store(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		node        adf_types.ADFNode
+		node        adf.Node
 		expectError bool
 	}{
 		{
 			name: "valid code block",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeCodeBlock,
+			node: adf.Node{
+				Type: adf.NodeTypeCodeBlock,
 				Attrs: map[string]any{
 					"language": "javascript",
 				},
-				Content: []adf_types.ADFNode{
-					{Type: adf_types.NodeTypeText, Text: "console.log('hello');"},
+				Content: []adf.Node{
+					{Type: adf.NodeTypeText, Text: "console.log('hello');"},
 				},
 			},
 			expectError: false,
 		},
 		{
 			name: "valid table",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeTable,
-				Content: []adf_types.ADFNode{
+			node: adf.Node{
+				Type: adf.NodeTypeTable,
+				Content: []adf.Node{
 					{
-						Type: adf_types.NodeTypeTableRow,
-						Content: []adf_types.ADFNode{
-							{Type: adf_types.NodeTypeTableCell},
+						Type: adf.NodeTypeTableRow,
+						Content: []adf.Node{
+							{Type: adf.NodeTypeTableCell},
 						},
 					},
 				},
@@ -67,7 +67,7 @@ func TestManager_Store(t *testing.T) {
 		},
 		{
 			name:        "invalid empty node type",
-			node:        adf_types.ADFNode{},
+			node:        adf.Node{},
 			expectError: true,
 		},
 	}
@@ -117,13 +117,13 @@ func TestManager_Restore(t *testing.T) {
 	manager := NewManager()
 
 	// Store a node first
-	node := adf_types.ADFNode{
-		Type: adf_types.NodeTypeCodeBlock,
+	node := adf.Node{
+		Type: adf.NodeTypeCodeBlock,
 		Attrs: map[string]any{
 			"language": "go",
 		},
-		Content: []adf_types.ADFNode{
-			{Type: adf_types.NodeTypeText, Text: "fmt.Println(\"Hello\")"},
+		Content: []adf.Node{
+			{Type: adf.NodeTypeText, Text: "fmt.Println(\"Hello\")"},
 		},
 	}
 
@@ -154,48 +154,48 @@ func TestManager_GeneratePreview(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		node     adf_types.ADFNode
+		node     adf.Node
 		contains string
 	}{
 		{
 			name: "code block with language",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeCodeBlock,
+			node: adf.Node{
+				Type: adf.NodeTypeCodeBlock,
 				Attrs: map[string]any{
 					"language": "javascript",
 				},
-				Content: []adf_types.ADFNode{
-					{Type: adf_types.NodeTypeText, Text: "function test() {\n  return 42;\n}"},
+				Content: []adf.Node{
+					{Type: adf.NodeTypeText, Text: "function test() {\n  return 42;\n}"},
 				},
 			},
 			contains: "Code Block (javascript, 3 lines)",
 		},
 		{
 			name: "table with content",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeTable,
-				Content: []adf_types.ADFNode{
+			node: adf.Node{
+				Type: adf.NodeTypeTable,
+				Content: []adf.Node{
 					{
-						Type: adf_types.NodeTypeTableRow,
-						Content: []adf_types.ADFNode{
+						Type: adf.NodeTypeTableRow,
+						Content: []adf.Node{
 							{
-								Type: adf_types.NodeTypeTableCell,
-								Content: []adf_types.ADFNode{
+								Type: adf.NodeTypeTableCell,
+								Content: []adf.Node{
 									{
-										Type: adf_types.NodeTypeParagraph,
-										Content: []adf_types.ADFNode{
-											{Type: adf_types.NodeTypeText, Text: "Header 1"},
+										Type: adf.NodeTypeParagraph,
+										Content: []adf.Node{
+											{Type: adf.NodeTypeText, Text: "Header 1"},
 										},
 									},
 								},
 							},
 							{
-								Type: adf_types.NodeTypeTableCell,
-								Content: []adf_types.ADFNode{
+								Type: adf.NodeTypeTableCell,
+								Content: []adf.Node{
 									{
-										Type: adf_types.NodeTypeParagraph,
-										Content: []adf_types.ADFNode{
-											{Type: adf_types.NodeTypeText, Text: "Header 2"},
+										Type: adf.NodeTypeParagraph,
+										Content: []adf.Node{
+											{Type: adf.NodeTypeText, Text: "Header 2"},
 										},
 									},
 								},
@@ -208,16 +208,16 @@ func TestManager_GeneratePreview(t *testing.T) {
 		},
 		{
 			name: "panel with type",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypePanel,
+			node: adf.Node{
+				Type: adf.NodeTypePanel,
 				Attrs: map[string]any{
 					"panelType": "warning",
 				},
-				Content: []adf_types.ADFNode{
+				Content: []adf.Node{
 					{
-						Type: adf_types.NodeTypeParagraph,
-						Content: []adf_types.ADFNode{
-							{Type: adf_types.NodeTypeText, Text: "This is a warning message"},
+						Type: adf.NodeTypeParagraph,
+						Content: []adf.Node{
+							{Type: adf.NodeTypeText, Text: "This is a warning message"},
 						},
 					},
 				},
@@ -226,8 +226,8 @@ func TestManager_GeneratePreview(t *testing.T) {
 		},
 		{
 			name: "mention",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMention,
+			node: adf.Node{
+				Type: adf.NodeTypeMention,
 				Attrs: map[string]any{
 					"text": "@john.doe",
 				},
@@ -236,15 +236,15 @@ func TestManager_GeneratePreview(t *testing.T) {
 		},
 		{
 			name: "rule",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeRule,
+			node: adf.Node{
+				Type: adf.NodeTypeRule,
 			},
 			contains: "Horizontal Rule",
 		},
 		{
 			name: "inlineCard_with_data",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeInlineCard,
+			node: adf.Node{
+				Type: adf.NodeTypeInlineCard,
 				Attrs: map[string]any{
 					"data": map[string]any{
 						"@type": "Document",
@@ -256,12 +256,12 @@ func TestManager_GeneratePreview(t *testing.T) {
 		},
 		{
 			name: "mediaSingle with image type, dimensions, and layout",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaSingle,
+			node: adf.Node{
+				Type: adf.NodeTypeMediaSingle,
 				Attrs: map[string]any{
 					"layout": "wide",
 				},
-				Content: []adf_types.ADFNode{
+				Content: []adf.Node{
 					{
 						Type: "media",
 						Attrs: map[string]any{
@@ -277,9 +277,9 @@ func TestManager_GeneratePreview(t *testing.T) {
 		},
 		{
 			name: "mediaSingle with file type and no dimensions",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaSingle,
-				Content: []adf_types.ADFNode{
+			node: adf.Node{
+				Type: adf.NodeTypeMediaSingle,
+				Content: []adf.Node{
 					{
 						Type: "media",
 						Attrs: map[string]any{
@@ -293,8 +293,8 @@ func TestManager_GeneratePreview(t *testing.T) {
 		},
 		{
 			name: "mediaInline with image type and dimensions",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaInline,
+			node: adf.Node{
+				Type: adf.NodeTypeMediaInline,
 				Attrs: map[string]any{
 					"id":     "c3d4e5",
 					"type":   "image",
@@ -306,8 +306,8 @@ func TestManager_GeneratePreview(t *testing.T) {
 		},
 		{
 			name: "mediaInline without attrs",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaInline,
+			node: adf.Node{
+				Type: adf.NodeTypeMediaInline,
 			},
 			contains: "Inline Media",
 		},
@@ -332,8 +332,8 @@ func TestManager_Clear(t *testing.T) {
 	manager := NewManager()
 
 	// Store some nodes
-	node1 := adf_types.ADFNode{Type: adf_types.NodeTypeCodeBlock}
-	node2 := adf_types.ADFNode{Type: adf_types.NodeTypeTable}
+	node1 := adf.Node{Type: adf.NodeTypeCodeBlock}
+	node2 := adf.Node{Type: adf.NodeTypeTable}
 
 	_, _, err := manager.Store(node1)
 	if err != nil {
@@ -360,34 +360,34 @@ func TestManager_Clear(t *testing.T) {
 func TestExtractTextContent(t *testing.T) {
 	tests := []struct {
 		name     string
-		node     adf_types.ADFNode
+		node     adf.Node
 		expected string
 	}{
 		{
 			name:     "simple text node",
-			node:     adf_types.ADFNode{Type: adf_types.NodeTypeText, Text: "Hello, world!"},
+			node:     adf.Node{Type: adf.NodeTypeText, Text: "Hello, world!"},
 			expected: "Hello, world!",
 		},
 		{
 			name: "paragraph with multiple text nodes",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeParagraph,
-				Content: []adf_types.ADFNode{
-					{Type: adf_types.NodeTypeText, Text: "Hello, "},
-					{Type: adf_types.NodeTypeText, Text: "world!"},
+			node: adf.Node{
+				Type: adf.NodeTypeParagraph,
+				Content: []adf.Node{
+					{Type: adf.NodeTypeText, Text: "Hello, "},
+					{Type: adf.NodeTypeText, Text: "world!"},
 				},
 			},
 			expected: "Hello, world!",
 		},
 		{
 			name: "nested structure",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeTableCell,
-				Content: []adf_types.ADFNode{
+			node: adf.Node{
+				Type: adf.NodeTypeTableCell,
+				Content: []adf.Node{
 					{
-						Type: adf_types.NodeTypeParagraph,
-						Content: []adf_types.ADFNode{
-							{Type: adf_types.NodeTypeText, Text: "Cell content"},
+						Type: adf.NodeTypeParagraph,
+						Content: []adf.Node{
+							{Type: adf.NodeTypeText, Text: "Cell content"},
 						},
 					},
 				},
@@ -396,7 +396,7 @@ func TestExtractTextContent(t *testing.T) {
 		},
 		{
 			name:     "non-text node with no content",
-			node:     adf_types.ADFNode{Type: adf_types.NodeTypeRule},
+			node:     adf.Node{Type: adf.NodeTypeRule},
 			expected: "",
 		},
 	}
@@ -486,17 +486,17 @@ func TestParsePlaceholderComment(t *testing.T) {
 func TestManager_Store_MediaKeys(t *testing.T) {
 	tests := []struct {
 		name              string
-		node              adf_types.ADFNode
+		node              adf.Node
 		expectedKeyPrefix string
 	}{
 		{
 			name: "mediaSingle uses first 5 chars of media child id",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaSingle,
+			node: adf.Node{
+				Type: adf.NodeTypeMediaSingle,
 				Attrs: map[string]any{
 					"layout": "center",
 				},
-				Content: []adf_types.ADFNode{
+				Content: []adf.Node{
 					{
 						Type: "media",
 						Attrs: map[string]any{
@@ -511,8 +511,8 @@ func TestManager_Store_MediaKeys(t *testing.T) {
 		},
 		{
 			name: "mediaInline uses first 5 chars of id attr",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaInline,
+			node: adf.Node{
+				Type: adf.NodeTypeMediaInline,
 				Attrs: map[string]any{
 					"id":         "xyz99-abcd-ef12-3456-7890abcdef12",
 					"type":       "file",
@@ -523,9 +523,9 @@ func TestManager_Store_MediaKeys(t *testing.T) {
 		},
 		{
 			name: "mediaSingle without id falls back to counter",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaSingle,
-				Content: []adf_types.ADFNode{
+			node: adf.Node{
+				Type: adf.NodeTypeMediaSingle,
+				Content: []adf.Node{
 					{
 						Type:  "media",
 						Attrs: map[string]any{"type": "image"},
@@ -536,8 +536,8 @@ func TestManager_Store_MediaKeys(t *testing.T) {
 		},
 		{
 			name: "mediaInline without id falls back to counter",
-			node: adf_types.ADFNode{
-				Type: adf_types.NodeTypeMediaInline,
+			node: adf.Node{
+				Type: adf.NodeTypeMediaInline,
 			},
 			expectedKeyPrefix: "ADF_PLACEHOLDER_002",
 		},
@@ -561,9 +561,9 @@ func TestNewManagerWithSession(t *testing.T) {
 	// Create a session with some preserved content
 	session := &EditSession{
 		ID: "test-session-123",
-		Preserved: map[string]adf_types.ADFNode{
-			"ADF_PLACEHOLDER_001": {Type: adf_types.NodeTypeCodeBlock},
-			"ADF_PLACEHOLDER_002": {Type: adf_types.NodeTypeTable},
+		Preserved: map[string]adf.Node{
+			"ADF_PLACEHOLDER_001": {Type: adf.NodeTypeCodeBlock},
+			"ADF_PLACEHOLDER_002": {Type: adf.NodeTypeTable},
 		},
 		Metadata: SessionMetadata{
 			OriginalVersion: 1,
@@ -583,12 +583,12 @@ func TestNewManagerWithSession(t *testing.T) {
 		t.Errorf("Failed to restore existing placeholder: %v", err)
 	}
 
-	if node.Type != adf_types.NodeTypeCodeBlock {
+	if node.Type != adf.NodeTypeCodeBlock {
 		t.Errorf("Expected codeBlock, got %s", node.Type)
 	}
 
 	// Verify counter continues from existing count
-	newNode := adf_types.ADFNode{Type: adf_types.NodeTypePanel}
+	newNode := adf.Node{Type: adf.NodeTypePanel}
 	placeholderID, _, err := manager.Store(newNode)
 	if err != nil {
 		t.Errorf("Failed to store new node: %v", err)

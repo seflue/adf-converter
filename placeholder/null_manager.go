@@ -3,7 +3,7 @@ package placeholder
 import (
 	"fmt"
 
-	"github.com/seflue/adf-converter/adf_types"
+	adf "github.com/seflue/adf-converter/adf/adftypes"
 )
 
 // NullManager implements the Manager interface for display-only mode.
@@ -17,23 +17,23 @@ type NullManager struct {
 func NewNullManager() Manager {
 	return &NullManager{
 		session: &EditSession{
-			Preserved: make(map[string]adf_types.ADFNode),
+			Preserved: make(map[string]adf.Node),
 		},
 	}
 }
 
-func (m *NullManager) Store(node adf_types.ADFNode) (string, string, error) {
+func (m *NullManager) Store(node adf.Node) (string, string, error) {
 	if node.Type == "" {
 		return "", "", fmt.Errorf("cannot store node with empty type")
 	}
 	return "", generatePreview(node), nil
 }
 
-func (m *NullManager) Restore(_ string) (adf_types.ADFNode, error) {
-	return adf_types.ADFNode{}, fmt.Errorf("display mode: restore not supported")
+func (m *NullManager) Restore(_ string) (adf.Node, error) {
+	return adf.Node{}, fmt.Errorf("display mode: restore not supported")
 }
 
-func (m *NullManager) GeneratePreview(node adf_types.ADFNode) string {
+func (m *NullManager) GeneratePreview(node adf.Node) string {
 	return generatePreview(node)
 }
 

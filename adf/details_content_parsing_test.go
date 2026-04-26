@@ -1,0 +1,208 @@
+package adf_test
+
+import (
+	"github.com/seflue/adf-converter/adf"
+	"github.com/seflue/adf-converter/adf/defaults"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// TestDetailsContentParsingRegression tests the specific production issue
+// reported where details content has malformed headings and unprocessed markdown
+func TestDetailsContentParsingRegression(t *testing.T) {
+	// This is the exact ADF from production logs that was causing issues
+	originalADF := adf.Document{
+		Version: 1,
+		Type:    "doc",
+		Content: []adf.Node{
+			{
+				Type: "expand",
+				Attrs: map[string]any{
+					"title": "This is for testing",
+				},
+				Content: []adf.Node{
+					{
+						Type: "heading",
+						Attrs: map[string]any{
+							"level": 1,
+						},
+						Content: []adf.Node{
+							{
+								Type: "text",
+								Text: "Heading",
+							},
+						},
+					},
+					{
+						Type: "bulletList",
+						Content: []adf.Node{
+							{
+								Type: "listItem",
+								Content: []adf.Node{
+									{
+										Type: "paragraph",
+										Content: []adf.Node{
+											{
+												Type: "text",
+												Text: "bold item",
+												Marks: []adf.Mark{
+													{Type: "strong"},
+												},
+											},
+										},
+									},
+								},
+							},
+							{
+								Type: "listItem",
+								Content: []adf.Node{
+									{
+										Type: "paragraph",
+										Content: []adf.Node{
+											{
+												Type: "text",
+												Text: "italic item",
+												Marks: []adf.Mark{
+													{Type: "em"},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	conv := defaults.NewDefaultConverter()
+
+	// Convert to markdown and back
+	markdown, restoredADF, err := adf.ConvertRoundTrip(conv, originalADF)
+	require.NoError(t, err, "Round trip conversion should succeed")
+
+	t.Logf("Generated Markdown:\n%s", markdown)
+
+	// Verify the restored ADF structure
+	require.Equal(t, 1, len(restoredADF.Content), "Should have one top-level element")
+
+	expand := restoredADF.Content[0]
+	assert.Equal(t, "expand", string(expand.Type), "Top-level element should be expand")
+	assert.Equal(t, "This is for testing", expand.Attrs["title"], "Title should be preserved")
+
+	// CRITICAL: Check that heading text is clean (not malformed)
+	require.Greater(t, len(expand.Content), 0, "Expand should have content")
+	heading := expand.Content[0]
+	assert.Equal(t, "heading", string(heading.Type), "First content should be heading")
+
+	require.Greater(t, len(heading.Content), 0, "Heading should have text content")
+	headingText := heading.Content[0]
+
+	// This was the production bug: heading text was " #  # Heading" instead of "Heading"
+	assert.Equal(t, "Heading", headingText.Text, "CRITICAL: Heading text should be clean, not malformed with '# #'")
+
+	// CRITICAL: Check that markdown formatting is processed into ADF marks
+	require.Greater(t, len(expand.Content), 1, "Expand should have bullet list")
+	bulletList := expand.Content[1]
+	assert.Equal(t, "bulletList", string(bulletList.Type), "Second content should be bullet list")
+
+	require.Greater(t, len(bulletList.Content), 0, "Bullet list should have items")
+
+	// Check first list item (bold)
+	item1 := bulletList.Content[0]
+	require.Greater(t, len(item1.Content), 0, "List item should have content")
+	require.Greater(t, len(item1.Content[0].Content), 0, "List item paragraph should have text")
+
+	boldText := item1.Content[0].Content[0]
+	assert.Equal(t, "bold item", boldText.Text, "Bold text content should be correct")
+	// This was the production bug: markdown "**bold** item" was not converted to ADF marks
+	assert.Equal(t, 1, len(boldText.Marks), "Bold text should have exactly one mark")
+	assert.Equal(t, "strong", string(boldText.Marks[0].Type), "First item should have strong mark")
+
+	// Check second list item (italic)
+	require.Greater(t, len(bulletList.Content), 1, "Should have second list item")
+	item2 := bulletList.Content[1]
+	require.Greater(t, len(item2.Content), 0, "Second list item should have content")
+	require.Greater(t, len(item2.Content[0].Content), 0, "Second list item paragraph should have text")
+
+	italicText := item2.Content[0].Content[0]
+	assert.Equal(t, "italic item", italicText.Text, "Italic text content should be correct")
+	// This was the production bug: markdown "_italic_ item" was not converted to ADF marks
+	assert.Equal(t, 1, len(italicText.Marks), "Italic text should have exactly one mark")
+	assert.Equal(t, "em", string(italicText.Marks[0].Type), "Second item should have em mark")
+}
+
+// TestDetailsContentParsingEdgeCases tests additional edge cases around details content
+func TestDetailsContentParsingEdgeCases(t *testing.T) {
+	testCases := []struct {
+		name        string
+		inputADF    adf.Document
+		expectError bool
+		validate    func(t *testing.T, restored adf.Document)
+	}{
+		{
+			name: "nested_details_with_mixed_content",
+			inputADF: adf.Document{
+				Version: 1,
+				Type:    "doc",
+				Content: []adf.Node{
+					{
+						Type: "expand",
+						Attrs: map[string]any{
+							"title": "Outer Section",
+						},
+						Content: []adf.Node{
+							{
+								Type: "paragraph",
+								Content: []adf.Node{
+									{Type: "text", Text: "Some text"},
+								},
+							},
+							{
+								Type: "expand",
+								Attrs: map[string]any{
+									"title": "Inner Section",
+								},
+								Content: []adf.Node{
+									{
+										Type:  "heading",
+										Attrs: map[string]any{"level": 2},
+										Content: []adf.Node{
+											{Type: "text", Text: "Nested Heading"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectError: false,
+			validate: func(t *testing.T, restored adf.Document) {
+				// Should not hang or cause infinite recursion
+				assert.Equal(t, 1, len(restored.Content), "Should have single expand element")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			conv := defaults.NewDefaultConverter()
+
+			_, restored, err := adf.ConvertRoundTrip(conv, tc.inputADF)
+
+			if tc.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				if tc.validate != nil {
+					tc.validate(t, restored)
+				}
+			}
+		})
+	}
+}

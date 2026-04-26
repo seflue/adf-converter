@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/seflue/adf-converter/adf_types"
+	adf "github.com/seflue/adf-converter/adf/adftypes"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -13,9 +13,9 @@ import (
 // Manager handles the storage and retrieval of preserved ADF content
 // during the editing process
 type Manager interface {
-	Store(node adf_types.ADFNode) (placeholderID string, preview string, err error)
-	Restore(placeholderID string) (adf_types.ADFNode, error)
-	GeneratePreview(node adf_types.ADFNode) string
+	Store(node adf.Node) (placeholderID string, preview string, err error)
+	Restore(placeholderID string) (adf.Node, error)
+	GeneratePreview(node adf.Node) string
 	GetSession() *EditSession
 	Clear()
 	Count() int
@@ -24,7 +24,7 @@ type Manager interface {
 // EditSession represents a single editing session with preserved content
 type EditSession struct {
 	ID        string                       `json:"id"`
-	Preserved map[string]adf_types.ADFNode `json:"preserved"`
+	Preserved map[string]adf.Node `json:"preserved"`
 	Metadata  SessionMetadata              `json:"metadata"`
 }
 
@@ -47,7 +47,7 @@ func NewManager() Manager {
 	return &DefaultManager{
 		session: &EditSession{
 			ID:        sessionID,
-			Preserved: make(map[string]adf_types.ADFNode),
+			Preserved: make(map[string]adf.Node),
 			Metadata:  SessionMetadata{},
 		},
 		counter: 0,
@@ -63,7 +63,7 @@ func NewManagerWithSession(session *EditSession) Manager {
 }
 
 // Store saves an ADF node and returns a placeholder ID and preview text
-func (m *DefaultManager) Store(node adf_types.ADFNode) (string, string, error) {
+func (m *DefaultManager) Store(node adf.Node) (string, string, error) {
 	if node.Type == "" {
 		return "", "", fmt.Errorf("cannot store node with empty type")
 	}
@@ -83,47 +83,47 @@ func (m *DefaultManager) Store(node adf_types.ADFNode) (string, string, error) {
 }
 
 // Restore retrieves the original ADF node for a given placeholder ID
-func (m *DefaultManager) Restore(placeholderID string) (adf_types.ADFNode, error) {
+func (m *DefaultManager) Restore(placeholderID string) (adf.Node, error) {
 	node, exists := m.session.Preserved[placeholderID]
 	if !exists {
-		return adf_types.ADFNode{}, fmt.Errorf("placeholder ID %s not found", placeholderID)
+		return adf.Node{}, fmt.Errorf("placeholder ID %s not found", placeholderID)
 	}
 
 	return node, nil
 }
 
 // GeneratePreview creates a human-readable preview of an ADF node
-func (m *DefaultManager) GeneratePreview(node adf_types.ADFNode) string {
+func (m *DefaultManager) GeneratePreview(node adf.Node) string {
 	return generatePreview(node)
 }
 
 // generatePreview creates a human-readable preview of an ADF node.
 // Package-level function so both DefaultManager and NullManager can use it.
-func generatePreview(node adf_types.ADFNode) string {
+func generatePreview(node adf.Node) string {
 	switch node.Type {
-	case adf_types.NodeTypeCodeBlock:
+	case adf.NodeTypeCodeBlock:
 		return generateCodeBlockPreview(node)
-	case adf_types.NodeTypeTable:
+	case adf.NodeTypeTable:
 		return generateTablePreview(node)
-	case adf_types.NodeTypePanel:
+	case adf.NodeTypePanel:
 		return generatePanelPreview(node)
-	case adf_types.NodeTypeBlockquote:
+	case adf.NodeTypeBlockquote:
 		return generateBlockquotePreview(node)
-	case adf_types.NodeTypeRule:
+	case adf.NodeTypeRule:
 		return "Horizontal Rule"
-	case adf_types.NodeTypeMediaSingle:
+	case adf.NodeTypeMediaSingle:
 		return generateMediaPreview(node)
-	case adf_types.NodeTypeMediaInline:
+	case adf.NodeTypeMediaInline:
 		return generateMediaPreview(node)
-	case adf_types.NodeTypeMention:
+	case adf.NodeTypeMention:
 		return generateMentionPreview(node)
-	case adf_types.NodeTypeDate:
+	case adf.NodeTypeDate:
 		return generateDatePreview(node)
-	case adf_types.NodeTypeEmoji:
+	case adf.NodeTypeEmoji:
 		return generateEmojiPreview(node)
-	case adf_types.NodeTypeStatus:
+	case adf.NodeTypeStatus:
 		return generateStatusPreview(node)
-	case adf_types.NodeTypeInlineCard:
+	case adf.NodeTypeInlineCard:
 		return "InlineCard (data object)"
 	default:
 		return fmt.Sprintf("%s (complex content)", cases.Title(language.English).String(node.Type))
@@ -131,7 +131,7 @@ func generatePreview(node adf_types.ADFNode) string {
 }
 
 // generateCodeBlockPreview creates a preview for code blocks
-func generateCodeBlockPreview(node adf_types.ADFNode) string {
+func generateCodeBlockPreview(node adf.Node) string {
 	language := "text"
 	if node.Attrs != nil {
 		if lang, ok := node.Attrs["language"].(string); ok && lang != "" {
@@ -160,13 +160,13 @@ func generateCodeBlockPreview(node adf_types.ADFNode) string {
 }
 
 // generateTablePreview creates a preview for tables
-func generateTablePreview(node adf_types.ADFNode) string {
+func generateTablePreview(node adf.Node) string {
 	rows := 0
 	cols := 0
 
 	// Count rows and columns
 	for _, row := range node.Content {
-		if row.Type == adf_types.NodeTypeTableRow {
+		if row.Type == adf.NodeTypeTableRow {
 			rows++
 			if len(row.Content) > cols {
 				cols = len(row.Content)
@@ -192,7 +192,7 @@ func generateTablePreview(node adf_types.ADFNode) string {
 }
 
 // generatePanelPreview creates a preview for info/warning/error panels
-func generatePanelPreview(node adf_types.ADFNode) string {
+func generatePanelPreview(node adf.Node) string {
 	panelType := "info"
 	if node.Attrs != nil {
 		if pType, ok := node.Attrs["panelType"].(string); ok && pType != "" {
@@ -213,7 +213,7 @@ func generatePanelPreview(node adf_types.ADFNode) string {
 }
 
 // generateBlockquotePreview creates a preview for blockquotes
-func generateBlockquotePreview(node adf_types.ADFNode) string {
+func generateBlockquotePreview(node adf.Node) string {
 	text := extractTextContent(node)
 	if text != "" {
 		text = strings.ReplaceAll(text, "\n", " ")
@@ -227,14 +227,14 @@ func generateBlockquotePreview(node adf_types.ADFNode) string {
 
 // mediaIDKey returns the first 5 characters of the media node's id attr,
 // or an empty string if the id is unavailable or shorter than 5 characters.
-func mediaIDKey(node adf_types.ADFNode) string {
+func mediaIDKey(node adf.Node) string {
 	var id string
 	switch node.Type {
-	case adf_types.NodeTypeMediaInline:
+	case adf.NodeTypeMediaInline:
 		if node.Attrs != nil {
 			id, _ = node.Attrs["id"].(string)
 		}
-	case adf_types.NodeTypeMediaSingle:
+	case adf.NodeTypeMediaSingle:
 		if len(node.Content) > 0 && node.Content[0].Attrs != nil {
 			id, _ = node.Content[0].Attrs["id"].(string)
 		}
@@ -246,24 +246,24 @@ func mediaIDKey(node adf_types.ADFNode) string {
 }
 
 // generateMediaPreview creates a preview for media content
-func generateMediaPreview(node adf_types.ADFNode) string {
+func generateMediaPreview(node adf.Node) string {
 	var mediaAttrs map[string]any
 	var layout string
 
 	switch node.Type {
-	case adf_types.NodeTypeMediaSingle:
+	case adf.NodeTypeMediaSingle:
 		if node.Attrs != nil {
 			layout, _ = node.Attrs["layout"].(string)
 		}
 		if len(node.Content) > 0 {
 			mediaAttrs = node.Content[0].Attrs
 		}
-	case adf_types.NodeTypeMediaInline:
+	case adf.NodeTypeMediaInline:
 		mediaAttrs = node.Attrs
 	}
 
 	prefix := ""
-	if node.Type == adf_types.NodeTypeMediaInline {
+	if node.Type == adf.NodeTypeMediaInline {
 		prefix = "Inline "
 	}
 
@@ -290,7 +290,7 @@ func generateMediaPreview(node adf_types.ADFNode) string {
 }
 
 // generateMentionPreview creates a preview for user mentions
-func generateMentionPreview(node adf_types.ADFNode) string {
+func generateMentionPreview(node adf.Node) string {
 	if node.Attrs != nil {
 		if text, ok := node.Attrs["text"].(string); ok && text != "" {
 			return fmt.Sprintf("Mention: %s", text)
@@ -300,7 +300,7 @@ func generateMentionPreview(node adf_types.ADFNode) string {
 }
 
 // generateDatePreview creates a preview for date nodes
-func generateDatePreview(node adf_types.ADFNode) string {
+func generateDatePreview(node adf.Node) string {
 	if node.Attrs != nil {
 		if timestamp, ok := node.Attrs["timestamp"].(string); ok && timestamp != "" {
 			return fmt.Sprintf("Date: %s", timestamp)
@@ -310,7 +310,7 @@ func generateDatePreview(node adf_types.ADFNode) string {
 }
 
 // generateStatusPreview creates a preview for status nodes
-func generateStatusPreview(node adf_types.ADFNode) string {
+func generateStatusPreview(node adf.Node) string {
 	if node.Attrs != nil {
 		if text, ok := node.Attrs["text"].(string); ok && text != "" {
 			return fmt.Sprintf("Status: %s", text)
@@ -320,7 +320,7 @@ func generateStatusPreview(node adf_types.ADFNode) string {
 }
 
 // generateEmojiPreview creates a preview for emoji nodes
-func generateEmojiPreview(node adf_types.ADFNode) string {
+func generateEmojiPreview(node adf.Node) string {
 	if node.Attrs != nil {
 		if shortName, ok := node.Attrs["shortName"].(string); ok && shortName != "" {
 			return fmt.Sprintf("Emoji: %s", shortName)
@@ -334,7 +334,7 @@ func generateEmojiPreview(node adf_types.ADFNode) string {
 
 // Clear removes all preserved content from the session
 func (m *DefaultManager) Clear() {
-	m.session.Preserved = make(map[string]adf_types.ADFNode)
+	m.session.Preserved = make(map[string]adf.Node)
 	m.counter = 0
 }
 
@@ -349,8 +349,8 @@ func (m *DefaultManager) GetSession() *EditSession {
 }
 
 // extractTextContent recursively extracts all text content from an ADF node
-func extractTextContent(node adf_types.ADFNode) string {
-	if node.Type == adf_types.NodeTypeText {
+func extractTextContent(node adf.Node) string {
+	if node.Type == adf.NodeTypeText {
 		return node.Text
 	}
 
