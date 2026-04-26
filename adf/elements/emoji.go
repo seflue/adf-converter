@@ -7,19 +7,19 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// emojiConverter handles conversion of ADF emoji nodes to/from markdown
-type emojiConverter struct{}
+// emojiRenderer handles conversion of ADF emoji nodes to/from markdown
+type emojiRenderer struct{}
 
-// NewEmojiConverter creates a new emoji converter
-func NewEmojiConverter() adf.Renderer {
-	return &emojiConverter{}
+// NewEmojiRenderer creates a new emoji converter
+func NewEmojiRenderer() adf.Renderer {
+	return &emojiRenderer{}
 }
 
 // ToMarkdown converts an ADF emoji node to its text representation.
 // Uses text (unicode char) if present, falls back to shortName (e.g. ":white_check_mark:").
-func (c *emojiConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (c *emojiRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if node.Type != adf.NodeTypeEmoji {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("expected emoji node, got %s", node.Type)
+		return adf.RenderResult{}, fmt.Errorf("expected emoji node, got %s", node.Type)
 	}
 
 	// Extract emoji character from attrs: text (unicode) takes priority, shortName as fallback
@@ -33,11 +33,11 @@ func (c *emojiConverter) ToMarkdown(node adf.Node, context adf.ConversionContext
 	}
 
 	if emojiChar == "" {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("emoji node missing shortName attribute")
+		return adf.RenderResult{}, fmt.Errorf("emoji node missing shortName attribute")
 	}
 
 	// Return the unicode character directly (no placeholder needed)
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 	builder.AppendContent(emojiChar)
 	builder.IncrementConverted()
 	return builder.Build(), nil
@@ -45,22 +45,22 @@ func (c *emojiConverter) ToMarkdown(node adf.Node, context adf.ConversionContext
 
 // FromMarkdown is not called for emoji nodes - they're detected by the inline parser
 // This method exists to satisfy the Renderer interface
-func (c *emojiConverter) FromMarkdown(lines []string, startLine int, context adf.ConversionContext) (adf.Node, int, error) {
+func (c *emojiRenderer) FromMarkdown(lines []string, startLine int, context adf.ConversionContext) (adf.Node, int, error) {
 	return adf.Node{}, 0, fmt.Errorf("emoji nodes are handled by inline parser, not block converter")
 }
 
 // CanHandle checks if this converter can handle the given node type
-func (c *emojiConverter) CanHandle(nodeType adf.NodeType) bool {
+func (c *emojiRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeTypeEmoji
 }
 
 // GetStrategy returns the conversion strategy for emoji nodes
-func (c *emojiConverter) GetStrategy() adf.ConversionStrategy {
+func (c *emojiRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
 // ValidateInput validates that the input is a valid emoji node
-func (c *emojiConverter) ValidateInput(input any) error {
+func (c *emojiRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
 		return fmt.Errorf("invalid input type: expected Node, got %T", input)

@@ -22,7 +22,7 @@ type Registry interface {
 // ConverterRegistry manages registration and lookup of element converters.
 //
 // Two dispatch paths:
-// - ADF→MD: converters map, keyed by node type (GetConverter)
+// - ADF→MD: converters map, keyed by node type (Lookup)
 // - MD→ADF: blockParsers slice, ordered by registration (BlockParsers)
 //
 // Thread-safe for concurrent access via RWMutex.
@@ -60,14 +60,6 @@ func (r *ConverterRegistry) MustRegister(nodeType NodeType, converter Renderer) 
 	if err := r.Register(nodeType, converter); err != nil {
 		panic(err)
 	}
-}
-
-// GetConverter retrieves the converter for the given node type, or nil if absent.
-func (r *ConverterRegistry) GetConverter(nodeType NodeType) Renderer {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	return r.converters[nodeType]
 }
 
 // Lookup implements Registry by returning the converter for nodeType

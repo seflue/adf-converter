@@ -8,7 +8,7 @@ import (
 )
 
 func TestBulletListConverter_ToMarkdown(t *testing.T) {
-	blc := NewBulletListConverter()
+	blc := NewBulletListRenderer()
 
 	tests := []struct {
 		name     string
@@ -163,7 +163,7 @@ func TestBulletListConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestBulletListConverter_ToMarkdown_NestedLists(t *testing.T) {
-	blc := NewBulletListConverter()
+	blc := NewBulletListRenderer()
 
 	// Test nested bullet list with proper depth tracking
 	node := adf.Node{
@@ -221,7 +221,7 @@ func TestBulletListConverter_ToMarkdown_NestedLists(t *testing.T) {
 }
 
 func TestBulletListConverter_FromMarkdown(t *testing.T) {
-	blc := NewBulletListConverter()
+	blc := NewBulletListRenderer()
 
 	tests := []struct {
 		name          string
@@ -413,7 +413,7 @@ func TestBulletListConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestBulletListConverter_RoundTrip(t *testing.T) {
-	blc := NewBulletListConverter()
+	blc := NewBulletListRenderer()
 
 	tests := []struct {
 		name     string
@@ -487,7 +487,7 @@ func TestBulletListConverter_RoundTrip(t *testing.T) {
 }
 
 func TestBulletListConverter_CanHandle(t *testing.T) {
-	blc := NewBulletListConverter()
+	blc := NewBulletListRenderer()
 
 	tests := []struct {
 		nodeType adf.NodeType
@@ -511,7 +511,7 @@ func TestBulletListConverter_CanHandle(t *testing.T) {
 }
 
 func TestBulletListConverter_GetStrategy(t *testing.T) {
-	blc := NewBulletListConverter()
+	blc := NewBulletListRenderer()
 
 	strategy := blc.GetStrategy()
 	if strategy != adf.StandardMarkdown {
@@ -520,7 +520,7 @@ func TestBulletListConverter_GetStrategy(t *testing.T) {
 }
 
 func TestBulletListConverter_ValidateInput(t *testing.T) {
-	blc := NewBulletListConverter()
+	blc := NewBulletListRenderer()
 
 	tests := []struct {
 		name    string
@@ -544,7 +544,7 @@ func TestBulletListConverter_ValidateInput(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "not an Node",
+			name:    "not a Node",
 			input:   "not a node",
 			wantErr: true,
 		},
@@ -561,4 +561,4 @@ func TestBulletListConverter_ValidateInput(t *testing.T) {
 }
 
 // NOTE: TestMain is defined in paragraph_test.go for the entire elements package
-// It registers all converters including bulletListConverter
+// It registers all converters including bulletListRenderer

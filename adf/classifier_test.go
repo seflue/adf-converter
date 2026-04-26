@@ -31,8 +31,8 @@ func TestDefaultClassifier_TableIsEditable(t *testing.T) {
 }
 
 func TestTableConverter_RegisteredInRegistry(t *testing.T) {
-	c := defaults.NewRegistry().GetConverter("table")
-	if c == nil {
+	c, ok := defaults.NewRegistry().Lookup("table")
+	if !ok {
 		t.Fatal("table converter should be registered in global registry")
 	}
 	if !c.CanHandle("table") {

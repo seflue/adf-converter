@@ -12,20 +12,20 @@ import (
 // blockCardRegex matches <div data-adf-type="blockCard">[url](url)</div> or bare url
 var blockCardRegex = regexp.MustCompile(`^<div data-adf-type="blockCard">(?:\[([^\]]+)\]\([^)]+\)|(.+))</div>$`)
 
-// blockCardConverter handles conversion of ADF blockCard nodes to/from markdown.
+// blockCardRenderer handles conversion of ADF blockCard nodes to/from markdown.
 //
 // blockCard is a block-level smart link that Jira renders as a full-width card.
 // Uses an HTML wrapper to preserve the type through roundtrip:
 //
 //	<div data-adf-type="blockCard">https://example.com</div>
-type blockCardConverter struct{}
+type blockCardRenderer struct{}
 
-func NewBlockCardConverter() adf.Renderer {
-	return &blockCardConverter{}
+func NewBlockCardRenderer() adf.Renderer {
+	return &blockCardRenderer{}
 }
 
-func (bc *blockCardConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+func (bc *blockCardRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	url, _ := node.Attrs["url"].(string)
 	if url == "" {
@@ -38,7 +38,7 @@ func (bc *blockCardConverter) ToMarkdown(node adf.Node, context adf.ConversionCo
 	return builder.Build(), nil
 }
 
-func (bc *blockCardConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (bc *blockCardRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if startIndex >= len(lines) {
 		return adf.Node{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -64,22 +64,22 @@ func (bc *blockCardConverter) FromMarkdown(lines []string, startIndex int, conte
 	return node, 1, nil
 }
 
-func (bc *blockCardConverter) CanParseLine(line string) bool {
+func (bc *blockCardRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, `<div data-adf-type="blockCard"`)
 }
 
-func (bc *blockCardConverter) CanHandle(nodeType adf.NodeType) bool {
+func (bc *blockCardRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeBlockCard)
 }
 
-func (bc *blockCardConverter) GetStrategy() adf.ConversionStrategy {
+func (bc *blockCardRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (bc *blockCardConverter) ValidateInput(input any) error {
+func (bc *blockCardRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 	if node.Type != adf.NodeTypeBlockCard {
 		return fmt.Errorf("node type must be blockCard, got: %s", node.Type)

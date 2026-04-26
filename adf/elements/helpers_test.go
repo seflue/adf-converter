@@ -12,7 +12,7 @@ import (
 func newTestRegistry() *adf.ConverterRegistry {
 	r := adf.NewConverterRegistry()
 	for _, reg := range StandardNodes() {
-		r.MustRegister(reg.NodeType, reg.Converter)
+		r.MustRegister(reg.NodeType, reg.Renderer)
 	}
 	for _, nodeType := range StandardBlockParserOrder {
 		r.MustRegisterBlockParser(nodeType)

@@ -20,7 +20,7 @@ func asBlockParser(t *testing.T, name string, conv adf.Renderer) adf.BlockParser
 }
 
 func TestCanParseLine_Expand(t *testing.T) {
-	bp := asBlockParser(t, "ExpandConverter", elements.NewExpandConverter())
+	bp := asBlockParser(t, "ExpandConverter", elements.NewExpandRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -37,7 +37,7 @@ func TestCanParseLine_Expand(t *testing.T) {
 }
 
 func TestCanParseLine_BlockCard(t *testing.T) {
-	bp := asBlockParser(t, "BlockCardConverter", elements.NewBlockCardConverter())
+	bp := asBlockParser(t, "BlockCardConverter", elements.NewBlockCardRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -52,7 +52,7 @@ func TestCanParseLine_BlockCard(t *testing.T) {
 }
 
 func TestCanParseLine_Panel(t *testing.T) {
-	bp := asBlockParser(t, "PanelConverter", elements.NewPanelConverter())
+	bp := asBlockParser(t, "PanelConverter", elements.NewPanelRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -79,7 +79,7 @@ func TestCanParseLine_Panel(t *testing.T) {
 }
 
 func TestCanParseLine_Table(t *testing.T) {
-	bp := asBlockParser(t, "TableConverter", elements.NewTableConverter())
+	bp := asBlockParser(t, "TableConverter", elements.NewTableRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -100,7 +100,7 @@ func TestCanParseLine_Table(t *testing.T) {
 }
 
 func TestCanParseLine_TaskList(t *testing.T) {
-	bp := asBlockParser(t, "TaskListConverter", elements.NewTaskListConverter())
+	bp := asBlockParser(t, "TaskListConverter", elements.NewTaskListRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -122,7 +122,7 @@ func TestCanParseLine_TaskList(t *testing.T) {
 }
 
 func TestCanParseLine_Blockquote(t *testing.T) {
-	bp := asBlockParser(t, "BlockquoteConverter", elements.NewBlockquoteConverter())
+	bp := asBlockParser(t, "BlockquoteConverter", elements.NewBlockquoteRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -144,7 +144,7 @@ func TestCanParseLine_Blockquote(t *testing.T) {
 }
 
 func TestCanParseLine_CodeBlock(t *testing.T) {
-	bp := asBlockParser(t, "CodeBlockConverter", elements.NewCodeBlockConverter())
+	bp := asBlockParser(t, "CodeBlockConverter", elements.NewCodeBlockRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -160,7 +160,7 @@ func TestCanParseLine_CodeBlock(t *testing.T) {
 }
 
 func TestCanParseLine_Heading(t *testing.T) {
-	bp := asBlockParser(t, "HeadingConverter", elements.NewHeadingConverter())
+	bp := asBlockParser(t, "HeadingConverter", elements.NewHeadingRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -177,7 +177,7 @@ func TestCanParseLine_Heading(t *testing.T) {
 }
 
 func TestCanParseLine_Rule(t *testing.T) {
-	bp := asBlockParser(t, "RuleConverter", elements.NewRuleConverter())
+	bp := asBlockParser(t, "RuleConverter", elements.NewRuleRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -204,7 +204,7 @@ func TestCanParseLine_Rule(t *testing.T) {
 }
 
 func TestCanParseLine_BulletList(t *testing.T) {
-	bp := asBlockParser(t, "BulletListConverter", elements.NewBulletListConverter())
+	bp := asBlockParser(t, "BulletListConverter", elements.NewBulletListRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -223,7 +223,7 @@ func TestCanParseLine_BulletList(t *testing.T) {
 }
 
 func TestCanParseLine_OrderedList(t *testing.T) {
-	bp := asBlockParser(t, "OrderedListConverter", elements.NewOrderedListConverter())
+	bp := asBlockParser(t, "OrderedListConverter", elements.NewOrderedListRenderer())
 	tests := []struct {
 		line string
 		want bool
@@ -281,7 +281,7 @@ func TestBlockParserDispatchOrder(t *testing.T) {
 // TestParagraphIsNotBlockParser verifies that ParagraphConverter does not implement
 // BlockParser — it is always the fallback.
 func TestParagraphIsNotBlockParser(t *testing.T) {
-	conv := elements.NewParagraphConverter()
+	conv := elements.NewParagraphRenderer()
 	_, ok := any(conv).(adf.BlockParser)
 	assert.False(t, ok, "ParagraphConverter must NOT implement BlockParser")
 }
@@ -290,13 +290,13 @@ func TestParagraphIsNotBlockParser(t *testing.T) {
 // implement BlockParser.
 func TestInlineConvertersAreNotBlockParsers(t *testing.T) {
 	inlineConverters := map[string]adf.Renderer{
-		"text":       elements.NewTextConverter(),
-		"hardBreak":  elements.NewHardBreakConverter(),
-		"emoji":      elements.NewEmojiConverter(),
-		"mention":    elements.NewMentionConverter(),
-		"status":     elements.NewStatusConverter(),
-		"date":       elements.NewDateConverter(),
-		"inlineCard": elements.NewInlineCardConverter(),
+		"text":       elements.NewTextRenderer(),
+		"hardBreak":  elements.NewHardBreakRenderer(),
+		"emoji":      elements.NewEmojiRenderer(),
+		"mention":    elements.NewMentionRenderer(),
+		"status":     elements.NewStatusRenderer(),
+		"date":       elements.NewDateRenderer(),
+		"inlineCard": elements.NewInlineCardRenderer(),
 	}
 	for name, conv := range inlineConverters {
 		_, ok := conv.(adf.BlockParser)

@@ -60,7 +60,7 @@ func convertNodeToMarkdownWithContext(node Node, ctx *markdownConversionContext,
 
 	// Dispatch via registry.
 	nodeType := NodeType(node.Type)
-	if conv := registry.GetConverter(nodeType); conv != nil {
+	if conv, ok := registry.Lookup(nodeType); ok {
 		conversionCtx := adaptContext(ctx, classifier, manager, registry, nodeType)
 		result, err := conv.ToMarkdown(node, conversionCtx)
 		if err != nil {
@@ -69,7 +69,8 @@ func convertNodeToMarkdownWithContext(node Node, ctx *markdownConversionContext,
 		return result.Content, nil
 	}
 
-	// Unknown or unsupported node type - preserve as placeholder
+	// No registered converter for this node type - preserve as placeholder
+	// so the node round-trips losslessly (ac-0094).
 	placeholderID, preview, err := manager.Store(node)
 	if err != nil {
 		return "", fmt.Errorf("failed to store placeholder for unknown type %s: %w", node.Type, err)

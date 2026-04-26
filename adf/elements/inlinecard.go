@@ -9,11 +9,11 @@ import (
 	"github.com/seflue/adf-converter/placeholder"
 )
 
-// inlineCardConverter handles conversion of ADF inlineCard nodes to/from markdown
-type inlineCardConverter struct{}
+// inlineCardRenderer handles conversion of ADF inlineCard nodes to/from markdown
+type inlineCardRenderer struct{}
 
-func NewInlineCardConverter() adf.Renderer {
-	return &inlineCardConverter{}
+func NewInlineCardRenderer() adf.Renderer {
+	return &inlineCardRenderer{}
 }
 
 var complexMetadataAttrs = []string{"id", "space", "type", "version", "status", "localId", "key"}
@@ -51,9 +51,9 @@ func buildComplexMetadataHTML(attrs map[string]any, linkURL string) string {
 	return b.String()
 }
 
-func (ic *inlineCardConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (ic *inlineCardRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if node.Attrs == nil {
-		builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+		builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 		builder.AppendContent("[InlineCard]")
 		return builder.Build(), nil
 	}
@@ -67,7 +67,7 @@ func (ic *inlineCardConverter) ToMarkdown(node adf.Node, context adf.ConversionC
 		}
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	if hasComplexMetadata(node.Attrs) {
 		builder.AppendContent(buildComplexMetadataHTML(node.Attrs, linkURL))
@@ -82,13 +82,13 @@ func (ic *inlineCardConverter) ToMarkdown(node adf.Node, context adf.ConversionC
 	return builder.Build(), nil
 }
 
-func (ic *inlineCardConverter) dataOnlyToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (ic *inlineCardRenderer) dataOnlyToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if context.PlaceholderManager != nil {
 		placeholderID, preview, err := context.PlaceholderManager.Store(node)
 		if err != nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("storing inlineCard placeholder: %w", err)
+			return adf.RenderResult{}, fmt.Errorf("storing inlineCard placeholder: %w", err)
 		}
-		builder := convresult.NewEnhancedConversionResultBuilder(adf.Placeholder)
+		builder := convresult.NewRenderResultBuilder(adf.Placeholder)
 		if placeholderID == "" {
 			builder.AppendContent(preview)
 		} else {
@@ -98,27 +98,27 @@ func (ic *inlineCardConverter) dataOnlyToMarkdown(node adf.Node, context adf.Con
 	}
 
 	// No PlaceholderManager available — lossy fallback
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 	builder.AppendContent("[InlineCard]")
 	return builder.Build(), nil
 }
 
-func (ic *inlineCardConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (ic *inlineCardRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	return adf.Node{}, 0, fmt.Errorf("inlineCard is an inline element and should be parsed within parent blocks")
 }
 
-func (ic *inlineCardConverter) CanHandle(nodeType adf.NodeType) bool {
+func (ic *inlineCardRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeInlineCard)
 }
 
-func (ic *inlineCardConverter) GetStrategy() adf.ConversionStrategy {
+func (ic *inlineCardRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (ic *inlineCardConverter) ValidateInput(input any) error {
+func (ic *inlineCardRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 
 	if node.Type != adf.NodeTypeInlineCard {

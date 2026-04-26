@@ -7,7 +7,7 @@ import (
 )
 
 func TestParagraphConverter_ToMarkdown(t *testing.T) {
-	pc := NewParagraphConverter()
+	pc := NewParagraphRenderer()
 
 	tests := []struct {
 		name     string
@@ -155,7 +155,7 @@ func TestParagraphConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestParagraphConverter_FromMarkdown(t *testing.T) {
-	pc := NewParagraphConverter()
+	pc := NewParagraphRenderer()
 
 	tests := []struct {
 		name          string
@@ -285,7 +285,7 @@ func TestParagraphConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestParagraphConverter_RoundTrip(t *testing.T) {
-	pc := NewParagraphConverter()
+	pc := NewParagraphRenderer()
 
 	tests := []struct {
 		name     string
@@ -337,7 +337,7 @@ func TestParagraphConverter_RoundTrip(t *testing.T) {
 }
 
 func TestParagraphConverter_CanHandle(t *testing.T) {
-	pc := NewParagraphConverter()
+	pc := NewParagraphRenderer()
 
 	tests := []struct {
 		nodeType adf.NodeType
@@ -360,7 +360,7 @@ func TestParagraphConverter_CanHandle(t *testing.T) {
 }
 
 func TestParagraphConverter_GetStrategy(t *testing.T) {
-	pc := NewParagraphConverter()
+	pc := NewParagraphRenderer()
 	strategy := pc.GetStrategy()
 	if strategy != adf.StandardMarkdown {
 		t.Errorf("GetStrategy() = %v, want %v", strategy, adf.StandardMarkdown)
@@ -368,7 +368,7 @@ func TestParagraphConverter_GetStrategy(t *testing.T) {
 }
 
 func TestParagraphConverter_ValidateInput(t *testing.T) {
-	pc := NewParagraphConverter()
+	pc := NewParagraphRenderer()
 
 	tests := []struct {
 		name    string

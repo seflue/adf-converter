@@ -2,8 +2,8 @@
 // converters. Callers that want a ready-to-use converter without assembling
 // the registry themselves should use NewDefaultConverter or NewDisplayConverter.
 //
-// This package is intentionally separate from converter/ to avoid an import
-// cycle: the elements/ package depends on converter/, so converter/ cannot
+// This package is intentionally separate from adf/ to avoid an import
+// cycle: the elements/ package depends on adf/, so adf/ cannot
 // import elements/ to eager-register. defaults/ closes that gap by being the
 // single place that knows about both.
 package defaults
@@ -25,7 +25,7 @@ func NewRegistry() *adf.ConverterRegistry {
 	r := adf.NewConverterRegistry()
 
 	for _, reg := range elements.StandardNodes() {
-		r.MustRegister(reg.NodeType, reg.Converter)
+		r.MustRegister(reg.NodeType, reg.Renderer)
 	}
 	for _, nodeType := range elements.StandardBlockParserOrder {
 		r.MustRegisterBlockParser(nodeType)

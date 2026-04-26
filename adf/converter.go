@@ -99,7 +99,7 @@ func WithPlaceholderManager(m placeholder.Manager) Option {
 // NewConverter creates a new DefaultConverter.
 //
 // Defaults: DefaultClassifier, placeholder.NewManager, empty registry.
-// Use WithRegistry to supply a populated registry (see converter/defaults).
+// Use WithRegistry to supply a populated registry (see adf/defaults).
 //
 // Returns an error if the registry is empty after applying options, because a
 // converter without registered element converters cannot process any content

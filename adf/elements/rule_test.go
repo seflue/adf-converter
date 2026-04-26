@@ -10,7 +10,7 @@ import (
 )
 
 func TestRuleConverter_ToMarkdown(t *testing.T) {
-	rc := NewRuleConverter()
+	rc := NewRuleRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
 
 	tests := []struct {
@@ -36,7 +36,7 @@ func TestRuleConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestRuleConverter_ValidateInput(t *testing.T) {
-	rc := NewRuleConverter()
+	rc := NewRuleRenderer()
 
 	tests := []struct {
 		name    string
@@ -81,7 +81,7 @@ func TestRuleConverter_ValidateInput(t *testing.T) {
 }
 
 func TestRuleConverter_FromMarkdown(t *testing.T) {
-	rc := NewRuleConverter()
+	rc := NewRuleRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
 
 	tests := []struct {
@@ -155,7 +155,7 @@ func TestRuleConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestRuleConverter_FromMarkdown_OutOfBounds(t *testing.T) {
-	rc := NewRuleConverter()
+	rc := NewRuleRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
 
 	tests := []struct {
@@ -184,7 +184,7 @@ func TestRuleConverter_FromMarkdown_OutOfBounds(t *testing.T) {
 }
 
 func TestRuleConverter_FromMarkdown_Invalid(t *testing.T) {
-	rc := NewRuleConverter()
+	rc := NewRuleRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
 
 	tests := []struct {
@@ -281,14 +281,14 @@ func TestRuleConverter_Roundtrip(t *testing.T) {
 }
 
 func TestRuleConverter_CanHandle(t *testing.T) {
-	rc := NewRuleConverter()
+	rc := NewRuleRenderer()
 
 	assert.True(t, rc.CanHandle(adf.NodeTypeRule))
 	assert.False(t, rc.CanHandle(adf.NodeTypeParagraph))
 }
 
 func TestRuleConverter_GetStrategy(t *testing.T) {
-	rc := NewRuleConverter()
+	rc := NewRuleRenderer()
 	assert.Equal(t, adf.StandardMarkdown, rc.GetStrategy())
 }
 

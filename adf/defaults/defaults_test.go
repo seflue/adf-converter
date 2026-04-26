@@ -19,7 +19,7 @@ func TestRegistrationSourceOfTruth(t *testing.T) {
 		t.Fatalf("registry converter count = %d, want %d", got, want)
 	}
 	for _, reg := range standard {
-		if r.GetConverter(reg.NodeType) == nil {
+		if _, ok := r.Lookup(reg.NodeType); !ok {
 			t.Errorf("node %q: converter not registered", reg.NodeType)
 		}
 	}

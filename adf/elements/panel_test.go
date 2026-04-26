@@ -14,7 +14,7 @@ import (
 
 func TestPanelConverter_ToMarkdown(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 
 	tests := []struct {
 		name     string
@@ -179,7 +179,7 @@ func TestPanelConverter_ToMarkdown(t *testing.T) {
 
 func TestPanelConverter_ToMarkdown_UnknownTypeWarning(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 
 	node := adf.Node{
 		Type:  adf.NodeTypePanel,
@@ -203,7 +203,7 @@ func TestPanelConverter_ToMarkdown_UnknownTypeWarning(t *testing.T) {
 
 func TestPanelConverter_FromMarkdown_FencedDiv(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 
 	tests := []struct {
 		name         string
@@ -303,7 +303,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv(t *testing.T) {
 
 func TestPanelConverter_FromMarkdown_Admonition(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 
 	tests := []struct {
 		name         string
@@ -398,7 +398,7 @@ func TestPanelConverter_FromMarkdown_Admonition(t *testing.T) {
 
 func TestPanelConverter_Roundtrip_FencedDiv(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()}
 
 	// ADF -> Markdown -> ADF
@@ -433,7 +433,7 @@ func TestPanelConverter_Roundtrip_FencedDiv(t *testing.T) {
 
 func TestPanelConverter_Roundtrip_AdmonitionNormalization(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()}
 
 	// GitHub Admonition -> ADF -> Fenced-Div (canonical normalization)
@@ -490,7 +490,7 @@ func TestPanelConverter_Integration_MixedDocument(t *testing.T) {
 
 func TestPanelConverter_FromMarkdown_FencedDiv_WithBulletList(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 
 	lines := []string{":::info", "- Item 1", "- Item 2", ":::"}
 	node, consumed, err := pc.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
@@ -506,7 +506,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv_WithBulletList(t *testing.T) {
 
 func TestPanelConverter_FromMarkdown_FencedDiv_WithCodeBlock(t *testing.T) {
 
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 
 	lines := []string{":::info", "```go", "fmt.Println(\"hello\")", "```", ":::"}
 	node, consumed, err := pc.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry(), ParseNested: testParseNested()})
@@ -520,7 +520,7 @@ func TestPanelConverter_FromMarkdown_FencedDiv_WithCodeBlock(t *testing.T) {
 }
 
 func TestPanelConverter_ValidateInput(t *testing.T) {
-	pc := NewPanelConverter()
+	pc := NewPanelRenderer()
 
 	tests := []struct {
 		name    string
@@ -541,7 +541,7 @@ func TestPanelConverter_ValidateInput(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "not an Node",
+			name:    "not a Node",
 			input:   "string input",
 			wantErr: true,
 		},

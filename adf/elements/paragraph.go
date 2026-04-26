@@ -24,21 +24,21 @@ func isBlockBoundary(trimmed string, registry adf.Registry) bool {
 	return false
 }
 
-// paragraphConverter handles conversion of ADF paragraph nodes to/from markdown
-type paragraphConverter struct{}
+// paragraphRenderer handles conversion of ADF paragraph nodes to/from markdown
+type paragraphRenderer struct{}
 
-func NewParagraphConverter() adf.Renderer {
-	return &paragraphConverter{}
+func NewParagraphRenderer() adf.Renderer {
+	return &paragraphRenderer{}
 }
 
-func (pc *paragraphConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (pc *paragraphRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if len(node.Content) == 0 {
-		builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+		builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 		builder.AppendContent("\n")
 		return builder.Build(), nil
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	// Separate preserved nodes into placeholders, pass rest to inline renderer.
 	// Unknown inline types (anything IsInlineNode does not recognize) also take
@@ -52,7 +52,7 @@ func (pc *paragraphConverter) ToMarkdown(node adf.Node, context adf.ConversionCo
 			var err error
 			renderableContent, err = appendPreservedChild(child, renderableContent, context, builder)
 			if err != nil {
-				return adf.EnhancedConversionResult{}, err
+				return adf.RenderResult{}, err
 			}
 			continue
 		}
@@ -64,7 +64,7 @@ func (pc *paragraphConverter) ToMarkdown(node adf.Node, context adf.ConversionCo
 	if len(renderableContent) > 0 {
 		rendered, err := inline.RenderInlineNodes(renderableContent, context)
 		if err != nil {
-			return adf.EnhancedConversionResult{}, err
+			return adf.RenderResult{}, err
 		}
 		builder.AppendContent(rendered)
 	}
@@ -74,7 +74,7 @@ func (pc *paragraphConverter) ToMarkdown(node adf.Node, context adf.ConversionCo
 	return builder.Build(), nil
 }
 
-func (pc *paragraphConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (pc *paragraphRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf.Node{}, 1, nil
 	}
@@ -133,7 +133,7 @@ func appendPreservedChild(
 	child adf.Node,
 	pending []adf.Node,
 	context adf.ConversionContext,
-	builder *convresult.EnhancedConversionResultBuilder,
+	builder *convresult.RenderResultBuilder,
 ) ([]adf.Node, error) {
 	placeholderID, preview, err := context.PlaceholderManager.Store(child)
 	if err != nil {
@@ -148,7 +148,7 @@ func appendPreservedChild(
 		builder.AppendContent(rendered)
 	}
 
-	// appendPreservedChild is only called from paragraphConverter, so every
+	// appendPreservedChild is only called from paragraphRenderer, so every
 	// child is inline by construction — even if IsInlineNode does not yet
 	// recognize its type (unknown inline nodes, ac-0073).
 	if placeholderID == "" {
@@ -161,18 +161,18 @@ func appendPreservedChild(
 	return nil, nil
 }
 
-func (pc *paragraphConverter) CanHandle(nodeType adf.NodeType) bool {
+func (pc *paragraphRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeParagraph)
 }
 
-func (pc *paragraphConverter) GetStrategy() adf.ConversionStrategy {
+func (pc *paragraphRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (pc *paragraphConverter) ValidateInput(input any) error {
+func (pc *paragraphRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 
 	if node.Type != adf.NodeTypeParagraph {

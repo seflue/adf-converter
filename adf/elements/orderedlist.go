@@ -13,15 +13,15 @@ import (
 
 var orderedListLinePattern = regexp.MustCompile(`^\s*\d+\.\s`)
 
-// orderedListConverter handles conversion of ADF ordered list nodes to/from markdown
-type orderedListConverter struct{}
+// orderedListRenderer handles conversion of ADF ordered list nodes to/from markdown
+type orderedListRenderer struct{}
 
-func NewOrderedListConverter() adf.Renderer {
-	return &orderedListConverter{}
+func NewOrderedListRenderer() adf.Renderer {
+	return &orderedListRenderer{}
 }
 
-func (olc *orderedListConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+func (olc *orderedListRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	childContext := context
 	childContext.ListDepth = context.ListDepth + 1
@@ -34,14 +34,14 @@ func (olc *orderedListConverter) ToMarkdown(node adf.Node, context adf.Conversio
 	}
 
 	for i, item := range node.Content {
-		itemConverter , _ := context.Registry.Lookup(adf.NodeType(item.Type))
-		if itemConverter == nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("no converter found for list item type: %s", item.Type)
+		itemRenderer , _ := context.Registry.Lookup(adf.NodeType(item.Type))
+		if itemRenderer == nil {
+			return adf.RenderResult{}, fmt.Errorf("no converter found for list item type: %s", item.Type)
 		}
 
-		itemResult, err := itemConverter.ToMarkdown(item, childContext)
+		itemResult, err := itemRenderer.ToMarkdown(item, childContext)
 		if err != nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("failed to convert list item: %w", err)
+			return adf.RenderResult{}, fmt.Errorf("failed to convert list item: %w", err)
 		}
 
 		itemContent := replaceListMarker(itemResult.Content, start+i)
@@ -54,7 +54,7 @@ func (olc *orderedListConverter) ToMarkdown(node adf.Node, context adf.Conversio
 	return builder.Build(), nil
 }
 
-func (olc *orderedListConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (olc *orderedListRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	// Count consecutive list lines starting from startIndex, including:
 	// - Lines that start with ordered list markers (1., 2., etc.)
 	// - Indented continuation lines (for multiline list items and nested lists)
@@ -131,22 +131,22 @@ func isOrderedListLine(trimmed string) bool {
 	return false
 }
 
-func (olc *orderedListConverter) CanParseLine(line string) bool {
+func (olc *orderedListRenderer) CanParseLine(line string) bool {
 	return orderedListLinePattern.MatchString(line)
 }
 
-func (olc *orderedListConverter) CanHandle(nodeType adf.NodeType) bool {
+func (olc *orderedListRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeOrderedList)
 }
 
-func (olc *orderedListConverter) GetStrategy() adf.ConversionStrategy {
+func (olc *orderedListRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (olc *orderedListConverter) ValidateInput(input any) error {
+func (olc *orderedListRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 
 	if node.Type != adf.NodeTypeOrderedList {

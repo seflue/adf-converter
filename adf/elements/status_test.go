@@ -9,7 +9,7 @@ import (
 )
 
 func TestStatusConverter_ToMarkdown(t *testing.T) {
-	sc := NewStatusConverter()
+	sc := NewStatusRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -107,18 +107,18 @@ func TestStatusConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestStatusConverter_CanHandle(t *testing.T) {
-	sc := NewStatusConverter()
+	sc := NewStatusRenderer()
 	assert.True(t, sc.CanHandle(adf.NodeType(adf.NodeTypeStatus)))
 	assert.False(t, sc.CanHandle(adf.NodeType(adf.NodeTypeDate)))
 }
 
 func TestStatusConverter_GetStrategy(t *testing.T) {
-	sc := NewStatusConverter()
+	sc := NewStatusRenderer()
 	assert.Equal(t, adf.StandardMarkdown, sc.GetStrategy())
 }
 
 func TestStatusConverter_ValidateInput(t *testing.T) {
-	sc := NewStatusConverter()
+	sc := NewStatusRenderer()
 
 	tests := []struct {
 		name    string

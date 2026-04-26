@@ -11,14 +11,14 @@ import (
 )
 
 // Compile-time interface check
-var _ adf.Renderer = (*tableConverter)(nil)
+var _ adf.Renderer = (*tableRenderer)(nil)
 
 // ============================================================================
 // FromMarkdown Tests (new Renderer signature)
 // ============================================================================
 
 func TestTableConverter_FromMarkdown(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -163,7 +163,7 @@ func TestTableConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestTableConverter_FromMarkdown_XMLWrappedAttributes(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	t.Run("localId and layout preserved", func(t *testing.T) {
@@ -207,7 +207,7 @@ func TestTableConverter_FromMarkdown_XMLWrappedAttributes(t *testing.T) {
 // ============================================================================
 
 func TestTableConverter_ToMarkdown_PlainTable(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: false}
 
 	node := adf.Node{
@@ -281,7 +281,7 @@ func TestTableConverter_ToMarkdown_PlainTable(t *testing.T) {
 }
 
 func TestTableConverter_ToMarkdown_NoHeader(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: false}
 
 	// ADF table where ALL cells are tableCell (no tableHeader)
@@ -331,7 +331,7 @@ func TestTableConverter_ToMarkdown_NoHeader(t *testing.T) {
 }
 
 func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: true}
 
 	node := adf.Node{
@@ -369,7 +369,7 @@ func TestTableConverter_ToMarkdown_WithAttributes(t *testing.T) {
 }
 
 func TestTableConverter_ToMarkdown_DefaultAttrsOmitWrapper(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: true}
 
 	tableContent := []adf.Node{
@@ -447,7 +447,7 @@ func TestTableConverter_ToMarkdown_DefaultAttrsOmitWrapper(t *testing.T) {
 // ============================================================================
 
 func TestTableConverter_RoundTrip_PlainTable(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: false}
 
 	lines := []string{
@@ -476,7 +476,7 @@ func TestTableConverter_RoundTrip_PlainTable(t *testing.T) {
 }
 
 func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: true}
 
 	lines := []string{
@@ -510,7 +510,7 @@ func TestTableConverter_RoundTrip_XMLWrappedTable(t *testing.T) {
 }
 
 func TestTableConverter_FromMarkdown_EmptyHeaderMeansNoHeader(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	lines := []string{
@@ -535,7 +535,7 @@ func TestTableConverter_FromMarkdown_EmptyHeaderMeansNoHeader(t *testing.T) {
 }
 
 func TestTableConverter_RoundTrip_NoHeader(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: false}
 
 	// Start with ADF: all tableCell, no tableHeader
@@ -594,7 +594,7 @@ func TestTableConverter_RoundTrip_NoHeader(t *testing.T) {
 }
 
 func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: false}
 
 	tests := []struct {
@@ -665,7 +665,7 @@ func TestTableConverter_ToMarkdown_InlineMarks(t *testing.T) {
 // ============================================================================
 
 func TestTableConverter_FromMarkdown_InlineFormatting(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	lines := []string{
@@ -716,7 +716,7 @@ func TestTableConverter_FromMarkdown_InlineFormatting(t *testing.T) {
 // ============================================================================
 
 func TestTableConverter_FromMarkdown_EdgeCases(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -793,7 +793,7 @@ func TestTableConverter_FromMarkdown_EdgeCases(t *testing.T) {
 }
 
 func TestTableConverter_FromMarkdown_EmptyCellContent(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	lines := []string{
@@ -818,18 +818,18 @@ func TestTableConverter_FromMarkdown_EmptyCellContent(t *testing.T) {
 // ============================================================================
 
 func TestTableConverter_CanHandle(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	assert.True(t, tc.CanHandle(adf.NodeTable))
 	assert.False(t, tc.CanHandle("paragraph"))
 }
 
 func TestTableConverter_GetStrategy(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 	assert.Equal(t, adf.MarkdownTable, tc.GetStrategy())
 }
 
 func TestTableConverter_ValidateInput(t *testing.T) {
-	tc := NewTableConverter()
+	tc := NewTableRenderer()
 
 	t.Run("valid ADF node", func(t *testing.T) {
 		assert.NoError(t, tc.ValidateInput(adf.Node{Type: "table"}))

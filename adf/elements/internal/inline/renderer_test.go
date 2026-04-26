@@ -10,7 +10,7 @@ import (
 
 func newTestRegistry() *adf.ConverterRegistry {
 	r := adf.NewConverterRegistry()
-	r.MustRegister("text", elements.NewTextConverter())
+	r.MustRegister("text", elements.NewTextRenderer())
 	return r
 }
 

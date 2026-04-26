@@ -15,19 +15,19 @@ var (
 	idAttrRegex      = regexp.MustCompile(`\sid\s*=\s*["|']([^"']*)["|']`)
 )
 
-// expandConverter handles conversion of ADF expand and nestedExpand nodes to/from markdown
+// expandRenderer handles conversion of ADF expand and nestedExpand nodes to/from markdown
 //
 // This converter handles BOTH "expand" AND "nestedExpand" node types with a single implementation.
 // Both use plain HTML <details> elements. The node type is derived from structural context:
 // top-level <details> → expand, nested <details> (NestedLevel > 0) → nestedExpand.
-type expandConverter struct{}
+type expandRenderer struct{}
 
-func NewExpandConverter() adf.Renderer {
-	return &expandConverter{}
+func NewExpandRenderer() adf.Renderer {
+	return &expandRenderer{}
 }
 
-func (ec *expandConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+func (ec *expandRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	title := ""
 	if titleAttr, exists := node.Attrs["title"]; exists {
@@ -38,14 +38,14 @@ func (ec *expandConverter) ToMarkdown(node adf.Node, context adf.ConversionConte
 
 	var contentBuilder strings.Builder
 	for i, child := range node.Content {
-		childConverter , _ := context.Registry.Lookup(adf.NodeType(child.Type))
-		if childConverter == nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
+		childRenderer , _ := context.Registry.Lookup(adf.NodeType(child.Type))
+		if childRenderer == nil {
+			return adf.RenderResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
 		}
 
-		childResult, err := childConverter.ToMarkdown(child, context)
+		childResult, err := childRenderer.ToMarkdown(child, context)
 		if err != nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("failed to convert expand content: %w", err)
+			return adf.RenderResult{}, fmt.Errorf("failed to convert expand content: %w", err)
 		}
 
 		contentBuilder.WriteString(strings.TrimSpace(childResult.Content))
@@ -95,7 +95,7 @@ func (ec *expandConverter) ToMarkdown(node adf.Node, context adf.ConversionConte
 
 const maxExpandNestingDepth = 100
 
-func (ec *expandConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (ec *expandRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf.Node{}, 0, nil
 	}
@@ -162,7 +162,7 @@ func (ec *expandConverter) FromMarkdown(lines []string, startIndex int, context 
 
 // findSummary scans for <summary>...</summary> near the opening tag.
 // Returns the line index of the summary end and the extracted title.
-func (ec *expandConverter) findSummary(lines []string, startIndex int) (summaryEndIdx int, title string, err error) {
+func (ec *expandRenderer) findSummary(lines []string, startIndex int) (summaryEndIdx int, title string, err error) {
 	for i := startIndex; i < len(lines) && i <= startIndex+5; i++ {
 		line := lines[i]
 		summaryStart := strings.Index(line, "<summary>")
@@ -178,7 +178,7 @@ func (ec *expandConverter) findSummary(lines []string, startIndex int) (summaryE
 }
 
 // findClosingTag finds the matching </details> considering nested <details> elements.
-func (ec *expandConverter) findClosingTag(lines []string, searchStart int) (int, error) {
+func (ec *expandRenderer) findClosingTag(lines []string, searchStart int) (int, error) {
 	nestingLevel := 0
 	for i := searchStart; i < len(lines); i++ {
 		line := lines[i]
@@ -218,23 +218,23 @@ func parseInnerContentWithContext(lines []string, context adf.ConversionContext)
 	return context.ParseNested(lines, context.NestedLevel)
 }
 
-func (ec *expandConverter) CanParseLine(line string) bool {
+func (ec *expandRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<details")
 }
 
-func (ec *expandConverter) CanHandle(nodeType adf.NodeType) bool {
+func (ec *expandRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeExpand) ||
 		nodeType == adf.NodeType(adf.NodeTypeNestedExpand)
 }
 
-func (ec *expandConverter) GetStrategy() adf.ConversionStrategy {
+func (ec *expandRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (ec *expandConverter) ValidateInput(input any) error {
+func (ec *expandRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 
 	if node.Type != adf.NodeTypeExpand && node.Type != adf.NodeTypeNestedExpand {

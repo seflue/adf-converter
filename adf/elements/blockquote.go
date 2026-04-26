@@ -15,19 +15,19 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// blockquoteConverter implements markdown blockquote conversion for ADF blockquote nodes
-type blockquoteConverter struct{}
+// blockquoteRenderer implements markdown blockquote conversion for ADF blockquote nodes
+type blockquoteRenderer struct{}
 
-func NewBlockquoteConverter() adf.Renderer {
-	return &blockquoteConverter{}
+func NewBlockquoteRenderer() adf.Renderer {
+	return &blockquoteRenderer{}
 }
 
-func (bc *blockquoteConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (bc *blockquoteRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if node.Type != "blockquote" {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
+		return adf.RenderResult{}, fmt.Errorf("blockquote converter can only handle blockquote nodes, got: %s", node.Type)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.MarkdownBlockquote)
+	builder := convresult.NewRenderResultBuilder(adf.MarkdownBlockquote)
 
 	if bc.shouldPreserveAttrs(context, node) {
 		builder.PreserveAttributes(node.Attrs)
@@ -71,7 +71,7 @@ func (bc *blockquoteConverter) ToMarkdown(node adf.Node, context adf.ConversionC
 			builder.AddConverted(nestedResult.ElementsConverted)
 
 		case "bulletList":
-			listResult, err := NewBulletListConverter().ToMarkdown(contentNode, context)
+			listResult, err := NewBulletListRenderer().ToMarkdown(contentNode, context)
 			if err != nil {
 				builder.AddWarningf("Failed to convert bulletList: %v", err)
 				continue
@@ -79,7 +79,7 @@ func (bc *blockquoteConverter) ToMarkdown(node adf.Node, context adf.ConversionC
 			builder.AppendContent(bc.prefixLines(listResult.Content, context.NestedLevel) + "\n")
 
 		case "orderedList":
-			listResult, err := NewOrderedListConverter().ToMarkdown(contentNode, context)
+			listResult, err := NewOrderedListRenderer().ToMarkdown(contentNode, context)
 			if err != nil {
 				builder.AddWarningf("Failed to convert orderedList: %v", err)
 				continue
@@ -87,7 +87,7 @@ func (bc *blockquoteConverter) ToMarkdown(node adf.Node, context adf.ConversionC
 			builder.AppendContent(bc.prefixLines(listResult.Content, context.NestedLevel) + "\n")
 
 		case "codeBlock":
-			codeResult, err := NewCodeBlockConverter().ToMarkdown(contentNode, context)
+			codeResult, err := NewCodeBlockRenderer().ToMarkdown(contentNode, context)
 			if err != nil {
 				builder.AddWarningf("Failed to convert codeBlock: %v", err)
 				continue
@@ -120,7 +120,7 @@ func (bc *blockquoteConverter) ToMarkdown(node adf.Node, context adf.ConversionC
 	return result, nil
 }
 
-func (bc *blockquoteConverter) extractTextContent(node adf.Node) string {
+func (bc *blockquoteRenderer) extractTextContent(node adf.Node) string {
 	var content strings.Builder
 
 	switch node.Type {
@@ -141,7 +141,7 @@ func (bc *blockquoteConverter) extractTextContent(node adf.Node) string {
 	return content.String()
 }
 
-func (bc *blockquoteConverter) convertParagraphToMarkdown(paragraph adf.Node) string {
+func (bc *blockquoteRenderer) convertParagraphToMarkdown(paragraph adf.Node) string {
 	var result strings.Builder
 
 	for _, textNode := range paragraph.Content {
@@ -168,7 +168,7 @@ func (bc *blockquoteConverter) convertParagraphToMarkdown(paragraph adf.Node) st
 
 // prefixLines adds a blockquote prefix ("> ") to each line of multi-line content.
 // Empty lines get only the bare prefix without trailing space.
-func (bc *blockquoteConverter) prefixLines(content string, nestedLevel int) string {
+func (bc *blockquoteRenderer) prefixLines(content string, nestedLevel int) string {
 	prefix := bc.createQuotePrefix(nestedLevel) + " "
 	trimmed := strings.TrimRight(content, "\n")
 	lines := strings.Split(trimmed, "\n")
@@ -183,7 +183,7 @@ func (bc *blockquoteConverter) prefixLines(content string, nestedLevel int) stri
 	return strings.Join(result, "\n")
 }
 
-func (bc *blockquoteConverter) createQuotePrefix(nestedLevel int) string {
+func (bc *blockquoteRenderer) createQuotePrefix(nestedLevel int) string {
 	depth := nestedLevel + 1
 	var prefix strings.Builder
 	for i := 0; i < depth; i++ {
@@ -195,7 +195,7 @@ func (bc *blockquoteConverter) createQuotePrefix(nestedLevel int) string {
 	return prefix.String()
 }
 
-func (bc *blockquoteConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (bc *blockquoteRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	emptyNode := adf.Node{Type: "blockquote", Content: []adf.Node{}}
 
 	if startIndex >= len(lines) {
@@ -250,19 +250,19 @@ func countBlockquoteLines(lines []string, startIndex int) int {
 	return lastQuoteLine
 }
 
-func (bc *blockquoteConverter) CanParseLine(line string) bool {
+func (bc *blockquoteRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<blockquote") || strings.HasPrefix(line, ">")
 }
 
-func (bc *blockquoteConverter) CanHandle(nodeType adf.NodeType) bool {
+func (bc *blockquoteRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeBlockquote
 }
 
-func (bc *blockquoteConverter) GetStrategy() adf.ConversionStrategy {
+func (bc *blockquoteRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.MarkdownBlockquote
 }
 
-func (bc *blockquoteConverter) ValidateInput(input any) error {
+func (bc *blockquoteRenderer) ValidateInput(input any) error {
 	if input == nil {
 		return fmt.Errorf("input cannot be nil")
 	}
@@ -283,11 +283,11 @@ func (bc *blockquoteConverter) ValidateInput(input any) error {
 	}
 }
 
-func (bc *blockquoteConverter) shouldPreserveAttrs(context adf.ConversionContext, node adf.Node) bool {
+func (bc *blockquoteRenderer) shouldPreserveAttrs(context adf.ConversionContext, node adf.Node) bool {
 	return context.PreserveAttrs && len(node.Attrs) > 0
 }
 
-func (bc *blockquoteConverter) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]any, nestedLevel int) string {
+func (bc *blockquoteRenderer) wrapBlockquoteWithXML(markdownBlockquote string, attrs map[string]any, nestedLevel int) string {
 	var xmlBuilder strings.Builder
 
 	xmlBuilder.WriteString("<blockquote")

@@ -9,7 +9,7 @@ import (
 )
 
 func TestEmojiConverter_ValidateInput(t *testing.T) {
-	ec := NewEmojiConverter()
+	ec := NewEmojiRenderer()
 
 	tests := []struct {
 		name    string
@@ -88,7 +88,7 @@ func TestEmojiConverter_ValidateInput(t *testing.T) {
 }
 
 func TestEmojiConverter_ToMarkdown(t *testing.T) {
-	ec := NewEmojiConverter()
+	ec := NewEmojiRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {

@@ -7,7 +7,7 @@ import (
 )
 
 func TestMentionConverter_ToMarkdown(t *testing.T) {
-	mc := NewMentionConverter()
+	mc := NewMentionRenderer()
 
 	tests := []struct {
 		name     string
@@ -127,7 +127,7 @@ func TestMentionConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestMentionConverter_CanHandle(t *testing.T) {
-	mc := NewMentionConverter()
+	mc := NewMentionRenderer()
 
 	if !mc.CanHandle("mention") {
 		t.Error("should handle mention")
@@ -138,7 +138,7 @@ func TestMentionConverter_CanHandle(t *testing.T) {
 }
 
 func TestMentionConverter_GetStrategy(t *testing.T) {
-	mc := NewMentionConverter()
+	mc := NewMentionRenderer()
 
 	if mc.GetStrategy() != adf.StandardMarkdown {
 		t.Errorf("expected adf.StandardMarkdown, got %v", mc.GetStrategy())

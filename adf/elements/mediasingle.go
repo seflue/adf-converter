@@ -16,7 +16,7 @@ import (
 //	![alt](url "layout:wide")    → group1=alt, group2=url, group3="wide"
 var mediaSingleRegex = regexp.MustCompile(`^!\[([^\]]*)\]\(([^)\s"]+)(?:\s+"layout:([^"]+)")?\)\s*$`)
 
-// mediaSingleConverter handles conversion of ADF mediaSingle nodes to/from markdown.
+// mediaSingleRenderer handles conversion of ADF mediaSingle nodes to/from markdown.
 //
 // External images (media[type=external]) are converted to standard Markdown image syntax:
 //
@@ -24,20 +24,20 @@ var mediaSingleRegex = regexp.MustCompile(`^!\[([^\]]*)\]\(([^)\s"]+)(?:\s+"layo
 //	![alt](url "layout:wide") // non-default layout encoded in title field
 //
 // Internal media (media[type=file/link] with id+collection) are preserved as placeholders.
-type mediaSingleConverter struct{}
+type mediaSingleRenderer struct{}
 
-func NewMediaSingleConverter() adf.Renderer {
-	return &mediaSingleConverter{}
+func NewMediaSingleRenderer() adf.Renderer {
+	return &mediaSingleRenderer{}
 }
 
-func (mc *mediaSingleConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (mc *mediaSingleRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if isExternalMedia(node) {
 		return mc.externalToMarkdown(node)
 	}
 	return mc.internalToMarkdown(node, context)
 }
 
-func (mc *mediaSingleConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (mc *mediaSingleRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if startIndex >= len(lines) {
 		return adf.Node{}, 0, fmt.Errorf("no lines to parse at index %d", startIndex)
 	}
@@ -75,22 +75,22 @@ func (mc *mediaSingleConverter) FromMarkdown(lines []string, startIndex int, con
 	return node, 1, nil
 }
 
-func (mc *mediaSingleConverter) CanParseLine(line string) bool {
+func (mc *mediaSingleRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "![")
 }
 
-func (mc *mediaSingleConverter) CanHandle(nodeType adf.NodeType) bool {
+func (mc *mediaSingleRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeMediaSingle)
 }
 
-func (mc *mediaSingleConverter) GetStrategy() adf.ConversionStrategy {
+func (mc *mediaSingleRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (mc *mediaSingleConverter) ValidateInput(input any) error {
+func (mc *mediaSingleRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 	if node.Type != adf.NodeTypeMediaSingle {
 		return fmt.Errorf("node type must be mediaSingle, got: %s", node.Type)
@@ -111,13 +111,13 @@ func isExternalMedia(node adf.Node) bool {
 	return mediaType == "external"
 }
 
-func (mc *mediaSingleConverter) externalToMarkdown(node adf.Node) (adf.EnhancedConversionResult, error) {
+func (mc *mediaSingleRenderer) externalToMarkdown(node adf.Node) (adf.RenderResult, error) {
 	media := node.Content[0]
 	url, _ := media.Attrs["url"].(string)
 	alt, _ := media.Attrs["alt"].(string)
 	layout, _ := node.Attrs["layout"].(string)
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	if layout == "" || layout == "center" {
 		builder.AppendContent(fmt.Sprintf("![%s](%s)\n\n", alt, url))
@@ -129,19 +129,19 @@ func (mc *mediaSingleConverter) externalToMarkdown(node adf.Node) (adf.EnhancedC
 	return builder.Build(), nil
 }
 
-func (mc *mediaSingleConverter) internalToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (mc *mediaSingleRenderer) internalToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if context.PlaceholderManager == nil {
-		builder := convresult.NewEnhancedConversionResultBuilder(adf.Placeholder)
+		builder := convresult.NewRenderResultBuilder(adf.Placeholder)
 		builder.AppendContent("<!-- mediaSingle: preserved -->\n\n")
 		return builder.Build(), nil
 	}
 
 	placeholderID, preview, err := context.PlaceholderManager.Store(node)
 	if err != nil {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("storing mediaSingle placeholder: %w", err)
+		return adf.RenderResult{}, fmt.Errorf("storing mediaSingle placeholder: %w", err)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.Placeholder)
+	builder := convresult.NewRenderResultBuilder(adf.Placeholder)
 	if placeholderID == "" {
 		builder.AppendContent(preview + "\n\n")
 	} else {

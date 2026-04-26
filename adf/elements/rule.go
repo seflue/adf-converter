@@ -11,29 +11,29 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// ruleConverter handles bidirectional conversion of horizontal rule nodes
+// ruleRenderer handles bidirectional conversion of horizontal rule nodes
 //
 // In ADF: { type: "rule" } — no attrs, no children
 // In Markdown: "---" (thematic break)
-type ruleConverter struct{}
+type ruleRenderer struct{}
 
-func NewRuleConverter() adf.Renderer {
-	return &ruleConverter{}
+func NewRuleRenderer() adf.Renderer {
+	return &ruleRenderer{}
 }
 
-func (rc *ruleConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (rc *ruleRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if err := rc.ValidateInput(node); err != nil {
-		return adf.EnhancedConversionResult{}, err
+		return adf.RenderResult{}, err
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 	builder.AppendContent("---\n\n")
 	builder.IncrementConverted()
 
 	return builder.Build(), nil
 }
 
-func (rc *ruleConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (rc *ruleRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if startIndex >= len(lines) {
 		return adf.Node{}, 0, fmt.Errorf("startIndex %d out of range", startIndex)
 	}
@@ -55,7 +55,7 @@ func (rc *ruleConverter) FromMarkdown(lines []string, startIndex int, context ad
 // CanParseLine returns true if the line is a CommonMark thematic break.
 // Accepts sequences of -, *, or _ (all the same char) with optional spaces
 // between them, as long as at least 3 of the char appear.
-func (rc *ruleConverter) CanParseLine(line string) bool {
+func (rc *ruleRenderer) CanParseLine(line string) bool {
 	if len(line) < 3 {
 		return false
 	}
@@ -78,15 +78,15 @@ func (rc *ruleConverter) CanParseLine(line string) bool {
 	return count >= 3
 }
 
-func (rc *ruleConverter) CanHandle(nodeType adf.NodeType) bool {
+func (rc *ruleRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeTypeRule
 }
 
-func (rc *ruleConverter) GetStrategy() adf.ConversionStrategy {
+func (rc *ruleRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (rc *ruleConverter) ValidateInput(input any) error {
+func (rc *ruleRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
 		return fmt.Errorf("invalid input type: expected Node, got %T", input)

@@ -1,4 +1,4 @@
-// Package converter provides bidirectional ADF ↔ Markdown conversion with enhanced link support.
+// Package adf provides bidirectional ADF ↔ Markdown conversion with enhanced link support.
 //
 // The converter maintains 100% round-trip fidelity for Atlassian Document Format (ADF) documents,
 // enabling safe collaborative editing through markdown while preserving all ADF metadata.
@@ -28,8 +28,11 @@
 //
 // ## Basic Round-Trip Conversion
 //
-//	converter := NewDefaultConverter()
-//	markdown, restored, err := ConvertRoundTrip(converter, adfDocument)
+// Use the [github.com/seflue/adf-converter/adf/defaults] subpackage for a
+// ready-to-use converter with all standard element converters registered:
+//
+//	converter := defaults.NewDefaultConverter()
+//	markdown, restored, err := adf.ConvertRoundTrip(converter, adfDocument)
 //	if err != nil {
 //		return err
 //	}
@@ -40,7 +43,15 @@
 //
 //	classifier := NewDefaultClassifier()
 //	manager := placeholder.NewManager()
-//	converter := NewConverter(classifier, manager)
+//	registry := NewConverterRegistry() // populate via the defaults package or your own registrations
+//	converter, err := NewConverter(
+//		WithClassifier(classifier),
+//		WithPlaceholderManager(manager),
+//		WithRegistry(registry),
+//	)
+//	if err != nil {
+//		return err
+//	}
 //
 //	markdown, session, err := converter.ToMarkdown(adfDocument)
 //	if err != nil {

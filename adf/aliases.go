@@ -1,7 +1,7 @@
 package adf
 
-// EnhancedConversionResult contains the result of a single element conversion.
-type EnhancedConversionResult struct {
+// RenderResult contains the result of a single element conversion.
+type RenderResult struct {
 	Content           string
 	PreservedAttrs    map[string]any
 	Strategy          ConversionStrategy

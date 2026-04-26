@@ -2,7 +2,7 @@ package adf
 
 // Renderer is the bidirectional conversion interface for a single ADF element type.
 type Renderer interface {
-	ToMarkdown(node Node, context ConversionContext) (EnhancedConversionResult, error)
+	ToMarkdown(node Node, context ConversionContext) (RenderResult, error)
 	FromMarkdown(lines []string, startIndex int, context ConversionContext) (Node, int, error)
 	CanHandle(nodeType NodeType) bool
 	GetStrategy() ConversionStrategy

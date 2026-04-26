@@ -8,15 +8,15 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// listItemConverter handles conversion of ADF list item nodes to/from markdown
-type listItemConverter struct{}
+// listItemRenderer handles conversion of ADF list item nodes to/from markdown
+type listItemRenderer struct{}
 
-func NewListItemConverter() adf.Renderer {
-	return &listItemConverter{}
+func NewListItemRenderer() adf.Renderer {
+	return &listItemRenderer{}
 }
 
-func (lic *listItemConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+func (lic *listItemRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	depth := context.ListDepth
 	if depth < 1 {
@@ -28,14 +28,14 @@ func (lic *listItemConverter) ToMarkdown(node adf.Node, context adf.ConversionCo
 	builder.AppendContent(indent + "- ")
 
 	for i, child := range node.Content {
-		childConverter , _ := context.Registry.Lookup(adf.NodeType(child.Type))
-		if childConverter == nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
+		childRenderer , _ := context.Registry.Lookup(adf.NodeType(child.Type))
+		if childRenderer == nil {
+			return adf.RenderResult{}, fmt.Errorf("no converter found for child type: %s", child.Type)
 		}
 
-		childResult, err := childConverter.ToMarkdown(child, context)
+		childResult, err := childRenderer.ToMarkdown(child, context)
 		if err != nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("failed to convert child node: %w", err)
+			return adf.RenderResult{}, fmt.Errorf("failed to convert child node: %w", err)
 		}
 
 		childContent := strings.TrimSuffix(childResult.Content, "\n\n")
@@ -64,7 +64,7 @@ func (lic *listItemConverter) ToMarkdown(node adf.Node, context adf.ConversionCo
 	return builder.Build(), nil
 }
 
-func (lic *listItemConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (lic *listItemRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf.Node{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -111,18 +111,18 @@ func (lic *listItemConverter) FromMarkdown(lines []string, startIndex int, conte
 	return node, 1, nil
 }
 
-func (lic *listItemConverter) CanHandle(nodeType adf.NodeType) bool {
+func (lic *listItemRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeListItem)
 }
 
-func (lic *listItemConverter) GetStrategy() adf.ConversionStrategy {
+func (lic *listItemRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (lic *listItemConverter) ValidateInput(input any) error {
+func (lic *listItemRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 
 	if node.Type != adf.NodeTypeListItem {

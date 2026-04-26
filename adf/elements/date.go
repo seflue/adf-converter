@@ -9,30 +9,30 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// dateConverter handles conversion of ADF date nodes to/from markdown
+// dateRenderer handles conversion of ADF date nodes to/from markdown
 // Format: [date:2025-04-04]
-type dateConverter struct{}
+type dateRenderer struct{}
 
-func NewDateConverter() adf.Renderer {
-	return &dateConverter{}
+func NewDateRenderer() adf.Renderer {
+	return &dateRenderer{}
 }
 
-func (dc *dateConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (dc *dateRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if node.Attrs == nil {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("date node missing attrs")
+		return adf.RenderResult{}, fmt.Errorf("date node missing attrs")
 	}
 
 	timestamp, _ := node.Attrs["timestamp"].(string)
 	if timestamp == "" {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("date node missing timestamp attribute")
+		return adf.RenderResult{}, fmt.Errorf("date node missing timestamp attribute")
 	}
 
 	dateStr, err := millisToDate(timestamp)
 	if err != nil {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("parsing date timestamp %q: %w", timestamp, err)
+		return adf.RenderResult{}, fmt.Errorf("parsing date timestamp %q: %w", timestamp, err)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 	builder.AppendContent(fmt.Sprintf("[date:%s]", dateStr))
 	builder.IncrementConverted()
 	return builder.Build(), nil
@@ -48,22 +48,22 @@ func millisToDate(millis string) (string, error) {
 	return t.Format("2006-01-02"), nil
 }
 
-func (dc *dateConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (dc *dateRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	return adf.Node{}, 0, fmt.Errorf("date is an inline element and should be parsed within parent blocks")
 }
 
-func (dc *dateConverter) CanHandle(nodeType adf.NodeType) bool {
+func (dc *dateRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeDate)
 }
 
-func (dc *dateConverter) GetStrategy() adf.ConversionStrategy {
+func (dc *dateRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (dc *dateConverter) ValidateInput(input any) error {
+func (dc *dateRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 	if node.Type != adf.NodeTypeDate {
 		return fmt.Errorf("node type must be date, got: %s", node.Type)

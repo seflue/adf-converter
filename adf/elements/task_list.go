@@ -10,19 +10,19 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// taskListConverter implements markdown checkbox conversion for ADF taskList nodes
-type taskListConverter struct{}
+// taskListRenderer implements markdown checkbox conversion for ADF taskList nodes
+type taskListRenderer struct{}
 
-func NewTaskListConverter() adf.Renderer {
-	return &taskListConverter{}
+func NewTaskListRenderer() adf.Renderer {
+	return &taskListRenderer{}
 }
 
-func (tc *taskListConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (tc *taskListRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	if node.Type != "taskList" {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("task list converter can only handle taskList nodes, got: %s", node.Type)
+		return adf.RenderResult{}, fmt.Errorf("task list converter can only handle taskList nodes, got: %s", node.Type)
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.MarkdownTaskList)
+	builder := convresult.NewRenderResultBuilder(adf.MarkdownTaskList)
 
 	for _, item := range node.Content {
 		if item.Type != "taskItem" {
@@ -50,7 +50,7 @@ func (tc *taskListConverter) ToMarkdown(node adf.Node, context adf.ConversionCon
 	return result, nil
 }
 
-func (tc *taskListConverter) getTaskState(item adf.Node) string {
+func (tc *taskListRenderer) getTaskState(item adf.Node) string {
 	if item.Attrs == nil {
 		return "TODO"
 	}
@@ -65,7 +65,7 @@ func (tc *taskListConverter) getTaskState(item adf.Node) string {
 	return stateStr
 }
 
-func (tc *taskListConverter) extractTaskContent(taskItem adf.Node) string {
+func (tc *taskListRenderer) extractTaskContent(taskItem adf.Node) string {
 	var content strings.Builder
 
 	for _, contentNode := range taskItem.Content {
@@ -80,7 +80,7 @@ func (tc *taskListConverter) extractTaskContent(taskItem adf.Node) string {
 	return strings.TrimSpace(content.String())
 }
 
-func (tc *taskListConverter) convertParagraphToMarkdown(paragraph adf.Node) string {
+func (tc *taskListRenderer) convertParagraphToMarkdown(paragraph adf.Node) string {
 	var result strings.Builder
 
 	for _, textNode := range paragraph.Content {
@@ -118,7 +118,7 @@ func (tc *taskListConverter) convertParagraphToMarkdown(paragraph adf.Node) stri
 //	- [ ] Task text
 //	- [x] Completed task
 //	</taskList>
-func (tc *taskListConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (tc *taskListRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	emptyNode := adf.Node{Type: "taskList", Attrs: map[string]any{}, Content: nil}
 
 	if startIndex >= len(lines) {
@@ -150,7 +150,7 @@ func (tc *taskListConverter) FromMarkdown(lines []string, startIndex int, contex
 }
 
 // countXMLTaskListLines counts lines from startIndex to the closing </taskList> tag (inclusive).
-func (tc *taskListConverter) countXMLTaskListLines(lines []string, startIndex int) int {
+func (tc *taskListRenderer) countXMLTaskListLines(lines []string, startIndex int) int {
 	for i := startIndex + 1; i < len(lines); i++ {
 		if strings.HasPrefix(strings.TrimSpace(lines[i]), "</taskList>") {
 			return i - startIndex + 1
@@ -160,7 +160,7 @@ func (tc *taskListConverter) countXMLTaskListLines(lines []string, startIndex in
 }
 
 // countTaskListLines counts consecutive task-list lines (- [ ]/- [x] and empty lines between them).
-func (tc *taskListConverter) countTaskListLines(lines []string, startIndex int) int {
+func (tc *taskListRenderer) countTaskListLines(lines []string, startIndex int) int {
 	lastTaskLine := -1
 	for i := startIndex; i < len(lines); i++ {
 		trimmed := strings.TrimSpace(lines[i])
@@ -182,7 +182,7 @@ func (tc *taskListConverter) countTaskListLines(lines []string, startIndex int) 
 	return lastTaskLine
 }
 
-func (tc *taskListConverter) extractFromXMLWrapper(lines []string) ([]string, map[string]any) {
+func (tc *taskListRenderer) extractFromXMLWrapper(lines []string) ([]string, map[string]any) {
 	attrs := internal.ParseXMLAttributes(strings.TrimSpace(lines[0]))
 	var contentLines []string
 	for i := 1; i < len(lines); i++ {
@@ -195,7 +195,7 @@ func (tc *taskListConverter) extractFromXMLWrapper(lines []string) ([]string, ma
 }
 
 // parseTaskItems parses markdown task list lines into ADF taskItem nodes
-func (tc *taskListConverter) parseTaskItems(lines []string, taskListAttrs map[string]any) []adf.Node {
+func (tc *taskListRenderer) parseTaskItems(lines []string, taskListAttrs map[string]any) []adf.Node {
 	var taskItems []adf.Node
 
 	for _, line := range lines {
@@ -241,22 +241,22 @@ func (tc *taskListConverter) parseTaskItems(lines []string, taskListAttrs map[st
 	return taskItems
 }
 
-func (tc *taskListConverter) CanParseLine(line string) bool {
+func (tc *taskListRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<taskList") ||
 		strings.HasPrefix(line, "- [ ]") ||
 		strings.HasPrefix(line, "- [x]") ||
 		strings.HasPrefix(line, "- [X]")
 }
 
-func (tc *taskListConverter) CanHandle(nodeType adf.NodeType) bool {
+func (tc *taskListRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeTaskList
 }
 
-func (tc *taskListConverter) GetStrategy() adf.ConversionStrategy {
+func (tc *taskListRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.MarkdownTaskList
 }
 
-func (tc *taskListConverter) ValidateInput(input any) error {
+func (tc *taskListRenderer) ValidateInput(input any) error {
 	if input == nil {
 		return fmt.Errorf("input cannot be nil")
 	}

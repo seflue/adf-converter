@@ -8,7 +8,7 @@ import (
 )
 
 func TestDateConverter_ToMarkdown(t *testing.T) {
-	dc := NewDateConverter()
+	dc := NewDateRenderer()
 
 	tests := []struct {
 		name     string
@@ -79,7 +79,7 @@ func TestDateConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestDateConverter_CanHandle(t *testing.T) {
-	dc := NewDateConverter()
+	dc := NewDateRenderer()
 
 	if !dc.CanHandle("date") {
 		t.Error("should handle date")
@@ -90,7 +90,7 @@ func TestDateConverter_CanHandle(t *testing.T) {
 }
 
 func TestDateConverter_GetStrategy(t *testing.T) {
-	dc := NewDateConverter()
+	dc := NewDateRenderer()
 
 	if dc.GetStrategy() != adf.StandardMarkdown {
 		t.Errorf("expected adf.StandardMarkdown, got %v", dc.GetStrategy())

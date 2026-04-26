@@ -10,7 +10,7 @@ import (
 // single source of truth.
 type Registration struct {
 	NodeType  adf.NodeType
-	Converter adf.Renderer
+	Renderer adf.Renderer
 }
 
 // StandardNodes returns the canonical list of 22 element-converter
@@ -18,28 +18,28 @@ type Registration struct {
 // instances on every call so independent registries never share state.
 func StandardNodes() []Registration {
 	return []Registration{
-		{"text", NewTextConverter()},
-		{"hardBreak", NewHardBreakConverter()},
-		{"paragraph", NewParagraphConverter()},
-		{"heading", NewHeadingConverter()},
-		{"listItem", NewListItemConverter()},
-		{"bulletList", NewBulletListConverter()},
-		{"orderedList", NewOrderedListConverter()},
-		{"expand", NewExpandConverter()},
-		{"nestedExpand", NewExpandConverter()},
-		{"inlineCard", NewInlineCardConverter()},
-		{"blockCard", NewBlockCardConverter()},
-		{"emoji", NewEmojiConverter()},
-		{"codeBlock", NewCodeBlockConverter()},
-		{"rule", NewRuleConverter()},
-		{"mention", NewMentionConverter()},
-		{"table", NewTableConverter()},
-		{"panel", NewPanelConverter()},
-		{"date", NewDateConverter()},
-		{"status", NewStatusConverter()},
-		{"blockquote", NewBlockquoteConverter()},
-		{"taskList", NewTaskListConverter()},
-		{"mediaSingle", NewMediaSingleConverter()},
+		{"text", NewTextRenderer()},
+		{"hardBreak", NewHardBreakRenderer()},
+		{"paragraph", NewParagraphRenderer()},
+		{"heading", NewHeadingRenderer()},
+		{"listItem", NewListItemRenderer()},
+		{"bulletList", NewBulletListRenderer()},
+		{"orderedList", NewOrderedListRenderer()},
+		{"expand", NewExpandRenderer()},
+		{"nestedExpand", NewExpandRenderer()},
+		{"inlineCard", NewInlineCardRenderer()},
+		{"blockCard", NewBlockCardRenderer()},
+		{"emoji", NewEmojiRenderer()},
+		{"codeBlock", NewCodeBlockRenderer()},
+		{"rule", NewRuleRenderer()},
+		{"mention", NewMentionRenderer()},
+		{"table", NewTableRenderer()},
+		{"panel", NewPanelRenderer()},
+		{"date", NewDateRenderer()},
+		{"status", NewStatusRenderer()},
+		{"blockquote", NewBlockquoteRenderer()},
+		{"taskList", NewTaskListRenderer()},
+		{"mediaSingle", NewMediaSingleRenderer()},
 	}
 }
 

@@ -13,28 +13,28 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// headingConverter handles conversion of ADF heading nodes to/from markdown
-type headingConverter struct{}
+// headingRenderer handles conversion of ADF heading nodes to/from markdown
+type headingRenderer struct{}
 
-func NewHeadingConverter() adf.Renderer {
-	return &headingConverter{}
+func NewHeadingRenderer() adf.Renderer {
+	return &headingRenderer{}
 }
 
-func (hc *headingConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
+func (hc *headingRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
 	// Get heading level (1-6)
 	level := node.GetHeadingLevel()
 	if level < 1 || level > 6 {
 		level = 1 // Default to h1 for invalid levels
 	}
 
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	prefix := strings.Repeat("#", level) + " "
 	builder.AppendContent(prefix)
 
 	rendered, err := inline.RenderInlineNodes(node.Content, context)
 	if err != nil {
-		return adf.EnhancedConversionResult{}, fmt.Errorf("rendering heading content: %w", err)
+		return adf.RenderResult{}, fmt.Errorf("rendering heading content: %w", err)
 	}
 	// Remove newlines from heading content (headings are single-line in markdown)
 	rendered = strings.ReplaceAll(rendered, "\n", " ")
@@ -45,7 +45,7 @@ func (hc *headingConverter) ToMarkdown(node adf.Node, context adf.ConversionCont
 	return builder.Build(), nil
 }
 
-func (hc *headingConverter) FromMarkdown(lines []string, startIndex int, _ adf.ConversionContext) (adf.Node, int, error) {
+func (hc *headingRenderer) FromMarkdown(lines []string, startIndex int, _ adf.ConversionContext) (adf.Node, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf.Node{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -77,7 +77,7 @@ func (hc *headingConverter) FromMarkdown(lines []string, startIndex int, _ adf.C
 	return node, 1, nil
 }
 
-func (hc *headingConverter) CanParseLine(line string) bool {
+func (hc *headingRenderer) CanParseLine(line string) bool {
 	if !strings.HasPrefix(line, "#") {
 		return false
 	}
@@ -92,18 +92,18 @@ func (hc *headingConverter) CanParseLine(line string) bool {
 	return level == len(line) || line[level] == ' ' || line[level] == '\t'
 }
 
-func (hc *headingConverter) CanHandle(nodeType adf.NodeType) bool {
+func (hc *headingRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeHeading)
 }
 
-func (hc *headingConverter) GetStrategy() adf.ConversionStrategy {
+func (hc *headingRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (hc *headingConverter) ValidateInput(input any) error {
+func (hc *headingRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 
 	if node.Type != adf.NodeTypeHeading {

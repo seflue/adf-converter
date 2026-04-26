@@ -8,7 +8,7 @@ import (
 )
 
 func TestOrderedListConverter_ToMarkdown(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	tests := []struct {
 		name     string
@@ -185,7 +185,7 @@ func TestOrderedListConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestOrderedListConverter_ToMarkdown_NestedLists(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	// Test nested ordered list with proper depth tracking
 	node := adf.Node{
@@ -243,7 +243,7 @@ func TestOrderedListConverter_ToMarkdown_NestedLists(t *testing.T) {
 }
 
 func TestOrderedListConverter_FromMarkdown(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	tests := []struct {
 		name          string
@@ -356,7 +356,7 @@ func TestOrderedListConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestOrderedListConverter_RoundTrip(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	tests := []struct {
 		name     string
@@ -472,7 +472,7 @@ func TestOrderedListConverter_RoundTrip(t *testing.T) {
 }
 
 func TestOrderedListConverter_CanHandle(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	tests := []struct {
 		nodeType adf.NodeType
@@ -496,7 +496,7 @@ func TestOrderedListConverter_CanHandle(t *testing.T) {
 }
 
 func TestOrderedListConverter_GetStrategy(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	strategy := olc.GetStrategy()
 	if strategy != adf.StandardMarkdown {
@@ -505,7 +505,7 @@ func TestOrderedListConverter_GetStrategy(t *testing.T) {
 }
 
 func TestOrderedListConverter_ValidateInput(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	tests := []struct {
 		name    string
@@ -529,7 +529,7 @@ func TestOrderedListConverter_ValidateInput(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "not an Node",
+			name:    "not a Node",
 			input:   "not a node",
 			wantErr: true,
 		},
@@ -546,7 +546,7 @@ func TestOrderedListConverter_ValidateInput(t *testing.T) {
 }
 
 func TestOrderedListConverter_StartNumber(t *testing.T) {
-	olc := NewOrderedListConverter()
+	olc := NewOrderedListRenderer()
 
 	t.Run("ToMarkdown", func(t *testing.T) {
 		tests := []struct {
@@ -751,4 +751,4 @@ func TestOrderedListConverter_StartNumber(t *testing.T) {
 }
 
 // NOTE: TestMain is defined in paragraph_test.go for the entire elements package
-// It registers all converters including orderedListConverter
+// It registers all converters including orderedListRenderer

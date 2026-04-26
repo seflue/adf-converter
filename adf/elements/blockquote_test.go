@@ -11,7 +11,7 @@ import (
 )
 
 func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
-	conv := NewBlockquoteConverter()
+	conv := NewBlockquoteRenderer()
 
 	tests := []struct {
 		name             string
@@ -188,7 +188,7 @@ func TestBlockquoteConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestBlockquoteConverter_RoundTrip_Simple(t *testing.T) {
-	conv := NewBlockquoteConverter()
+	conv := NewBlockquoteRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: false}
 
 	lines := []string{"> This is a simple blockquote"}
@@ -206,7 +206,7 @@ func TestBlockquoteConverter_RoundTrip_Simple(t *testing.T) {
 }
 
 func TestBlockquoteConverter_RoundTrip_WithAttributes(t *testing.T) {
-	conv := NewBlockquoteConverter()
+	conv := NewBlockquoteRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), PreserveAttrs: true}
 
 	lines := []string{
@@ -232,7 +232,7 @@ func TestBlockquoteConverter_RoundTrip_WithAttributes(t *testing.T) {
 }
 
 func TestBlockquoteConverter_ValidateInput(t *testing.T) {
-	conv := NewBlockquoteConverter()
+	conv := NewBlockquoteRenderer()
 
 	tests := []struct {
 		name      string
@@ -288,7 +288,7 @@ func TestBlockquoteConverter_ValidateInput(t *testing.T) {
 }
 
 func TestBlockquoteConverter_CanHandle(t *testing.T) {
-	conv := NewBlockquoteConverter()
+	conv := NewBlockquoteRenderer()
 
 	assert.True(t, conv.CanHandle(adf.NodeBlockquote))
 	assert.False(t, conv.CanHandle(adf.NodeParagraph))
@@ -296,7 +296,7 @@ func TestBlockquoteConverter_CanHandle(t *testing.T) {
 }
 
 func TestBlockquoteConverter_GetStrategy(t *testing.T) {
-	conv := NewBlockquoteConverter()
+	conv := NewBlockquoteRenderer()
 
 	strategy := conv.GetStrategy()
 	assert.Equal(t, adf.MarkdownBlockquote, strategy)
@@ -427,7 +427,7 @@ func TestParseXMLBlockquote(t *testing.T) {
 }
 
 func TestBlockquoteConverter_FromMarkdown_NestedPrefix(t *testing.T) {
-	bc := NewBlockquoteConverter()
+	bc := NewBlockquoteRenderer()
 
 	// > > text is NOT a nested blockquote in ADF — the remaining > stays as literal text
 	// Separated by empty blockquote line to create two paragraphs
@@ -453,7 +453,7 @@ func TestBlockquoteConverter_FromMarkdown_NestedPrefix(t *testing.T) {
 }
 
 func TestBlockquoteConverter_FromMarkdown_InlineFormatting(t *testing.T) {
-	bc := NewBlockquoteConverter()
+	bc := NewBlockquoteRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -572,7 +572,7 @@ func TestParseMarkdownBlockquote_CodeBlock(t *testing.T) {
 }
 
 func TestBlockquoteConverter_ToMarkdown_Lists(t *testing.T) {
-	bc := NewBlockquoteConverter()
+	bc := NewBlockquoteRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -628,7 +628,7 @@ func TestBlockquoteConverter_ToMarkdown_Lists(t *testing.T) {
 }
 
 func TestBlockquoteConverter_ToMarkdown_CodeBlock(t *testing.T) {
-	bc := NewBlockquoteConverter()
+	bc := NewBlockquoteRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	node := adf.Node{
@@ -648,7 +648,7 @@ func TestBlockquoteConverter_ToMarkdown_CodeBlock(t *testing.T) {
 }
 
 func TestBlockquoteConverter_Roundtrip_BulletList(t *testing.T) {
-	bc := NewBlockquoteConverter()
+	bc := NewBlockquoteRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	lines := []string{"> - item1", "> - item2"}
@@ -664,7 +664,7 @@ func TestBlockquoteConverter_Roundtrip_BulletList(t *testing.T) {
 }
 
 func TestBlockquoteConverter_shouldPreserveAttrs(t *testing.T) {
-	bc := &blockquoteConverter{}
+	bc := &blockquoteRenderer{}
 
 	tests := []struct {
 		name string

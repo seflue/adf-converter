@@ -4,7 +4,7 @@ import (
 	"github.com/seflue/adf-converter/adf/adftypes"
 )
 
-// Re-exports of core ADF data types from internal/adftypes. The split exists
+// Re-exports of core ADF data types from adf/adftypes. The split exists
 // because placeholder/ depends on these types and adf/ depends on placeholder/;
 // keeping the types in a leaf package avoids the import cycle. Public-API
 // surface of adf.* is unchanged.

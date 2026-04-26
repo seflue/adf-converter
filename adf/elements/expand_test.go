@@ -12,7 +12,7 @@ import (
 )
 
 func TestExpandConverter_CanHandle(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 
 	tests := []struct {
 		name     string
@@ -50,13 +50,13 @@ func TestExpandConverter_CanHandle(t *testing.T) {
 }
 
 func TestExpandConverter_GetStrategy(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	strategy := ec.GetStrategy()
 	assert.Equal(t, adf.StandardMarkdown, strategy)
 }
 
 func TestExpandConverter_ValidateInput(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 
 	tests := []struct {
 		name      string
@@ -120,7 +120,7 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 			expectErr: true,
 		},
 		{
-			name:      "not an Node",
+			name:      "not a Node",
 			input:     "not a node",
 			expectErr: true,
 		},
@@ -140,7 +140,7 @@ func TestExpandConverter_ValidateInput(t *testing.T) {
 
 func TestExpandConverter_ToMarkdown_BasicExpand(t *testing.T) {
 	// Converters already registered in TestMain
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	node := adf.Node{
@@ -176,7 +176,7 @@ func TestExpandConverter_ToMarkdown_NestedExpand(t *testing.T) {
 	// Register necessary converters
 	// Converters already registered in TestMain
 
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	node := adf.Node{
@@ -211,7 +211,7 @@ func TestExpandConverter_ToMarkdown_WithLocalId(t *testing.T) {
 	// Register necessary converters
 	// Converters already registered in TestMain
 
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	node := adf.Node{
@@ -241,7 +241,7 @@ func TestExpandConverter_ToMarkdown_WithLocalId(t *testing.T) {
 }
 
 func TestExpandConverter_ToMarkdown_EmptyTitle(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	tests := []struct {
@@ -285,7 +285,7 @@ func TestExpandConverter_ToMarkdown_EmptyTitle(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_BasicExpand(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -303,7 +303,7 @@ func TestExpandConverter_FromMarkdown_BasicExpand(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_NestedExpand(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	// NestedLevel > 0 signals this <details> is inside another expand → nestedExpand
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, NestedLevel: 1, ParseNested: testParseNested()}
 
@@ -322,7 +322,7 @@ func TestExpandConverter_FromMarkdown_NestedExpand(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_WithOpenAttribute(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -341,7 +341,7 @@ func TestExpandConverter_FromMarkdown_WithOpenAttribute(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_WithLocalId(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -358,7 +358,7 @@ func TestExpandConverter_FromMarkdown_WithLocalId(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_DefaultsToExpand(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	// Without data-adf-type attribute, should default to expand
@@ -376,7 +376,7 @@ func TestExpandConverter_FromMarkdown_DefaultsToExpand(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_NotDetailsElement(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -390,7 +390,7 @@ func TestExpandConverter_FromMarkdown_NotDetailsElement(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_NoSummary(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -408,7 +408,7 @@ func TestExpandConverter_FromMarkdown_NoSummary(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_EmptySummary(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -427,7 +427,7 @@ func TestExpandConverter_FromMarkdown_EmptySummary(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_MissingClosingTag(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -444,7 +444,7 @@ func TestExpandConverter_RoundTrip_BasicExpand(t *testing.T) {
 	// Register converters
 	// Converters already registered in TestMain
 
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	// Create original node
@@ -485,7 +485,7 @@ func TestExpandConverter_RoundTrip_NestedExpand(t *testing.T) {
 	// Register converters
 	// Converters already registered in TestMain
 
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	// Create original nestedExpand node
@@ -530,7 +530,7 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 	// Register converters
 	// Converters already registered in TestMain
 
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	// Create node with all optional attributes
@@ -574,7 +574,7 @@ func TestExpandConverter_RoundTrip_WithAllAttributes(t *testing.T) {
 }
 
 func TestExpandConverter_RoundTrip_EmptyTitle(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	original := adf.Node{
@@ -606,7 +606,7 @@ func TestExpandConverter_RoundTrip_EmptyTitle(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_NestedDetailsElements(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	markdown := []string{
@@ -647,7 +647,7 @@ func TestExpandConverter_FromMarkdown_WithPlaceholderContent(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(),
 		Strategy:           adf.StandardMarkdown,
 		PlaceholderSession: session,
@@ -674,7 +674,7 @@ func TestExpandConverter_FromMarkdown_WithPlaceholderContent(t *testing.T) {
 }
 
 func TestExpandConverter_FromMarkdown_NestingDepthLimit(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:    adf.StandardMarkdown,
 		NestedLevel: 101, // Already past limit
@@ -693,7 +693,7 @@ func TestExpandConverter_FromMarkdown_NestingDepthLimit(t *testing.T) {
 }
 
 func TestExpandConverter_RoundTrip_WithBulletList(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	original := adf.Node{
@@ -748,7 +748,7 @@ func TestExpandConverter_RoundTrip_WithBulletList(t *testing.T) {
 }
 
 func TestExpandConverter_RoundTrip_WithHeading(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	original := adf.Node{
@@ -784,7 +784,7 @@ func TestExpandConverter_RoundTrip_WithHeading(t *testing.T) {
 }
 
 func TestExpandConverter_RoundTrip_WithCodeBlock(t *testing.T) {
-	ec := NewExpandConverter()
+	ec := NewExpandRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown, ParseNested: testParseNested()}
 
 	original := adf.Node{

@@ -10,28 +10,28 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// bulletListConverter handles conversion of ADF bullet list nodes to/from markdown
-type bulletListConverter struct{}
+// bulletListRenderer handles conversion of ADF bullet list nodes to/from markdown
+type bulletListRenderer struct{}
 
-func NewBulletListConverter() adf.Renderer {
-	return &bulletListConverter{}
+func NewBulletListRenderer() adf.Renderer {
+	return &bulletListRenderer{}
 }
 
-func (blc *bulletListConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.StandardMarkdown)
+func (blc *bulletListRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
+	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 
 	childContext := context
 	childContext.ListDepth = context.ListDepth + 1
 
 	for _, item := range node.Content {
-		itemConverter , _ := context.Registry.Lookup(adf.NodeType(item.Type))
-		if itemConverter == nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("no converter found for list item type: %s", item.Type)
+		itemRenderer , _ := context.Registry.Lookup(adf.NodeType(item.Type))
+		if itemRenderer == nil {
+			return adf.RenderResult{}, fmt.Errorf("no converter found for list item type: %s", item.Type)
 		}
 
-		itemResult, err := itemConverter.ToMarkdown(item, childContext)
+		itemResult, err := itemRenderer.ToMarkdown(item, childContext)
 		if err != nil {
-			return adf.EnhancedConversionResult{}, fmt.Errorf("failed to convert list item: %w", err)
+			return adf.RenderResult{}, fmt.Errorf("failed to convert list item: %w", err)
 		}
 
 		builder.AppendContent(itemResult.Content)
@@ -42,7 +42,7 @@ func (blc *bulletListConverter) ToMarkdown(node adf.Node, context adf.Conversion
 	return builder.Build(), nil
 }
 
-func (blc *bulletListConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (blc *bulletListRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if len(lines) == 0 || startIndex >= len(lines) {
 		return adf.Node{}, 0, fmt.Errorf("no lines to parse")
 	}
@@ -102,22 +102,22 @@ func (blc *bulletListConverter) FromMarkdown(lines []string, startIndex int, con
 	return node, consumed, nil
 }
 
-func (blc *bulletListConverter) CanParseLine(line string) bool {
+func (blc *bulletListRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "- ")
 }
 
-func (blc *bulletListConverter) CanHandle(nodeType adf.NodeType) bool {
+func (blc *bulletListRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeBulletList)
 }
 
-func (blc *bulletListConverter) GetStrategy() adf.ConversionStrategy {
+func (blc *bulletListRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.StandardMarkdown
 }
 
-func (blc *bulletListConverter) ValidateInput(input any) error {
+func (blc *bulletListRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 
 	if node.Type != adf.NodeTypeBulletList {

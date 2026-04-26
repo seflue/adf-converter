@@ -11,7 +11,7 @@ import (
 )
 
 func TestCodeBlock_ToMarkdown_WithLanguage(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type:  adf.NodeTypeCodeBlock,
 		Attrs: map[string]any{"language": "go"},
@@ -27,7 +27,7 @@ func TestCodeBlock_ToMarkdown_WithLanguage(t *testing.T) {
 }
 
 func TestCodeBlock_ToMarkdown_NoLanguage(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type: adf.NodeTypeCodeBlock,
 		Content: []adf.Node{
@@ -41,7 +41,7 @@ func TestCodeBlock_ToMarkdown_NoLanguage(t *testing.T) {
 }
 
 func TestCodeBlock_ToMarkdown_EmptyLanguage(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type:  adf.NodeTypeCodeBlock,
 		Attrs: map[string]any{"language": ""},
@@ -56,7 +56,7 @@ func TestCodeBlock_ToMarkdown_EmptyLanguage(t *testing.T) {
 }
 
 func TestCodeBlock_ToMarkdown_EmptyContent(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type: adf.NodeTypeCodeBlock,
 	}
@@ -67,7 +67,7 @@ func TestCodeBlock_ToMarkdown_EmptyContent(t *testing.T) {
 }
 
 func TestCodeBlock_ToMarkdown_MultilineContent(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type:  adf.NodeTypeCodeBlock,
 		Attrs: map[string]any{"language": "go"},
@@ -82,7 +82,7 @@ func TestCodeBlock_ToMarkdown_MultilineContent(t *testing.T) {
 }
 
 func TestCodeBlock_ToMarkdown_ContentWithBackticks(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type: adf.NodeTypeCodeBlock,
 		Content: []adf.Node{
@@ -96,7 +96,7 @@ func TestCodeBlock_ToMarkdown_ContentWithBackticks(t *testing.T) {
 }
 
 func TestCodeBlock_ToMarkdown_ContentWithLongBacktickRun(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type: adf.NodeTypeCodeBlock,
 		Content: []adf.Node{
@@ -110,7 +110,7 @@ func TestCodeBlock_ToMarkdown_ContentWithLongBacktickRun(t *testing.T) {
 }
 
 func TestCodeBlock_ToMarkdown_WarningOnExtraAttrs(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	node := adf.Node{
 		Type:  adf.NodeTypeCodeBlock,
 		Attrs: map[string]any{"language": "go", "uniqueId": "abc-123"},
@@ -130,7 +130,7 @@ func TestCodeBlock_ToMarkdown_WarningOnExtraAttrs(t *testing.T) {
 // --- FromMarkdown Tests ---
 
 func TestCodeBlock_FromMarkdown_WithLanguage(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```go", "code", "```"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -143,7 +143,7 @@ func TestCodeBlock_FromMarkdown_WithLanguage(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_NoLanguage(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```", "code", "```"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -156,7 +156,7 @@ func TestCodeBlock_FromMarkdown_NoLanguage(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_EmptyBlock(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```", "```"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -168,7 +168,7 @@ func TestCodeBlock_FromMarkdown_EmptyBlock(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_Multiline(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```go", "line1", "line2", "line3", "```"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -179,7 +179,7 @@ func TestCodeBlock_FromMarkdown_Multiline(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_DynamicFence(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"````", "use ``` for code", "````"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -190,7 +190,7 @@ func TestCodeBlock_FromMarkdown_DynamicFence(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_LinesConsumed(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```go", "code", "```", "next paragraph"}
 
 	_, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -199,7 +199,7 @@ func TestCodeBlock_FromMarkdown_LinesConsumed(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_SpecialLanguages(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	languages := []string{"c++", "c#", "objective-c", "f#"}
 
 	for _, lang := range languages {
@@ -213,7 +213,7 @@ func TestCodeBlock_FromMarkdown_SpecialLanguages(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_UnclosedFence(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```go", "code"}
 
 	_, _, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -221,7 +221,7 @@ func TestCodeBlock_FromMarkdown_UnclosedFence(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_StartIndex(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"some text", "```go", "code", "```"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 1, adf.ConversionContext{Registry: newTestRegistry()})
@@ -232,7 +232,7 @@ func TestCodeBlock_FromMarkdown_StartIndex(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_BlankLinesInContent(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```go", "line1", "", "line3", "```"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -243,7 +243,7 @@ func TestCodeBlock_FromMarkdown_BlankLinesInContent(t *testing.T) {
 }
 
 func TestCodeBlock_FromMarkdown_IndentedContent(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	lines := []string{"```go", "func main() {", "\tfmt.Println()", "}", "```"}
 
 	node, consumed, err := cb.FromMarkdown(lines, 0, adf.ConversionContext{Registry: newTestRegistry()})
@@ -256,7 +256,7 @@ func TestCodeBlock_FromMarkdown_IndentedContent(t *testing.T) {
 // --- Roundtrip Tests ---
 
 func TestCodeBlock_RoundTrip_Simple(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	original := adf.Node{
 		Type:  adf.NodeTypeCodeBlock,
 		Attrs: map[string]any{"language": "go"},
@@ -280,7 +280,7 @@ func TestCodeBlock_RoundTrip_Simple(t *testing.T) {
 }
 
 func TestCodeBlock_RoundTrip_NoLanguage(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	original := adf.Node{
 		Type: adf.NodeTypeCodeBlock,
 		Content: []adf.Node{
@@ -301,7 +301,7 @@ func TestCodeBlock_RoundTrip_NoLanguage(t *testing.T) {
 }
 
 func TestCodeBlock_RoundTrip_BackticksInContent(t *testing.T) {
-	cb := NewCodeBlockConverter()
+	cb := NewCodeBlockRenderer()
 	original := adf.Node{
 		Type: adf.NodeTypeCodeBlock,
 		Content: []adf.Node{

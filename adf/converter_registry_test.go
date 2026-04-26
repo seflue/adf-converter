@@ -7,27 +7,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// inlineOnlyConverter implements Renderer but NOT BlockParser
+// inlineOnlyRenderer implements Renderer but NOT BlockParser
 // (no CanParseLine method). Used to exercise the type-assert error path
 // in RegisterBlockParser.
-type inlineOnlyConverter struct{}
+type inlineOnlyRenderer struct{}
 
-func (inlineOnlyConverter) ToMarkdown(Node, ConversionContext) (EnhancedConversionResult, error) {
-	return EnhancedConversionResult{}, nil
+func (inlineOnlyRenderer) ToMarkdown(Node, ConversionContext) (RenderResult, error) {
+	return RenderResult{}, nil
 }
 
-func (inlineOnlyConverter) FromMarkdown([]string, int, ConversionContext) (Node, int, error) {
+func (inlineOnlyRenderer) FromMarkdown([]string, int, ConversionContext) (Node, int, error) {
 	return Node{}, 0, nil
 }
 
-func (inlineOnlyConverter) CanHandle(NodeType) bool      { return true }
-func (inlineOnlyConverter) GetStrategy() ConversionStrategy { return StandardMarkdown }
-func (inlineOnlyConverter) ValidateInput(any) error         { return nil }
+func (inlineOnlyRenderer) CanHandle(NodeType) bool      { return true }
+func (inlineOnlyRenderer) GetStrategy() ConversionStrategy { return StandardMarkdown }
+func (inlineOnlyRenderer) ValidateInput(any) error         { return nil }
 
-// blockConverter implements BlockParser (Renderer + CanParseLine).
-type blockConverter struct{ inlineOnlyConverter }
+// blockParser implements BlockParser (Renderer + CanParseLine).
+type blockParser struct{ inlineOnlyRenderer }
 
-func (blockConverter) CanParseLine(string) bool { return true }
+func (blockParser) CanParseLine(string) bool { return true }
 
 func TestRegister_NilConverterReturnsError(t *testing.T) {
 	r := NewConverterRegistry()
@@ -42,7 +42,7 @@ func TestRegister_NilConverterReturnsError(t *testing.T) {
 func TestRegister_ValidConverterReturnsNil(t *testing.T) {
 	r := NewConverterRegistry()
 
-	err := r.Register("text", blockConverter{})
+	err := r.Register("text", blockParser{})
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, r.Count())
@@ -52,9 +52,9 @@ func TestRegister_DuplicateReplacesSilently(t *testing.T) {
 	// Per ac-0100 decision (Option a): replace-semantics preserved.
 	// Duplicate-check stays out of scope; belongs to ac-0094.
 	r := NewConverterRegistry()
-	require.NoError(t, r.Register("text", blockConverter{}))
+	require.NoError(t, r.Register("text", blockParser{}))
 
-	err := r.Register("text", blockConverter{})
+	err := r.Register("text", blockParser{})
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, r.Count())
@@ -71,7 +71,7 @@ func TestRegisterBlockParser_UnregisteredReturnsError(t *testing.T) {
 
 func TestRegisterBlockParser_NonBlockParserReturnsError(t *testing.T) {
 	r := NewConverterRegistry()
-	require.NoError(t, r.Register("text", inlineOnlyConverter{}))
+	require.NoError(t, r.Register("text", inlineOnlyRenderer{}))
 
 	err := r.RegisterBlockParser("text")
 
@@ -81,7 +81,7 @@ func TestRegisterBlockParser_NonBlockParserReturnsError(t *testing.T) {
 
 func TestRegisterBlockParser_ValidReturnsNil(t *testing.T) {
 	r := NewConverterRegistry()
-	require.NoError(t, r.Register("paragraph", blockConverter{}))
+	require.NoError(t, r.Register("paragraph", blockParser{}))
 
 	err := r.RegisterBlockParser("paragraph")
 
@@ -98,7 +98,7 @@ func TestMustRegister_NilConverterPanics(t *testing.T) {
 func TestMustRegister_ValidDoesNotPanic(t *testing.T) {
 	r := NewConverterRegistry()
 
-	assert.NotPanics(t, func() { r.MustRegister("text", blockConverter{}) })
+	assert.NotPanics(t, func() { r.MustRegister("text", blockParser{}) })
 	assert.Equal(t, 1, r.Count())
 }
 
@@ -110,14 +110,14 @@ func TestMustRegisterBlockParser_UnregisteredPanics(t *testing.T) {
 
 func TestMustRegisterBlockParser_NonBlockParserPanics(t *testing.T) {
 	r := NewConverterRegistry()
-	r.MustRegister("text", inlineOnlyConverter{})
+	r.MustRegister("text", inlineOnlyRenderer{})
 
 	assert.Panics(t, func() { r.MustRegisterBlockParser("text") })
 }
 
 func TestMustRegisterBlockParser_ValidDoesNotPanic(t *testing.T) {
 	r := NewConverterRegistry()
-	r.MustRegister("paragraph", blockConverter{})
+	r.MustRegister("paragraph", blockParser{})
 
 	assert.NotPanics(t, func() { r.MustRegisterBlockParser("paragraph") })
 }

@@ -34,7 +34,7 @@ func stripLocalIds(node adf.Node) adf.Node {
 }
 
 func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
-	conv := NewTaskListConverter()
+	conv := NewTaskListRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -174,7 +174,7 @@ func TestTaskListConverter_FromMarkdown_Plain(t *testing.T) {
 }
 
 func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
-	conv := NewTaskListConverter()
+	conv := NewTaskListRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -341,7 +341,7 @@ func TestTaskListConverter_FromMarkdown_XMLWrapped(t *testing.T) {
 }
 
 func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
-	conv := NewTaskListConverter()
+	conv := NewTaskListRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -419,7 +419,7 @@ func TestTaskListConverter_FromMarkdown_EdgeCases(t *testing.T) {
 }
 
 func TestTaskListConverter_RoundTrip(t *testing.T) {
-	conv := NewTaskListConverter()
+	conv := NewTaskListRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	tests := []struct {
@@ -491,7 +491,7 @@ func TestTaskListConverter_RoundTrip(t *testing.T) {
 func TestTaskListConverter_FromMarkdown_Plain_GeneratesLocalId(t *testing.T) {
 	// Jira requires localId on taskList and taskItem nodes.
 	// Plain markdown (no XML wrapper) must auto-generate UUIDs.
-	conv := NewTaskListConverter()
+	conv := NewTaskListRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry()}
 
 	lines := []string{"- [ ] Task 1", "- [x] Task 2"}
@@ -514,7 +514,7 @@ func TestTaskListConverter_FromMarkdown_Plain_GeneratesLocalId(t *testing.T) {
 func TestTaskListConverter_ToMarkdown_TrailingNewline(t *testing.T) {
 	// Block-level elements must end with \n\n so the next element starts on its own line.
 	// Without this, the heading following a taskList ends up on the same line as </taskList>.
-	conv := NewTaskListConverter()
+	conv := NewTaskListRenderer()
 
 	node := adf.Node{
 		Type: "taskList",

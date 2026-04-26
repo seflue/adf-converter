@@ -7,7 +7,7 @@ import (
 )
 
 func TestHeadingConverter_ToMarkdown(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	tests := []struct {
 		name     string
@@ -280,7 +280,7 @@ func TestHeadingConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestHeadingConverter_FromMarkdown(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	tests := []struct {
 		name          string
@@ -475,7 +475,7 @@ func TestHeadingConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestHeadingConverter_RoundTrip(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	tests := []struct {
 		name     string
@@ -544,7 +544,7 @@ func TestHeadingConverter_RoundTrip(t *testing.T) {
 }
 
 func TestHeadingConverter_CanHandle(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	tests := []struct {
 		nodeType adf.NodeType
@@ -567,7 +567,7 @@ func TestHeadingConverter_CanHandle(t *testing.T) {
 }
 
 func TestHeadingConverter_CanParseLine(t *testing.T) {
-	hc := &headingConverter{}
+	hc := &headingRenderer{}
 
 	tests := []struct {
 		line     string
@@ -596,7 +596,7 @@ func TestHeadingConverter_CanParseLine(t *testing.T) {
 }
 
 func TestHeadingConverter_GetStrategy(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 	strategy := hc.GetStrategy()
 	if strategy != adf.StandardMarkdown {
 		t.Errorf("GetStrategy() = %v, want %v", strategy, adf.StandardMarkdown)
@@ -604,7 +604,7 @@ func TestHeadingConverter_GetStrategy(t *testing.T) {
 }
 
 func TestHeadingConverter_ValidateInput(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	tests := []struct {
 		name    string
@@ -647,7 +647,7 @@ func TestHeadingConverter_ValidateInput(t *testing.T) {
 // The existing FromMarkdown table tests only collect plain text, so a silent
 // mark-loss during a Goldmark migration would not be caught there.
 func TestHeadingConverter_FromMarkdown_MarksPreserved(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	tests := []struct {
 		name      string
@@ -737,7 +737,7 @@ func TestHeadingConverter_FromMarkdown_MarksPreserved(t *testing.T) {
 // correctly starts at a non-zero index and reports consumed relative to the
 // slice, not the full document.
 func TestHeadingConverter_FromMarkdown_StartIndex(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 	lines := []string{"paragraph text", "## The Heading", "more text"}
 
 	node, consumed, err := hc.FromMarkdown(lines, 1, adf.ConversionContext{Registry: newTestRegistry()})
@@ -756,7 +756,7 @@ func TestHeadingConverter_FromMarkdown_StartIndex(t *testing.T) {
 // TestHeadingConverter_FromMarkdown_StartIndexOutOfRange ensures an error is
 // returned when startIndex is past the end of the slice.
 func TestHeadingConverter_FromMarkdown_StartIndexOutOfRange(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 	lines := []string{"# Only one line"}
 
 	_, _, err := hc.FromMarkdown(lines, 1, adf.ConversionContext{Registry: newTestRegistry()})
@@ -769,7 +769,7 @@ func TestHeadingConverter_FromMarkdown_StartIndexOutOfRange(t *testing.T) {
 // for heading levels outside [1, 6].  Both cases must render as an h1 so that
 // ADF round-trips remain stable even when the source JSON contains bad data.
 func TestHeadingConverter_ToMarkdown_InvalidLevel(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	tests := []struct {
 		name     string
@@ -806,7 +806,7 @@ func TestHeadingConverter_ToMarkdown_InvalidLevel(t *testing.T) {
 // The current handwritten parser accepts it (bug); this test drives the fix
 // via the Goldmark migration.
 func TestHeadingConverter_FromMarkdown_HashWithoutSpace(t *testing.T) {
-	hc := NewHeadingConverter()
+	hc := NewHeadingRenderer()
 
 	_, _, err := hc.FromMarkdown([]string{"#NoSpace"}, 0, adf.ConversionContext{Registry: newTestRegistry()})
 	if err == nil {

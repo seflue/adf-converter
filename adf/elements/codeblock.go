@@ -12,15 +12,15 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// codeBlockConverter handles conversion of ADF codeBlock nodes to/from markdown
-type codeBlockConverter struct{}
+// codeBlockRenderer handles conversion of ADF codeBlock nodes to/from markdown
+type codeBlockRenderer struct{}
 
-func NewCodeBlockConverter() adf.Renderer {
-	return &codeBlockConverter{}
+func NewCodeBlockRenderer() adf.Renderer {
+	return &codeBlockRenderer{}
 }
 
-func (c *codeBlockConverter) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.EnhancedConversionResult, error) {
-	builder := convresult.NewEnhancedConversionResultBuilder(adf.MarkdownCodeBlock)
+func (c *codeBlockRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
+	builder := convresult.NewRenderResultBuilder(adf.MarkdownCodeBlock)
 
 	// Extract code text
 	var text string
@@ -52,7 +52,7 @@ func (c *codeBlockConverter) ToMarkdown(node adf.Node, context adf.ConversionCon
 	return builder.Build(), nil
 }
 
-func (c *codeBlockConverter) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
+func (c *codeBlockRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	if startIndex >= len(lines) {
 		return adf.Node{}, 0, fmt.Errorf("startIndex out of range")
 	}
@@ -103,22 +103,22 @@ func (c *codeBlockConverter) FromMarkdown(lines []string, startIndex int, contex
 	return adf.Node{}, 0, fmt.Errorf("not a valid code fence: %s", lines[startIndex])
 }
 
-func (c *codeBlockConverter) CanParseLine(line string) bool {
+func (c *codeBlockRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "```")
 }
 
-func (c *codeBlockConverter) CanHandle(nodeType adf.NodeType) bool {
+func (c *codeBlockRenderer) CanHandle(nodeType adf.NodeType) bool {
 	return nodeType == adf.NodeType(adf.NodeTypeCodeBlock)
 }
 
-func (c *codeBlockConverter) GetStrategy() adf.ConversionStrategy {
+func (c *codeBlockRenderer) GetStrategy() adf.ConversionStrategy {
 	return adf.MarkdownCodeBlock
 }
 
-func (c *codeBlockConverter) ValidateInput(input any) error {
+func (c *codeBlockRenderer) ValidateInput(input any) error {
 	node, ok := input.(adf.Node)
 	if !ok {
-		return fmt.Errorf("input must be an Node")
+		return fmt.Errorf("input must be a Node")
 	}
 	if node.Type != adf.NodeTypeCodeBlock {
 		return fmt.Errorf("node type must be codeBlock, got: %s", node.Type)

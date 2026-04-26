@@ -7,7 +7,7 @@ import (
 )
 
 func TestTextConverter_ToMarkdown_PlainText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      adf.StandardMarkdown,
 		RoundTripMode: true,
@@ -37,7 +37,7 @@ func TestTextConverter_ToMarkdown_PlainText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_BoldText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -62,7 +62,7 @@ func TestTextConverter_ToMarkdown_BoldText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_ItalicText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -87,7 +87,7 @@ func TestTextConverter_ToMarkdown_ItalicText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_CodeText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -112,7 +112,7 @@ func TestTextConverter_ToMarkdown_CodeText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_StrikethroughText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -137,7 +137,7 @@ func TestTextConverter_ToMarkdown_StrikethroughText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_UnderlineText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -162,7 +162,7 @@ func TestTextConverter_ToMarkdown_UnderlineText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_UnderlineBoldText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -223,7 +223,7 @@ func TestTextConverter_ToMarkdown_TextColor(t *testing.T) {
 		},
 	}
 
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
 
 	for _, tt := range tests {
@@ -245,7 +245,7 @@ func TestTextConverter_ToMarkdown_TextColor(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_TextColorBold(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
 
 	node := adf.Node{
@@ -272,7 +272,7 @@ func TestTextConverter_ToMarkdown_TextColorBold(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_LinkText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -302,7 +302,7 @@ func TestTextConverter_ToMarkdown_LinkText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_LinkWithoutHref(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -331,7 +331,7 @@ func TestTextConverter_ToMarkdown_LinkWithoutHref(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_MultipleMarks(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -361,7 +361,7 @@ func TestTextConverter_ToMarkdown_MultipleMarks(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_UnsupportedMark(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -387,7 +387,7 @@ func TestTextConverter_ToMarkdown_UnsupportedMark(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_SubscriptText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -417,7 +417,7 @@ func TestTextConverter_ToMarkdown_SubscriptText(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_SubsupDefaultsToSub(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -442,7 +442,7 @@ func TestTextConverter_ToMarkdown_SubsupDefaultsToSub(t *testing.T) {
 }
 
 func TestTextConverter_ToMarkdown_SuperscriptText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -472,7 +472,7 @@ func TestTextConverter_ToMarkdown_SuperscriptText(t *testing.T) {
 }
 
 func TestTextConverter_FromMarkdown_ReturnsError(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -491,19 +491,19 @@ func TestTextConverter_FromMarkdown_ReturnsError(t *testing.T) {
 }
 
 func TestTextConverter_CanHandle(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 
 	if !tc.CanHandle(adf.NodeTypeText) {
-		t.Error("textConverter should handle NodeTypeText")
+		t.Error("textRenderer should handle NodeTypeText")
 	}
 
 	if tc.CanHandle(adf.NodeTypeParagraph) {
-		t.Error("textConverter should not handle NodeTypeParagraph")
+		t.Error("textRenderer should not handle NodeTypeParagraph")
 	}
 }
 
 func TestTextConverter_GetStrategy(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 	strategy := tc.GetStrategy()
 
 	if strategy != adf.StandardMarkdown {
@@ -512,7 +512,7 @@ func TestTextConverter_GetStrategy(t *testing.T) {
 }
 
 func TestTextConverter_ValidateInput_Valid(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeText,
@@ -526,7 +526,7 @@ func TestTextConverter_ValidateInput_Valid(t *testing.T) {
 }
 
 func TestTextConverter_ValidateInput_InvalidType(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 
 	err := tc.ValidateInput("not a node")
 	if err == nil {
@@ -535,7 +535,7 @@ func TestTextConverter_ValidateInput_InvalidType(t *testing.T) {
 }
 
 func TestTextConverter_ValidateInput_WrongNodeType(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeParagraph,
@@ -549,7 +549,7 @@ func TestTextConverter_ValidateInput_WrongNodeType(t *testing.T) {
 }
 
 func TestTextConverter_ValidateInput_EmptyText(t *testing.T) {
-	tc := NewTextConverter()
+	tc := NewTextRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeText,

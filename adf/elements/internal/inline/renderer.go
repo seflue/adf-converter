@@ -116,21 +116,13 @@ func transition(w *strings.Builder, openMarks *[]string, target []string, separa
 		commonLen++
 	}
 
-	closing := len(*openMarks) > commonLen
-	opening := commonLen < len(target)
-
 	// Close marks after common prefix (innermost first = reverse order)
 	for i := len(*openMarks) - 1; i >= commonLen; i-- {
 		w.WriteString(markDelimiter[(*openMarks)[i]])
 	}
 
 	// Place separator between closing and opening delimiters.
-	// When nothing is closing or opening, emit inside current marks.
-	if closing || opening {
-		w.WriteString(separator)
-	} else {
-		w.WriteString(separator)
-	}
+	w.WriteString(separator)
 
 	// Open marks after common prefix
 	for i := commonLen; i < len(target); i++ {

@@ -7,7 +7,7 @@ import (
 )
 
 func TestListItemConverter_ToMarkdown(t *testing.T) {
-	lic := NewListItemConverter()
+	lic := NewListItemRenderer()
 
 	tests := []struct {
 		name     string
@@ -211,7 +211,7 @@ func TestListItemConverter_ToMarkdown(t *testing.T) {
 }
 
 func TestListItemConverter_FromMarkdown(t *testing.T) {
-	lic := NewListItemConverter()
+	lic := NewListItemRenderer()
 
 	tests := []struct {
 		name         string
@@ -331,7 +331,7 @@ func TestListItemConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestListItemConverter_RoundTrip(t *testing.T) {
-	lic := NewListItemConverter()
+	lic := NewListItemRenderer()
 
 	tests := []struct {
 		name    string
@@ -408,7 +408,7 @@ func TestListItemConverter_RoundTrip(t *testing.T) {
 }
 
 func TestListItemConverter_CanHandle(t *testing.T) {
-	lic := NewListItemConverter()
+	lic := NewListItemRenderer()
 
 	tests := []struct {
 		nodeType adf.NodeType
@@ -431,7 +431,7 @@ func TestListItemConverter_CanHandle(t *testing.T) {
 }
 
 func TestListItemConverter_GetStrategy(t *testing.T) {
-	lic := NewListItemConverter()
+	lic := NewListItemRenderer()
 	strategy := lic.GetStrategy()
 
 	if strategy != adf.StandardMarkdown {
@@ -440,7 +440,7 @@ func TestListItemConverter_GetStrategy(t *testing.T) {
 }
 
 func TestListItemConverter_ValidateInput(t *testing.T) {
-	lic := NewListItemConverter()
+	lic := NewListItemRenderer()
 
 	tests := []struct {
 		name    string

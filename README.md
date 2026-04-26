@@ -39,12 +39,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/seflue/adf-converter/adf_types"
-	"github.com/seflue/adf-converter/converter/defaults"
+	"github.com/seflue/adf-converter/adf"
+	"github.com/seflue/adf-converter/adf/defaults"
 )
 
 func main() {
-	doc, err := adf_types.ParseFromString(`{
+	doc, err := adf.ParseFromString(`{
 		"version": 1,
 		"type": "doc",
 		"content": [{"type": "paragraph", "content": [{"type": "text", "text": "Hello"}]}]

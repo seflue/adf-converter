@@ -1,5 +1,5 @@
 // Package convresult provides internal helpers for building, analyzing, and
-// producing EnhancedConversionResult values. The result type itself lives in
+// producing RenderResult values. The result type itself lives in
 // the public converter package; this package holds the non-public machinery.
 package convresult
 
@@ -10,8 +10,8 @@ import (
 	"github.com/seflue/adf-converter/adf"
 )
 
-// EnhancedConversionResultBuilder builds conversion results incrementally.
-type EnhancedConversionResultBuilder struct {
+// RenderResultBuilder builds conversion results incrementally.
+type RenderResultBuilder struct {
 	content           strings.Builder
 	preservedAttrs    map[string]any
 	strategy          adf.ConversionStrategy
@@ -20,64 +20,64 @@ type EnhancedConversionResultBuilder struct {
 	elementsPreserved int
 }
 
-// NewEnhancedConversionResultBuilder creates a new result builder.
-func NewEnhancedConversionResultBuilder(strategy adf.ConversionStrategy) *EnhancedConversionResultBuilder {
-	return &EnhancedConversionResultBuilder{
+// NewRenderResultBuilder creates a new result builder.
+func NewRenderResultBuilder(strategy adf.ConversionStrategy) *RenderResultBuilder {
+	return &RenderResultBuilder{
 		preservedAttrs: make(map[string]any),
 		strategy:       strategy,
 		warnings:       make([]string, 0),
 	}
 }
 
-func (crb *EnhancedConversionResultBuilder) AppendContent(content string) {
+func (crb *RenderResultBuilder) AppendContent(content string) {
 	crb.content.WriteString(content)
 }
 
-func (crb *EnhancedConversionResultBuilder) AppendLine(content string) {
+func (crb *RenderResultBuilder) AppendLine(content string) {
 	crb.content.WriteString(content)
 	crb.content.WriteString("\n")
 }
 
-func (crb *EnhancedConversionResultBuilder) PreserveAttribute(key string, value any) {
+func (crb *RenderResultBuilder) PreserveAttribute(key string, value any) {
 	crb.preservedAttrs[key] = value
 }
 
-func (crb *EnhancedConversionResultBuilder) PreserveAttributes(attrs map[string]any) {
+func (crb *RenderResultBuilder) PreserveAttributes(attrs map[string]any) {
 	for key, value := range attrs {
 		crb.preservedAttrs[key] = value
 	}
 }
 
-func (crb *EnhancedConversionResultBuilder) AddWarning(message string) {
+func (crb *RenderResultBuilder) AddWarning(message string) {
 	crb.warnings = append(crb.warnings, message)
 }
 
-func (crb *EnhancedConversionResultBuilder) AddWarningf(format string, args ...any) {
+func (crb *RenderResultBuilder) AddWarningf(format string, args ...any) {
 	crb.warnings = append(crb.warnings, fmt.Sprintf(format, args...))
 }
 
-func (crb *EnhancedConversionResultBuilder) IncrementConverted() {
+func (crb *RenderResultBuilder) IncrementConverted() {
 	crb.elementsConverted++
 }
 
-func (crb *EnhancedConversionResultBuilder) IncrementPreserved() {
+func (crb *RenderResultBuilder) IncrementPreserved() {
 	crb.elementsPreserved++
 }
 
-func (crb *EnhancedConversionResultBuilder) AddConverted(count int) {
+func (crb *RenderResultBuilder) AddConverted(count int) {
 	crb.elementsConverted += count
 }
 
-func (crb *EnhancedConversionResultBuilder) AddPreserved(count int) {
+func (crb *RenderResultBuilder) AddPreserved(count int) {
 	crb.elementsPreserved += count
 }
 
-func (crb *EnhancedConversionResultBuilder) SetStrategy(strategy adf.ConversionStrategy) {
+func (crb *RenderResultBuilder) SetStrategy(strategy adf.ConversionStrategy) {
 	crb.strategy = strategy
 }
 
-func (crb *EnhancedConversionResultBuilder) Build() adf.EnhancedConversionResult {
-	return adf.EnhancedConversionResult{
+func (crb *RenderResultBuilder) Build() adf.RenderResult {
+	return adf.RenderResult{
 		Content:           crb.content.String(),
 		PreservedAttrs:    crb.preservedAttrs,
 		Strategy:          crb.strategy,
@@ -87,25 +87,25 @@ func (crb *EnhancedConversionResultBuilder) Build() adf.EnhancedConversionResult
 	}
 }
 
-func (crb *EnhancedConversionResultBuilder) IsEmpty() bool {
+func (crb *RenderResultBuilder) IsEmpty() bool {
 	return crb.content.Len() == 0
 }
 
-func (crb *EnhancedConversionResultBuilder) GetContentLength() int {
+func (crb *RenderResultBuilder) GetContentLength() int {
 	return crb.content.Len()
 }
 
-func (crb *EnhancedConversionResultBuilder) HasWarnings() bool {
+func (crb *RenderResultBuilder) HasWarnings() bool {
 	return len(crb.warnings) > 0
 }
 
-func (crb *EnhancedConversionResultBuilder) GetWarningsCount() int {
+func (crb *RenderResultBuilder) GetWarningsCount() int {
 	return len(crb.warnings)
 }
 
 // CreateSuccessResult creates a successful conversion result.
-func CreateSuccessResult(content string, strategy adf.ConversionStrategy) adf.EnhancedConversionResult {
-	return adf.EnhancedConversionResult{
+func CreateSuccessResult(content string, strategy adf.ConversionStrategy) adf.RenderResult {
+	return adf.RenderResult{
 		Content:           content,
 		PreservedAttrs:    make(map[string]any),
 		Strategy:          strategy,
@@ -116,12 +116,12 @@ func CreateSuccessResult(content string, strategy adf.ConversionStrategy) adf.En
 }
 
 // CreatePreservedResult creates a result for preserved content.
-func CreatePreservedResult(content string, attrs map[string]any, strategy adf.ConversionStrategy) adf.EnhancedConversionResult {
+func CreatePreservedResult(content string, attrs map[string]any, strategy adf.ConversionStrategy) adf.RenderResult {
 	if attrs == nil {
 		attrs = make(map[string]any)
 	}
 
-	return adf.EnhancedConversionResult{
+	return adf.RenderResult{
 		Content:           content,
 		PreservedAttrs:    attrs,
 		Strategy:          strategy,
@@ -132,8 +132,8 @@ func CreatePreservedResult(content string, attrs map[string]any, strategy adf.Co
 }
 
 // CreateErrorResult creates a result for error scenarios.
-func CreateErrorResult(errorMsg string, strategy adf.ConversionStrategy) adf.EnhancedConversionResult {
-	return adf.EnhancedConversionResult{
+func CreateErrorResult(errorMsg string, strategy adf.ConversionStrategy) adf.RenderResult {
+	return adf.RenderResult{
 		Content:           "",
 		PreservedAttrs:    make(map[string]any),
 		Strategy:          strategy,
@@ -144,9 +144,9 @@ func CreateErrorResult(errorMsg string, strategy adf.ConversionStrategy) adf.Enh
 }
 
 // MergeResults combines multiple conversion results.
-func MergeResults(results ...adf.EnhancedConversionResult) adf.EnhancedConversionResult {
+func MergeResults(results ...adf.RenderResult) adf.RenderResult {
 	if len(results) == 0 {
-		return adf.EnhancedConversionResult{
+		return adf.RenderResult{
 			PreservedAttrs: make(map[string]any),
 			Warnings:       make([]string, 0),
 		}
@@ -156,7 +156,7 @@ func MergeResults(results ...adf.EnhancedConversionResult) adf.EnhancedConversio
 		return results[0]
 	}
 
-	builder := NewEnhancedConversionResultBuilder(results[0].Strategy)
+	builder := NewRenderResultBuilder(results[0].Strategy)
 
 	for _, result := range results {
 		builder.AppendContent(result.Content)

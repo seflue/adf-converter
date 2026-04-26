@@ -134,7 +134,7 @@ func TestInlineCardConverter_ToMarkdown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			conv := NewInlineCardConverter()
+			conv := NewInlineCardRenderer()
 			context := adf.ConversionContext{Registry: newTestRegistry()}
 
 			result, err := conv.ToMarkdown(tt.node, context)
@@ -196,7 +196,7 @@ func TestInlineCardConverter_ToMarkdown_RoundTripFidelity(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			conv := NewInlineCardConverter()
+			conv := NewInlineCardRenderer()
 			context := adf.ConversionContext{Registry: newTestRegistry()}
 
 			result, err := conv.ToMarkdown(tt.node, context)
@@ -214,7 +214,7 @@ func TestInlineCardConverter_ToMarkdown_RoundTripFidelity(t *testing.T) {
 func TestInlineCardConverter_FromMarkdown(t *testing.T) {
 	// FromMarkdown for inline cards should return an error since they're inline elements
 	// and should be parsed within parent blocks (paragraphs, headings, etc.)
-	conv := NewInlineCardConverter()
+	conv := NewInlineCardRenderer()
 	context := adf.ConversionContext{Registry: newTestRegistry()}
 	lines := []string{"[url](url)"}
 
@@ -230,7 +230,7 @@ func TestInlineCardConverter_FromMarkdown(t *testing.T) {
 }
 
 func TestInlineCardConverter_CanHandle(t *testing.T) {
-	conv := NewInlineCardConverter()
+	conv := NewInlineCardRenderer()
 
 	tests := []struct {
 		nodeType adf.NodeType
@@ -254,7 +254,7 @@ func TestInlineCardConverter_CanHandle(t *testing.T) {
 }
 
 func TestInlineCardConverter_GetStrategy(t *testing.T) {
-	conv := NewInlineCardConverter()
+	conv := NewInlineCardRenderer()
 	strategy := conv.GetStrategy()
 
 	if strategy != adf.StandardMarkdown {
@@ -263,7 +263,7 @@ func TestInlineCardConverter_GetStrategy(t *testing.T) {
 }
 
 func TestInlineCardConverter_ValidateInput(t *testing.T) {
-	conv := NewInlineCardConverter()
+	conv := NewInlineCardRenderer()
 
 	tests := []struct {
 		name      string
@@ -285,7 +285,7 @@ func TestInlineCardConverter_ValidateInput(t *testing.T) {
 			name:      "invalid_input_type",
 			input:     "not a node",
 			wantError: true,
-			errorMsg:  "must be an Node",
+			errorMsg:  "must be a Node",
 		},
 		{
 			name: "wrong_node_type",
@@ -318,7 +318,7 @@ func TestInlineCardConverter_ValidateInput(t *testing.T) {
 
 func TestInlineCardConverter_ToMarkdown_Strategy(t *testing.T) {
 	// Verify that the conversion result has the correct strategy
-	conv := NewInlineCardConverter()
+	conv := NewInlineCardRenderer()
 	context := adf.ConversionContext{Registry: newTestRegistry()}
 
 	node := adf.Node{
@@ -340,7 +340,7 @@ func TestInlineCardConverter_ToMarkdown_Strategy(t *testing.T) {
 
 func TestInlineCardConverter_ToMarkdown_ComplexAttributePreservation(t *testing.T) {
 	// Test that complex metadata is preserved in HTML wrapper
-	conv := NewInlineCardConverter()
+	conv := NewInlineCardRenderer()
 	context := adf.ConversionContext{Registry: newTestRegistry()}
 
 	node := adf.Node{
@@ -390,7 +390,7 @@ func TestInlineCardConverter_ToMarkdown_ComplexAttributePreservation(t *testing.
 }
 
 func TestInlineCardConverter_ToMarkdown_DataOnlyPlaceholder(t *testing.T) {
-	ic := NewInlineCardConverter()
+	ic := NewInlineCardRenderer()
 	mgr := placeholder.NewManager()
 
 	node := adf.Node{
@@ -421,7 +421,7 @@ func TestInlineCardConverter_ToMarkdown_DataOnlyPlaceholder(t *testing.T) {
 }
 
 func TestInlineCardConverter_ToMarkdown_DataOnlyFallback(t *testing.T) {
-	ic := NewInlineCardConverter()
+	ic := NewInlineCardRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeInlineCard,

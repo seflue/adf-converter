@@ -7,7 +7,7 @@ import (
 )
 
 func TestHardBreakConverter_ToMarkdown_BasicHardBreak(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      adf.StandardMarkdown,
 		RoundTripMode: true,
@@ -36,7 +36,7 @@ func TestHardBreakConverter_ToMarkdown_BasicHardBreak(t *testing.T) {
 }
 
 func TestHardBreakConverter_ToMarkdown_WithRoundTripMode(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      adf.StandardMarkdown,
 		RoundTripMode: true,
@@ -58,7 +58,7 @@ func TestHardBreakConverter_ToMarkdown_WithRoundTripMode(t *testing.T) {
 }
 
 func TestHardBreakConverter_ToMarkdown_WithoutRoundTripMode(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy:      adf.StandardMarkdown,
 		RoundTripMode: false,
@@ -81,7 +81,7 @@ func TestHardBreakConverter_ToMarkdown_WithoutRoundTripMode(t *testing.T) {
 }
 
 func TestHardBreakConverter_FromMarkdown_ReturnsError(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), 
 		Strategy: adf.StandardMarkdown,
 	}
@@ -100,23 +100,23 @@ func TestHardBreakConverter_FromMarkdown_ReturnsError(t *testing.T) {
 }
 
 func TestHardBreakConverter_CanHandle(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 
 	if !hc.CanHandle(adf.NodeTypeHardBreak) {
-		t.Error("hardBreakConverter should handle NodeTypeHardBreak")
+		t.Error("hardBreakRenderer should handle NodeTypeHardBreak")
 	}
 
 	if hc.CanHandle(adf.NodeTypeText) {
-		t.Error("hardBreakConverter should not handle NodeTypeText")
+		t.Error("hardBreakRenderer should not handle NodeTypeText")
 	}
 
 	if hc.CanHandle(adf.NodeTypeParagraph) {
-		t.Error("hardBreakConverter should not handle NodeTypeParagraph")
+		t.Error("hardBreakRenderer should not handle NodeTypeParagraph")
 	}
 }
 
 func TestHardBreakConverter_GetStrategy(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 	strategy := hc.GetStrategy()
 
 	if strategy != adf.StandardMarkdown {
@@ -125,7 +125,7 @@ func TestHardBreakConverter_GetStrategy(t *testing.T) {
 }
 
 func TestHardBreakConverter_ValidateInput_Valid(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeHardBreak,
@@ -138,7 +138,7 @@ func TestHardBreakConverter_ValidateInput_Valid(t *testing.T) {
 }
 
 func TestHardBreakConverter_ValidateInput_InvalidType(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 
 	err := hc.ValidateInput("not a node")
 	if err == nil {
@@ -152,7 +152,7 @@ func TestHardBreakConverter_ValidateInput_InvalidType(t *testing.T) {
 }
 
 func TestHardBreakConverter_ValidateInput_WrongNodeType(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeText,
@@ -170,7 +170,7 @@ func TestHardBreakConverter_ValidateInput_WrongNodeType(t *testing.T) {
 }
 
 func TestHardBreakConverter_ValidateInput_WithContent(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeHardBreak,
@@ -191,7 +191,7 @@ func TestHardBreakConverter_ValidateInput_WithContent(t *testing.T) {
 }
 
 func TestHardBreakConverter_ValidateInput_WithText(t *testing.T) {
-	hc := NewHardBreakConverter()
+	hc := NewHardBreakRenderer()
 
 	node := adf.Node{
 		Type: adf.NodeTypeHardBreak,
