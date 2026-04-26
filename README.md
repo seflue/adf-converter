@@ -53,11 +53,11 @@ func main() {
 	}
 	fmt.Println(md)
 
-	result, err := c.FromMarkdown(md, session)
+	restored, _, err := c.FromMarkdown(md, session)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", result.Document)
+	fmt.Printf("%+v\n", restored)
 }
 ```
 

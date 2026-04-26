@@ -143,11 +143,10 @@ func TestDateConverter_Roundtrip(t *testing.T) {
 	}
 
 	// Markdown → ADF
-	result, err := conv.FromMarkdown(markdown, session)
+	restored, _, err := conv.FromMarkdown(markdown, session)
 	if err != nil {
 		t.Fatalf("FromMarkdown failed: %v", err)
 	}
-	restored := result.Document
 
 	// Verify date node roundtripped
 	if len(restored.Content) != 1 {

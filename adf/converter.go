@@ -22,15 +22,6 @@ type DeletionSummary struct {
 	OriginalCount int
 }
 
-// ConversionResult contains both the converted document and deletion tracking information
-type ConversionResult struct {
-	// Document is the converted ADF document
-	Document Document
-
-	// Deletions contains information about which placeholders were deleted during conversion
-	Deletions *DeletionSummary
-}
-
 // HasDeletions returns true if any placeholders were deleted during conversion
 func (ds *DeletionSummary) HasDeletions() bool {
 	return ds.DeletedCount > 0
@@ -67,8 +58,10 @@ type Converter interface {
 	// ToMarkdown converts an ADF document to editable Markdown with placeholders for complex content
 	ToMarkdown(doc Document) (markdown string, session *placeholder.EditSession, err error)
 
-	// FromMarkdown converts edited Markdown back to ADF, restoring preserved content from placeholders
-	FromMarkdown(markdown string, session *placeholder.EditSession) (ConversionResult, error)
+	// FromMarkdown converts edited Markdown back to ADF, restoring preserved content from placeholders.
+	// Returns the converted document, a deletion summary tracking which placeholders the user removed,
+	// and any conversion error.
+	FromMarkdown(markdown string, session *placeholder.EditSession) (Document, *DeletionSummary, error)
 }
 
 // DefaultConverter uses the classifier and placeholder manager for conversion.
@@ -131,10 +124,10 @@ func (c *DefaultConverter) ToMarkdown(doc Document) (string, *placeholder.EditSe
 	return toMarkdown(doc, c.classifier, c.manager, c.registry)
 }
 
-// FromMarkdown converts edited Markdown back to ADF with deletion tracking
-func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.EditSession) (ConversionResult, error) {
+// FromMarkdown converts edited Markdown back to ADF with deletion tracking.
+func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.EditSession) (Document, *DeletionSummary, error) {
 	if session == nil {
-		return ConversionResult{}, fmt.Errorf("session cannot be nil")
+		return Document{}, nil, fmt.Errorf("session cannot be nil")
 	}
 
 	deletionTracker := newDeletionTracker(session, c.manager)
@@ -144,7 +137,7 @@ func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.Ed
 	parser := NewMarkdownParser(session, c.manager, c.registry)
 	nodes, err := parser.ParseMarkdownToADFNodes(lines)
 	if err != nil {
-		return ConversionResult{}, fmt.Errorf("failed to parse markdown: %w", err)
+		return Document{}, nil, fmt.Errorf("failed to parse markdown: %w", err)
 	}
 
 	doc := Document{
@@ -153,9 +146,6 @@ func (c *DefaultConverter) FromMarkdown(markdown string, session *placeholder.Ed
 		Content: nodes,
 	}
 
-	return ConversionResult{
-		Document:  doc,
-		Deletions: deletionTracker.GetSummary(),
-	}, nil
+	return doc, deletionTracker.GetSummary(), nil
 }
 

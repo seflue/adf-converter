@@ -10,11 +10,10 @@ func ConvertRoundTrip(c Converter, original Document) (markdown string, restored
 		return "", Document{}, err
 	}
 
-	result, err := c.FromMarkdown(markdown, session)
+	restored, _, err = c.FromMarkdown(markdown, session)
 	if err != nil {
 		return markdown, Document{}, err
 	}
-	restored = result.Document
 
 	return markdown, restored, nil
 }

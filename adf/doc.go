@@ -49,13 +49,10 @@
 //
 //	// User edits markdown...
 //
-//	result, err := converter.FromMarkdown(editedMarkdown, session)
+//	restoredDocument, deletions, err := converter.FromMarkdown(editedMarkdown, session)
 //	if err != nil {
 //		return err
 //	}
-//
-//	restoredDocument := result.Document
-//	deletions := result.Deletions
 //
 // # Collaborative Safety
 //
