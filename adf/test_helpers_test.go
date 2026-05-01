@@ -11,6 +11,7 @@ import (
 // Helper function to parse ADF payload from JSON string
 // Used across all test files for consistency
 func parseTestADFPayload(t *testing.T, payload string) adf.Document {
+	t.Helper()
 	var parsed struct {
 		Fields struct {
 			Description adf.Document `json:"description"`

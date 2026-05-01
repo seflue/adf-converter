@@ -165,6 +165,7 @@ func countExpandInNode(node adf.Node) int {
 
 // Helper function to validate formatting marks in ADF
 func validateFormattingMarks(t *testing.T, adfDoc adf.Document) {
+	t.Helper()
 	var issues []string
 
 	for _, node := range adfDoc.Content {
