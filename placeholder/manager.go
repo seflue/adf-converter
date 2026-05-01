@@ -368,8 +368,7 @@ func extractTextContent(node adf.Node) string {
 func generateSessionID() string {
 	bytes := make([]byte, 8)
 	if _, err := rand.Read(bytes); err != nil {
-		// Fallback to a simple counter-based ID if random fails
-		return fmt.Sprintf("session_%d", len(bytes))
+		panic(fmt.Sprintf("placeholder: crypto/rand unavailable: %v", err))
 	}
 	return fmt.Sprintf("session_%x", bytes)
 }
