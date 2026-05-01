@@ -28,10 +28,6 @@ func NewTextRenderer() adf.Renderer {
 }
 
 func (tc *textRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
-	if err := tc.ValidateInput(node); err != nil {
-		return adf.RenderResult{}, err
-	}
-
 	text := node.Text
 
 	for _, mark := range node.Marks {
@@ -47,31 +43,6 @@ func (tc *textRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext)
 
 func (tc *textRenderer) FromMarkdown(lines []string, startIndex int, context adf.ConversionContext) (adf.Node, int, error) {
 	return adf.Node{}, 0, errors.New("text nodes are inline elements - use paragraph/heading converters for parsing")
-}
-
-func (tc *textRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeText
-}
-
-func (tc *textRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (tc *textRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("invalid input type: expected Node, got %T", input)
-	}
-
-	if node.Type != adf.NodeTypeText {
-		return fmt.Errorf("invalid node type: expected %s, got %s", adf.NodeTypeText, node.Type)
-	}
-
-	if node.Text == "" {
-		return fmt.Errorf("text node has empty text content")
-	}
-
-	return nil
 }
 
 func (tc *textRenderer) applyMarkToText(text string, mark adf.Mark) string {

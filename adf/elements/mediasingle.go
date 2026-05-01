@@ -79,25 +79,6 @@ func (mc *mediaSingleRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "![")
 }
 
-func (mc *mediaSingleRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeMediaSingle
-}
-
-func (mc *mediaSingleRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (mc *mediaSingleRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-	if node.Type != adf.NodeTypeMediaSingle {
-		return fmt.Errorf("node type must be mediaSingle, got: %s", node.Type)
-	}
-	return nil
-}
-
 // isExternalMedia returns true if node has a media child with type="external".
 func isExternalMedia(node adf.Node) bool {
 	if len(node.Content) == 0 {

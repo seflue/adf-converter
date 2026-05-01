@@ -817,37 +817,3 @@ func TestTableConverter_FromMarkdown_EmptyCellContent(t *testing.T) {
 // Helper & Validation Tests
 // ============================================================================
 
-func TestTableConverter_CanHandle(t *testing.T) {
-	tc := NewTableRenderer()
-	assert.True(t, tc.CanHandle(adf.NodeTypeTable))
-	assert.False(t, tc.CanHandle("paragraph"))
-}
-
-func TestTableConverter_GetStrategy(t *testing.T) {
-	tc := NewTableRenderer()
-	assert.Equal(t, adf.MarkdownTable, tc.GetStrategy())
-}
-
-func TestTableConverter_ValidateInput(t *testing.T) {
-	tc := NewTableRenderer()
-
-	t.Run("valid ADF node", func(t *testing.T) {
-		assert.NoError(t, tc.ValidateInput(adf.Node{Type: "table"}))
-	})
-
-	t.Run("wrong node type", func(t *testing.T) {
-		assert.Error(t, tc.ValidateInput(adf.Node{Type: "paragraph"}))
-	})
-
-	t.Run("valid string", func(t *testing.T) {
-		assert.NoError(t, tc.ValidateInput("| H |"))
-	})
-
-	t.Run("empty string", func(t *testing.T) {
-		assert.Error(t, tc.ValidateInput(""))
-	})
-
-	t.Run("nil input", func(t *testing.T) {
-		assert.Error(t, tc.ValidateInput(nil))
-	})
-}

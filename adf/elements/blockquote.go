@@ -254,34 +254,6 @@ func (bc *blockquoteRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<blockquote") || strings.HasPrefix(line, ">")
 }
 
-func (bc *blockquoteRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeBlockquote
-}
-
-func (bc *blockquoteRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.MarkdownBlockquote
-}
-
-func (bc *blockquoteRenderer) ValidateInput(input any) error {
-	if input == nil {
-		return fmt.Errorf("input cannot be nil")
-	}
-
-	switch v := input.(type) {
-	case adf.Node:
-		if v.Type != "blockquote" {
-			return fmt.Errorf("ADF node must be of type 'blockquote', got: %s", v.Type)
-		}
-		return nil
-	case string:
-		if strings.TrimSpace(v) == "" {
-			return fmt.Errorf("markdown input cannot be empty")
-		}
-		return nil
-	default:
-		return fmt.Errorf("input must be adf.Node or string, got: %T", input)
-	}
-}
 
 func (bc *blockquoteRenderer) shouldPreserveAttrs(context adf.ConversionContext, node adf.Node) bool {
 	return context.PreserveAttrs && len(node.Attrs) > 0

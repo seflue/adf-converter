@@ -2,7 +2,6 @@ package elements
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/seflue/adf-converter/adf"
 	"github.com/seflue/adf-converter/adf/internal/convresult"
@@ -28,11 +27,6 @@ func NewHardBreakRenderer() adf.Renderer {
 
 // ToMarkdown converts an ADF hard break node to a Markdown newline
 func (hc *hardBreakRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
-	// Validate input
-	if err := hc.ValidateInput(node); err != nil {
-		return adf.RenderResult{}, err
-	}
-
 	// Hard break is simply a newline character
 	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 	builder.AppendContent("\n")
@@ -50,35 +44,3 @@ func (hc *hardBreakRenderer) FromMarkdown(lines []string, startIndex int, contex
 	return adf.Node{}, 0, errors.New("hardBreak nodes are inline elements - use paragraph/heading converters for parsing")
 }
 
-// CanHandle returns true if this converter can handle the given node type
-func (hc *hardBreakRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeHardBreak
-}
-
-// GetStrategy returns the conversion strategy for hard break nodes
-func (hc *hardBreakRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-// ValidateInput validates that the input node is a valid hard break node
-func (hc *hardBreakRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("invalid input type: expected Node, got %T", input)
-	}
-
-	if node.Type != adf.NodeTypeHardBreak {
-		return fmt.Errorf("invalid node type: expected %s, got %s", adf.NodeTypeHardBreak, node.Type)
-	}
-
-	// Hard break nodes should not have content or text
-	if len(node.Content) > 0 {
-		return fmt.Errorf("hardBreak node should not have content")
-	}
-
-	if node.Text != "" {
-		return fmt.Errorf("hardBreak node should not have text")
-	}
-
-	return nil
-}

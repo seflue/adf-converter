@@ -106,23 +106,3 @@ func (blc *bulletListRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "- ")
 }
 
-func (blc *bulletListRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeBulletList
-}
-
-func (blc *bulletListRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (blc *bulletListRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-
-	if node.Type != adf.NodeTypeBulletList {
-		return fmt.Errorf("node type must be bulletList, got: %s", node.Type)
-	}
-
-	return nil
-}

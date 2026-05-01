@@ -248,35 +248,6 @@ func (tc *taskListRenderer) CanParseLine(line string) bool {
 		strings.HasPrefix(line, "- [X]")
 }
 
-func (tc *taskListRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeTaskList
-}
-
-func (tc *taskListRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.MarkdownTaskList
-}
-
-func (tc *taskListRenderer) ValidateInput(input any) error {
-	if input == nil {
-		return fmt.Errorf("input cannot be nil")
-	}
-
-	switch v := input.(type) {
-	case adf.Node:
-		if v.Type != "taskList" {
-			return fmt.Errorf("ADF node must be of type 'taskList', got: %s", v.Type)
-		}
-		return nil
-	case string:
-		if strings.TrimSpace(v) == "" {
-			return fmt.Errorf("markdown input cannot be empty")
-		}
-		return nil
-	default:
-		return fmt.Errorf("input must be adf.Node or string, got: %T", input)
-	}
-}
-
 func generateLocalId() string {
 	b := make([]byte, 16)
 	_, _ = rand.Read(b)

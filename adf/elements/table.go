@@ -299,40 +299,8 @@ func (tc *tableRenderer) parseXMLWrappedTable(lines []string) (adf.Node, error) 
 	return tableNode, nil
 }
 
-// CanHandle returns true if this converter can handle the given node type
 func (tc *tableRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<table") || strings.HasPrefix(line, "|")
-}
-
-func (tc *tableRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeTable
-}
-
-// GetStrategy returns the conversion strategy this converter implements
-func (tc *tableRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.MarkdownTable
-}
-
-// ValidateInput validates that the input can be processed
-func (tc *tableRenderer) ValidateInput(input any) error {
-	if input == nil {
-		return fmt.Errorf("input cannot be nil")
-	}
-
-	switch v := input.(type) {
-	case adf.Node:
-		if v.Type != "table" {
-			return fmt.Errorf("ADF node must be of type 'table', got: %s", v.Type)
-		}
-		return nil
-	case string:
-		if strings.TrimSpace(v) == "" {
-			return fmt.Errorf("markdown input cannot be empty")
-		}
-		return nil
-	default:
-		return fmt.Errorf("input must be adf.Node or string, got: %T", input)
-	}
 }
 
 // wrapTableWithXML wraps markdown table content with XML tags and ADF attributes.

@@ -107,23 +107,3 @@ func (ic *inlineCardRenderer) FromMarkdown(lines []string, startIndex int, conte
 	return adf.Node{}, 0, fmt.Errorf("inlineCard is an inline element and should be parsed within parent blocks")
 }
 
-func (ic *inlineCardRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeInlineCard
-}
-
-func (ic *inlineCardRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (ic *inlineCardRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-
-	if node.Type != adf.NodeTypeInlineCard {
-		return fmt.Errorf("node type must be inlineCard, got: %s", node.Type)
-	}
-
-	return nil
-}

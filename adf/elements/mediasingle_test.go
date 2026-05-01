@@ -273,30 +273,6 @@ func TestMediaSingleConverter_CanParseLine(t *testing.T) {
 }
 
 // ============================================================================
-// CanHandle / GetStrategy / ValidateInput Tests
-// ============================================================================
-
-func TestMediaSingleConverter_CanHandle(t *testing.T) {
-	mc := NewMediaSingleRenderer()
-	assert.True(t, mc.CanHandle(adf.NodeTypeMediaSingle))
-	assert.False(t, mc.CanHandle(adf.NodeTypeMediaInline))
-	assert.False(t, mc.CanHandle(adf.NodeType("paragraph")))
-}
-
-func TestMediaSingleConverter_GetStrategy(t *testing.T) {
-	mc := NewMediaSingleRenderer()
-	assert.Equal(t, adf.StandardMarkdown, mc.GetStrategy())
-}
-
-func TestMediaSingleConverter_ValidateInput(t *testing.T) {
-	mc := NewMediaSingleRenderer()
-
-	assert.NoError(t, mc.ValidateInput(adf.Node{Type: adf.NodeTypeMediaSingle}))
-	assert.Error(t, mc.ValidateInput(adf.Node{Type: "paragraph"}))
-	assert.Error(t, mc.ValidateInput("not a node"))
-}
-
-// ============================================================================
 // Roundtrip Tests
 // ============================================================================
 

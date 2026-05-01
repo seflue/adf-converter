@@ -161,23 +161,3 @@ func appendPreservedChild(
 	return nil, nil
 }
 
-func (pc *paragraphRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeParagraph
-}
-
-func (pc *paragraphRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (pc *paragraphRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-
-	if node.Type != adf.NodeTypeParagraph {
-		return fmt.Errorf("node type must be paragraph, got: %s", node.Type)
-	}
-
-	return nil
-}

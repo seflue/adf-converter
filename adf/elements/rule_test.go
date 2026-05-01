@@ -35,51 +35,6 @@ func TestRuleConverter_ToMarkdown(t *testing.T) {
 	}
 }
 
-func TestRuleConverter_ValidateInput(t *testing.T) {
-	rc := NewRuleRenderer()
-
-	tests := []struct {
-		name    string
-		input   any
-		wantErr bool
-	}{
-		{
-			name:    "valid rule node",
-			input:   adf.Node{Type: adf.NodeTypeRule},
-			wantErr: false,
-		},
-		{
-			name:    "wrong node type",
-			input:   adf.Node{Type: adf.NodeTypeParagraph},
-			wantErr: true,
-		},
-		{
-			name: "rule with content is invalid",
-			input: adf.Node{
-				Type:    adf.NodeTypeRule,
-				Content: []adf.Node{{Type: adf.NodeTypeText}},
-			},
-			wantErr: true,
-		},
-		{
-			name:    "wrong input type",
-			input:   "not a node",
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := rc.ValidateInput(tt.input)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestRuleConverter_FromMarkdown(t *testing.T) {
 	rc := NewRuleRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
@@ -278,18 +233,6 @@ func TestRuleConverter_Roundtrip(t *testing.T) {
 	// MD→ADF: should have rule node
 	require.Len(t, restored.Content, 3)
 	assert.Equal(t, adf.NodeTypeRule, restored.Content[1].Type)
-}
-
-func TestRuleConverter_CanHandle(t *testing.T) {
-	rc := NewRuleRenderer()
-
-	assert.True(t, rc.CanHandle(adf.NodeTypeRule))
-	assert.False(t, rc.CanHandle(adf.NodeTypeParagraph))
-}
-
-func TestRuleConverter_GetStrategy(t *testing.T) {
-	rc := NewRuleRenderer()
-	assert.Equal(t, adf.StandardMarkdown, rc.GetStrategy())
 }
 
 func TestRuleConverter_EdgeCases(t *testing.T) {

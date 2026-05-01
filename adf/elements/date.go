@@ -52,27 +52,3 @@ func (dc *dateRenderer) FromMarkdown(lines []string, startIndex int, context adf
 	return adf.Node{}, 0, fmt.Errorf("date is an inline element and should be parsed within parent blocks")
 }
 
-func (dc *dateRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeDate
-}
-
-func (dc *dateRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (dc *dateRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-	if node.Type != adf.NodeTypeDate {
-		return fmt.Errorf("node type must be date, got: %s", node.Type)
-	}
-	if node.Attrs == nil {
-		return fmt.Errorf("date node missing attrs")
-	}
-	if _, ok := node.Attrs["timestamp"].(string); !ok {
-		return fmt.Errorf("date node missing timestamp attribute")
-	}
-	return nil
-}

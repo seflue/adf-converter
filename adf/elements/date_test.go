@@ -78,25 +78,6 @@ func TestDateConverter_ToMarkdown(t *testing.T) {
 	}
 }
 
-func TestDateConverter_CanHandle(t *testing.T) {
-	dc := NewDateRenderer()
-
-	if !dc.CanHandle("date") {
-		t.Error("should handle date")
-	}
-	if dc.CanHandle("mention") {
-		t.Error("should not handle mention")
-	}
-}
-
-func TestDateConverter_GetStrategy(t *testing.T) {
-	dc := NewDateRenderer()
-
-	if dc.GetStrategy() != adf.StandardMarkdown {
-		t.Errorf("expected adf.StandardMarkdown, got %v", dc.GetStrategy())
-	}
-}
-
 func TestDateConverter_Roundtrip(t *testing.T) {
 
 	original := adf.Document{

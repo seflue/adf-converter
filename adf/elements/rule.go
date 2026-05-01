@@ -22,10 +22,6 @@ func NewRuleRenderer() adf.Renderer {
 }
 
 func (rc *ruleRenderer) ToMarkdown(node adf.Node, context adf.ConversionContext) (adf.RenderResult, error) {
-	if err := rc.ValidateInput(node); err != nil {
-		return adf.RenderResult{}, err
-	}
-
 	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
 	builder.AppendContent("---\n\n")
 	builder.IncrementConverted()
@@ -78,27 +74,3 @@ func (rc *ruleRenderer) CanParseLine(line string) bool {
 	return count >= 3
 }
 
-func (rc *ruleRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeRule
-}
-
-func (rc *ruleRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (rc *ruleRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("invalid input type: expected Node, got %T", input)
-	}
-
-	if node.Type != adf.NodeTypeRule {
-		return fmt.Errorf("invalid node type: expected %s, got %s", adf.NodeTypeRule, node.Type)
-	}
-
-	if len(node.Content) > 0 {
-		return fmt.Errorf("rule node should not have content")
-	}
-
-	return nil
-}

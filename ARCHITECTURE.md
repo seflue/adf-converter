@@ -207,10 +207,9 @@ flowchart LR
 ```
 
 The `Renderer` interface covers both directions (`ToMarkdown`,
-`FromMarkdown`, `CanHandle`, `GetStrategy`). `BlockParser` adds
-`CanParseLine` on top. Inline-only converters implement `Renderer`
-alone; block-level converters implement both and appear in the
-`BlockParser` list.
+`FromMarkdown`). `BlockParser` adds `CanParseLine` on top.
+Inline-only converters implement `Renderer` alone; block-level
+converters implement both and appear in the `BlockParser` list.
 
 **DefaultConverter** delegates each per-node decision to the
 classifier, registry, and manager it holds.

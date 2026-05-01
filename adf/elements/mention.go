@@ -61,27 +61,3 @@ func (mc *mentionRenderer) FromMarkdown(lines []string, startIndex int, context 
 	return adf.Node{}, 0, fmt.Errorf("mention is an inline element and should be parsed within parent blocks")
 }
 
-func (mc *mentionRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeMention
-}
-
-func (mc *mentionRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (mc *mentionRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-	if node.Type != adf.NodeTypeMention {
-		return fmt.Errorf("node type must be mention, got: %s", node.Type)
-	}
-	if node.Attrs == nil {
-		return fmt.Errorf("mention node missing attrs")
-	}
-	if _, ok := node.Attrs["id"].(string); !ok {
-		return fmt.Errorf("mention node missing id attribute")
-	}
-	return nil
-}

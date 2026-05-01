@@ -120,25 +120,6 @@ func (pc *panelRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, ":::") || admonitionRegex.MatchString(line)
 }
 
-func (pc *panelRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypePanel
-}
-
-func (pc *panelRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.MarkdownPanel
-}
-
-func (pc *panelRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-	if node.Type != adf.NodeTypePanel {
-		return fmt.Errorf("node type must be panel, got: %s", node.Type)
-	}
-	return nil
-}
-
 // admonitionTypeMapping maps GitHub admonition types to ADF panel types
 var admonitionTypeMapping = map[string]string{
 	"info":    "info",

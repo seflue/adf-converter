@@ -49,36 +49,3 @@ func (c *emojiRenderer) FromMarkdown(lines []string, startLine int, context adf.
 	return adf.Node{}, 0, fmt.Errorf("emoji nodes are handled by inline parser, not block converter")
 }
 
-// CanHandle checks if this converter can handle the given node type
-func (c *emojiRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeEmoji
-}
-
-// GetStrategy returns the conversion strategy for emoji nodes
-func (c *emojiRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-// ValidateInput validates that the input is a valid emoji node
-func (c *emojiRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("invalid input type: expected Node, got %T", input)
-	}
-
-	if node.Type != adf.NodeTypeEmoji {
-		return fmt.Errorf("invalid node type: expected %s, got %s", adf.NodeTypeEmoji, node.Type)
-	}
-
-	// Validate that emoji has required attributes
-	if node.Attrs == nil {
-		return fmt.Errorf("emoji node missing attrs")
-	}
-
-	// shortName is required per ADF spec
-	if shortName, ok := node.Attrs["shortName"].(string); !ok || shortName == "" {
-		return fmt.Errorf("emoji node missing or empty shortName attribute")
-	}
-
-	return nil
-}

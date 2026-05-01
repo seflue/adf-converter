@@ -92,23 +92,3 @@ func (hc *headingRenderer) CanParseLine(line string) bool {
 	return level == len(line) || line[level] == ' ' || line[level] == '\t'
 }
 
-func (hc *headingRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeHeading
-}
-
-func (hc *headingRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (hc *headingRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-
-	if node.Type != adf.NodeTypeHeading {
-		return fmt.Errorf("node type must be heading, got: %s", node.Type)
-	}
-
-	return nil
-}

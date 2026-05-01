@@ -222,28 +222,3 @@ func (ec *expandRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "<details")
 }
 
-func (ec *expandRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeExpand ||
-		nodeType == adf.NodeTypeNestedExpand
-}
-
-func (ec *expandRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (ec *expandRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-
-	if node.Type != adf.NodeTypeExpand && node.Type != adf.NodeTypeNestedExpand {
-		return fmt.Errorf("node type must be expand or nestedExpand, got: %s", node.Type)
-	}
-
-	if node.Attrs == nil {
-		return fmt.Errorf("expand node missing attributes")
-	}
-
-	return nil
-}

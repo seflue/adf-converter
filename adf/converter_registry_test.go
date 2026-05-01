@@ -20,10 +20,6 @@ func (inlineOnlyRenderer) FromMarkdown([]string, int, ConversionContext) (Node, 
 	return Node{}, 0, nil
 }
 
-func (inlineOnlyRenderer) CanHandle(NodeType) bool      { return true }
-func (inlineOnlyRenderer) GetStrategy() ConversionStrategy { return StandardMarkdown }
-func (inlineOnlyRenderer) ValidateInput(any) error         { return nil }
-
 // blockParser implements BlockParser (Renderer + CanParseLine).
 type blockParser struct{ inlineOnlyRenderer }
 

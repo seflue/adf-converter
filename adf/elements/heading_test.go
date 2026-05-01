@@ -543,29 +543,6 @@ func TestHeadingConverter_RoundTrip(t *testing.T) {
 	}
 }
 
-func TestHeadingConverter_CanHandle(t *testing.T) {
-	hc := NewHeadingRenderer()
-
-	tests := []struct {
-		nodeType adf.NodeType
-		expected bool
-	}{
-		{adf.NodeTypeHeading, true},
-		{adf.NodeTypeText, false},
-		{adf.NodeTypeParagraph, false},
-		{adf.NodeTypeHardBreak, false},
-	}
-
-	for _, tt := range tests {
-		t.Run(string(tt.nodeType), func(t *testing.T) {
-			result := hc.CanHandle(tt.nodeType)
-			if result != tt.expected {
-				t.Errorf("CanHandle(%s) = %v, want %v", tt.nodeType, result, tt.expected)
-			}
-		})
-	}
-}
-
 func TestHeadingConverter_CanParseLine(t *testing.T) {
 	hc := &headingRenderer{}
 
@@ -590,53 +567,6 @@ func TestHeadingConverter_CanParseLine(t *testing.T) {
 			result := hc.CanParseLine(tt.line)
 			if result != tt.expected {
 				t.Errorf("CanParseLine(%q) = %v, want %v", tt.line, result, tt.expected)
-			}
-		})
-	}
-}
-
-func TestHeadingConverter_GetStrategy(t *testing.T) {
-	hc := NewHeadingRenderer()
-	strategy := hc.GetStrategy()
-	if strategy != adf.StandardMarkdown {
-		t.Errorf("GetStrategy() = %v, want %v", strategy, adf.StandardMarkdown)
-	}
-}
-
-func TestHeadingConverter_ValidateInput(t *testing.T) {
-	hc := NewHeadingRenderer()
-
-	tests := []struct {
-		name    string
-		input   any
-		wantErr bool
-	}{
-		{
-			name: "valid heading node",
-			input: adf.Node{
-				Type: adf.NodeTypeHeading,
-			},
-			wantErr: false,
-		},
-		{
-			name: "invalid node type",
-			input: adf.Node{
-				Type: adf.NodeTypeText,
-			},
-			wantErr: true,
-		},
-		{
-			name:    "invalid input type",
-			input:   "not a node",
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := hc.ValidateInput(tt.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidateInput() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -67,22 +67,3 @@ func (bc *blockCardRenderer) FromMarkdown(lines []string, startIndex int, contex
 func (bc *blockCardRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, `<div data-adf-type="blockCard"`)
 }
-
-func (bc *blockCardRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeBlockCard
-}
-
-func (bc *blockCardRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (bc *blockCardRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-	if node.Type != adf.NodeTypeBlockCard {
-		return fmt.Errorf("node type must be blockCard, got: %s", node.Type)
-	}
-	return nil
-}

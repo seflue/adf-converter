@@ -135,23 +135,3 @@ func (olc *orderedListRenderer) CanParseLine(line string) bool {
 	return orderedListLinePattern.MatchString(line)
 }
 
-func (olc *orderedListRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeOrderedList
-}
-
-func (olc *orderedListRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (olc *orderedListRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-
-	if node.Type != adf.NodeTypeOrderedList {
-		return fmt.Errorf("node type must be orderedList, got: %s", node.Type)
-	}
-
-	return nil
-}

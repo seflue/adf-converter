@@ -107,25 +107,6 @@ func (c *codeBlockRenderer) CanParseLine(line string) bool {
 	return strings.HasPrefix(line, "```")
 }
 
-func (c *codeBlockRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeCodeBlock
-}
-
-func (c *codeBlockRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.MarkdownCodeBlock
-}
-
-func (c *codeBlockRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-	if node.Type != adf.NodeTypeCodeBlock {
-		return fmt.Errorf("node type must be codeBlock, got: %s", node.Type)
-	}
-	return nil
-}
-
 // computeFenceLength returns the minimum fence length needed to safely wrap content.
 // Scans for the longest consecutive backtick run and returns max(3, longest+1).
 func computeFenceLength(content string) int {

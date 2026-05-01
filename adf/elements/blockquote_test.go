@@ -231,77 +231,6 @@ func TestBlockquoteConverter_RoundTrip_WithAttributes(t *testing.T) {
 	assert.Contains(t, result.Content, "</blockquote>")
 }
 
-func TestBlockquoteConverter_ValidateInput(t *testing.T) {
-	conv := NewBlockquoteRenderer()
-
-	tests := []struct {
-		name      string
-		input     any
-		expectErr bool
-	}{
-		{
-			name: "valid ADF node",
-			input: adf.Node{
-				Type: "blockquote",
-			},
-			expectErr: false,
-		},
-		{
-			name:      "valid markdown string",
-			input:     "> blockquote",
-			expectErr: false,
-		},
-		{
-			name: "invalid ADF node type",
-			input: adf.Node{
-				Type: "paragraph",
-			},
-			expectErr: true,
-		},
-		{
-			name:      "empty string",
-			input:     "",
-			expectErr: true,
-		},
-		{
-			name:      "nil input",
-			input:     nil,
-			expectErr: true,
-		},
-		{
-			name:      "invalid type",
-			input:     123,
-			expectErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := conv.ValidateInput(tt.input)
-			if tt.expectErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestBlockquoteConverter_CanHandle(t *testing.T) {
-	conv := NewBlockquoteRenderer()
-
-	assert.True(t, conv.CanHandle(adf.NodeTypeBlockquote))
-	assert.False(t, conv.CanHandle(adf.NodeTypeParagraph))
-	assert.False(t, conv.CanHandle(adf.NodeTypeHeading))
-}
-
-func TestBlockquoteConverter_GetStrategy(t *testing.T) {
-	conv := NewBlockquoteRenderer()
-
-	strategy := conv.GetStrategy()
-	assert.Equal(t, adf.MarkdownBlockquote, strategy)
-}
-
 func TestParseMarkdownBlockquote(t *testing.T) {
 	tests := []struct {
 		name               string
@@ -725,10 +654,6 @@ func (m markerRenderer) ToMarkdown(_ adf.Node, _ adf.ConversionContext) (adf.Ren
 func (m markerRenderer) FromMarkdown(_ []string, _ int, _ adf.ConversionContext) (adf.Node, int, error) {
 	return adf.Node{}, 0, nil
 }
-
-func (m markerRenderer) CanHandle(t adf.NodeType) bool        { return t == m.nodeType }
-func (m markerRenderer) GetStrategy() adf.ConversionStrategy  { return adf.StandardMarkdown }
-func (m markerRenderer) ValidateInput(_ any) error            { return nil }
 
 // TestBlockquoteRenderer_ToMarkdown_DispatchesChildrenViaRegistry verifies that
 // blockquote children (bulletList / orderedList / codeBlock) are rendered

@@ -111,23 +111,3 @@ func (lic *listItemRenderer) FromMarkdown(lines []string, startIndex int, contex
 	return node, 1, nil
 }
 
-func (lic *listItemRenderer) CanHandle(nodeType adf.NodeType) bool {
-	return nodeType == adf.NodeTypeListItem
-}
-
-func (lic *listItemRenderer) GetStrategy() adf.ConversionStrategy {
-	return adf.StandardMarkdown
-}
-
-func (lic *listItemRenderer) ValidateInput(input any) error {
-	node, ok := input.(adf.Node)
-	if !ok {
-		return fmt.Errorf("input must be a Node")
-	}
-
-	if node.Type != adf.NodeTypeListItem {
-		return fmt.Errorf("node type must be listItem, got: %s", node.Type)
-	}
-
-	return nil
-}
