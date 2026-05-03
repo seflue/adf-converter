@@ -10,21 +10,22 @@ import (
 
 // textDisplayRenderer renders text nodes for read-only display mode. It
 // reuses the edit-mode mark pipeline for marks that survive Markdown
-// rendering verbatim and overrides only the two marks that look ugly in
-// a terminal: textColor (HTML span → dropped, text preserved) and subsup
-// (<sub>/<sup> → Unicode super-/subscripts with an ASCII fallback).
+// rendering verbatim and overrides only the marks that look ugly in a
+// terminal — currently subsup (<sub>/<sup> → Unicode super-/subscripts
+// with an ASCII fallback). The textColor mark inherits the edit-mode
+// rendering (HTML span); the display/ Glamour pipeline picks the span
+// up via a custom renderer extension.
 type textDisplayRenderer struct {
 	pipeline markPipeline
 }
 
-// NewTextDisplayRenderer returns a display-mode text renderer. The
-// textColor mark is dropped (text preserved); subsup uses a Unicode-first
-// rendering with ASCII fallback. Per-instance terminal styling is the
-// concern of the separate display/ module's Glamour bridge.
+// NewTextDisplayRenderer returns a display-mode text renderer. Subsup
+// uses a Unicode-first rendering with ASCII fallback; textColor falls
+// through to the edit-mode span renderer so the display/ Glamour bridge
+// can colorize it.
 func NewTextDisplayRenderer() adf.Renderer {
 	overrides := markPipeline{
-		adf.MarkTypeTextColor: dropTextColorMark,
-		adf.MarkTypeSubsup:    renderSubsupDisplay,
+		adf.MarkTypeSubsup: renderSubsupDisplay,
 	}
 	return &textDisplayRenderer{
 		pipeline: editMarkPipeline.withOverrides(overrides),
@@ -45,13 +46,6 @@ func (r *textDisplayRenderer) ToMarkdown(node adf.Node, _ adf.ConversionContext)
 
 func (r *textDisplayRenderer) FromMarkdown(_ []string, _ int, _ adf.ConversionContext) (adf.Node, int, error) {
 	return adf.Node{}, 0, errors.New("text display renderer is read-only")
-}
-
-// dropTextColorMark discards the textColor mark in display mode: the text
-// itself is preserved, the colour is not. Per-instance colouring would
-// require a custom-color bridge; see backlog item ac-0128.
-func dropTextColorMark(text string, _ adf.Mark) string {
-	return text
 }
 
 // supMap and subMap encode the Unicode coverage for super-/subscript

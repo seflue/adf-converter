@@ -5,6 +5,7 @@ go 1.25.8
 require (
 	github.com/seflue/adf-converter v0.0.0
 	github.com/seflue/glamour/v2 v2.1.0-fork.1
+	github.com/yuin/goldmark v1.7.13
 )
 
 require (
@@ -29,7 +30,6 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	github.com/yuin/goldmark v1.7.13 // indirect
 	github.com/yuin/goldmark-emoji v1.0.6 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect

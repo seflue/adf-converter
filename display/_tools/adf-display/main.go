@@ -27,7 +27,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	fs.SetOutput(stderr)
 
 	mdOnly := fs.Bool("md", false, "print raw display Markdown instead of running Glamour")
-	style := fs.String("style", "auto", "Glamour style name (e.g. auto, dark, light, dracula, notty)")
+	style := fs.String("style", "dark", "Glamour style name (e.g. dark, light, dracula, tokyo-night, notty)")
 	wrap := fs.Int("wrap", 80, "Glamour word-wrap column (ignored with --md)")
 
 	if err := fs.Parse(args); err != nil {

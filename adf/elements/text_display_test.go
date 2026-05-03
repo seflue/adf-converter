@@ -14,10 +14,10 @@ func TestTextDisplayRenderer_TextColor(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "drops mark, keeps text",
+			name:     "emits HTML span with color attr",
 			text:     "x",
 			color:    "#ff5630",
-			expected: "x",
+			expected: `<span style="color: #ff5630">x</span>`,
 		},
 		{
 			name:     "missing color attr keeps plain text",
@@ -183,13 +183,13 @@ func TestTextDisplayRenderer_OtherMarksDelegate(t *testing.T) {
 			expected: "[click](https://example.com)",
 		},
 		{
-			name: "strong wraps textColor (mark dropped)",
+			name: "strong wraps textColor (span preserved)",
 			text: "bold red",
 			marks: []adf.Mark{
 				adf.NewMark(adf.MarkTypeTextColor, map[string]any{"color": "#ff0000"}),
 				{Type: adf.MarkTypeStrong},
 			},
-			expected: "**bold red**",
+			expected: `**<span style="color: #ff0000">bold red</span>**`,
 		},
 	}
 

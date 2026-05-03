@@ -34,9 +34,9 @@ func TestDisplaySample_AcceptanceCriteria(t *testing.T) {
 		}
 	})
 
-	t.Run("textColor mark not leaked as HTML span", func(t *testing.T) {
-		if strings.Contains(md, `<span style="color:`) {
-			t.Errorf("textColor leaked as <span style> HTML")
+	t.Run("textColor emits HTML span for downstream color pickup", func(t *testing.T) {
+		if !strings.Contains(md, `<span style="color:`) {
+			t.Errorf("textColor missing span; display/ Glamour bridge cannot colorize")
 		}
 	})
 

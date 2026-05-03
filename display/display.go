@@ -77,6 +77,7 @@ func defaultConfig() config {
 func (c config) glamourOptions() ([]glamour.TermRendererOption, error) {
 	opts := []glamour.TermRendererOption{
 		glamour.WithWordWrap(c.wordWrap),
+		colorSpanCustomRenderer(),
 	}
 	if c.styleJSON != "" {
 		opts = append(opts, glamour.WithStylesFromJSONBytes([]byte(c.styleJSON)))
