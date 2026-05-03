@@ -10,7 +10,7 @@ package display
 import (
 	"fmt"
 
-	"github.com/charmbracelet/glamour"
+	"github.com/seflue/glamour/v2"
 
 	"github.com/seflue/adf-converter/adf"
 	"github.com/seflue/adf-converter/adf/defaults"
@@ -54,9 +54,10 @@ func Render(doc *adf.Document, opts ...Option) (string, error) {
 // Option configures the Render pipeline via the functional-options pattern.
 type Option func(*config)
 
-// config holds resolved Render options. Zero value picks Glamour's "auto"
-// style and an 80-column word-wrap, matching glamour.NewTermRenderer's
-// defaults but stated explicitly so callers see a stable contract.
+// config holds resolved Render options. Zero value picks Glamour's "dark"
+// style and an 80-column word-wrap. Glamour v2 dropped the v1 "auto"
+// style; callers that want background-aware selection should pass an
+// explicit style via WithStyle.
 type config struct {
 	style     string
 	styleJSON string
@@ -65,7 +66,7 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		style:    "auto",
+		style:    "dark",
 		wordWrap: 80,
 	}
 }
