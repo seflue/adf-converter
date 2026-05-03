@@ -35,3 +35,11 @@ func TestRegistrationSourceOfTruth(t *testing.T) {
 		}
 	}
 }
+
+// TestNewDisplayConverter_Smoke guards that NewDisplayConverter wires up
+// without panicking and yields a usable converter instance.
+func TestNewDisplayConverter_Smoke(t *testing.T) {
+	if c := defaults.NewDisplayConverter(); c == nil {
+		t.Fatal("NewDisplayConverter() returned nil")
+	}
+}

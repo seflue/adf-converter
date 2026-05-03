@@ -8,11 +8,12 @@ import (
 	"github.com/seflue/adf-converter/adf"
 )
 
-// markDelimiter maps spannable mark types to their markdown delimiters.
-// These marks can be opened once and span across multiple text nodes.
+// Marks with a fixed open/close pair. When adjacent text nodes share one
+// of these, the wrapper is opened once and closed at the end of the run
+// (so three text nodes with **strong** become one **abc**, not three).
 var markDelimiter = map[adf.MarkType]string{
 	adf.MarkTypeStrong: "**",
-	adf.MarkTypeEm:     "*",
+	adf.MarkTypeEm:     "*", // italic
 	adf.MarkTypeStrike: "~~",
 }
 
@@ -24,22 +25,23 @@ var markPriority = map[adf.MarkType]int{
 	adf.MarkTypeEm:     2,
 }
 
-func isSpannable(markType adf.MarkType) bool {
+func hasSharedDelimiter(markType adf.MarkType) bool {
 	_, ok := markDelimiter[markType]
 	return ok
 }
 
-// RenderInlineNodes converts a slice of ADF inline nodes to markdown with
-// proper mark spanning. Shared marks across adjacent text nodes are opened
-// once instead of being duplicated at each node boundary.
+// Converts ADF inline nodes to markdown.
 //
-// Whitespace extrusion: trailing/leading spaces are moved outside mark
-// delimiters to prevent ambiguous sequences like *** (bold close + italic open).
-// The extruded space is placed between closing and opening delimiters in the
-// transition function, preserving mark spanning for shared marks.
+// Marks listed in markDelimiter (strong/em/strike) get one wrapper
+// across adjacent nodes that share them; everything else wraps each
+// node on its own.
+//
+// Whitespace extrusion: leading/trailing spaces are moved outside the
+// delimiters, so a closing **bold** followed by an opening *italic*
+// doesn't fuse into ***.
 func RenderInlineNodes(nodes []adf.Node, context adf.ConversionContext) (string, error) {
 	var result strings.Builder
-	var openMarks []adf.MarkType // stack of currently open spannable marks (sorted by priority)
+	var openMarks []adf.MarkType // currently open shared-wrapper marks (sorted by priority)
 	var deferredSpace string
 
 	for _, node := range nodes {
@@ -55,7 +57,7 @@ func RenderInlineNodes(nodes []adf.Node, context adf.ConversionContext) (string,
 			continue
 		}
 
-		targetSpannable, nonSpannable := splitMarks(node.Marks)
+		sharedTarget, perNode := splitMarks(node.Marks)
 		text := node.Text
 
 		// Extrude leading whitespace from text
@@ -69,7 +71,7 @@ func RenderInlineNodes(nodes []adf.Node, context adf.ConversionContext) (string,
 		separator := deferredSpace + leadingSpace
 		deferredSpace = ""
 
-		transition(&result, &openMarks, targetSpannable, separator)
+		transition(&result, &openMarks, sharedTarget, separator)
 
 		// Extrude trailing whitespace (defer for next transition)
 		if trimmed := strings.TrimRight(text, " "); len(trimmed) < len(text) {
@@ -77,10 +79,11 @@ func RenderInlineNodes(nodes []adf.Node, context adf.ConversionContext) (string,
 			text = trimmed
 		}
 
-		for _, m := range nonSpannable {
-			text = applyWrappingMark(text, m)
+		rendered, err := applyPerNodeMarks(text, perNode, node, context)
+		if err != nil {
+			return "", err
 		}
-		result.WriteString(text)
+		result.WriteString(rendered)
 	}
 
 	closeAll(&result, &openMarks)
@@ -88,18 +91,18 @@ func RenderInlineNodes(nodes []adf.Node, context adf.ConversionContext) (string,
 	return result.String(), nil
 }
 
-// splitMarks separates marks into spannable (strong/em/strike) and
-// non-spannable (link/code/underline/textColor/subsup).
-func splitMarks(marks []adf.Mark) (spannable []adf.MarkType, nonSpannable []adf.Mark) {
+// Splits marks into the two render strategies: shared (one wrapper for
+// a run of nodes) vs. per-node.
+func splitMarks(marks []adf.Mark) (shared []adf.MarkType, perNode []adf.Mark) {
 	for _, m := range marks {
-		if isSpannable(m.Type) {
-			spannable = append(spannable, m.Type)
+		if hasSharedDelimiter(m.Type) {
+			shared = append(shared, m.Type)
 		} else {
-			nonSpannable = append(nonSpannable, m)
+			perNode = append(perNode, m)
 		}
 	}
-	sort.Slice(spannable, func(i, j int) bool {
-		return markPriority[spannable[i]] < markPriority[spannable[j]]
+	sort.Slice(shared, func(i, j int) bool {
+		return markPriority[shared[i]] < markPriority[shared[j]]
 	})
 	return
 }
@@ -141,34 +144,30 @@ func closeAll(w *strings.Builder, openMarks *[]adf.MarkType) {
 	*openMarks = nil
 }
 
-// applyWrappingMark applies a non-spannable mark to text (per-node wrapping).
-func applyWrappingMark(text string, mark adf.Mark) string {
-	switch mark.Type {
-	case adf.MarkTypeCode:
-		return fmt.Sprintf("`%s`", text)
-	case adf.MarkTypeLink:
-		if href, ok := mark.Attrs["href"].(string); ok {
-			if title, ok := mark.Attrs["title"].(string); ok && title != "" {
-				return fmt.Sprintf(`[%s](%s "%s")`, text, href, title)
-			}
-			return fmt.Sprintf("[%s](%s)", text, href)
-		}
-		return text
-	case adf.MarkTypeUnderline:
-		return fmt.Sprintf("<u>%s</u>", text)
-	case adf.MarkTypeTextColor:
-		if color, ok := mark.Attrs["color"].(string); ok {
-			return fmt.Sprintf(`<span style="color: %s">%s</span>`, color, text)
-		}
-		return text
-	case adf.MarkTypeSubsup:
-		if subType, ok := mark.Attrs["type"].(string); ok && subType == "sup" {
-			return fmt.Sprintf("<sup>%s</sup>", text)
-		}
-		return fmt.Sprintf("<sub>%s</sub>", text)
-	default:
-		return text
+// Wraps one text node with its per-node marks (code, link, underline,
+// textColor, subsup) by delegating to the registry's text renderer. That
+// detour matters: RenderInlineNodes writes the shared marks directly
+// without going through the registry, so display-mode overrides for
+// textColor/subsup would otherwise never run.
+//
+// Workaround: routing through the text renderer is the cheap seam to
+// reach the mark pipeline. The cleaner home is a MarkPipeline on
+// ConversionContext that both inline and text can use directly.
+func applyPerNodeMarks(text string, marks []adf.Mark, node adf.Node, context adf.ConversionContext) (string, error) {
+	if len(marks) == 0 {
+		return text, nil
 	}
+
+	renderer, ok := context.Registry.Lookup(adf.NodeTypeText)
+	if !ok || renderer == nil {
+		return "", fmt.Errorf("inline: text renderer not registered")
+	}
+	textNode := adf.Node{Type: node.Type, Text: text, Marks: marks}
+	res, err := renderer.ToMarkdown(textNode, context)
+	if err != nil {
+		return "", fmt.Errorf("inline text renderer: %w", err)
+	}
+	return res.Content, nil
 }
 
 // renderNonTextNode delegates rendering of non-text inline nodes to their converters.

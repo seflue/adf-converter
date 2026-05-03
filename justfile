@@ -30,6 +30,17 @@ fix:
 # Alles pruefen (fail fast: billigstes zuerst)
 check: build lint test
 
+# Display-Render eines ADF-JSON-Fixtures durch Glamour ins Terminal.
+# Tool lebt im display/_tools-Verzeichnis (Underscore-Prefix → von
+# go build/test/vet/install automatisch ignoriert, Konvention fuer
+# Dev-Helper im Lib-Repo). -C wechselt das go-Modul ohne shell-cwd.
+display PATH="adf/defaults/testdata/display-sample.json":
+    go -C display run ./_tools/adf-display ../{{PATH}}
+
+# Wie display, aber MD-Output statt Glamour-Render (Debug)
+display-md PATH="adf/defaults/testdata/display-sample.json":
+    go -C display run ./_tools/adf-display --md ../{{PATH}}
+
 # Release tagging und GitHub Release erstellen
 release VERSION:
     @git diff-index --quiet HEAD -- || { echo "working tree not clean"; exit 1; }

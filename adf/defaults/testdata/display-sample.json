@@ -1,0 +1,136 @@
+{
+  "type": "doc",
+  "version": 1,
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {"type": "text", "text": "Plain prefix with "},
+        {"type": "text", "text": "bold", "marks": [{"type": "strong"}]},
+        {"type": "text", "text": ", "},
+        {"type": "text", "text": "italic", "marks": [{"type": "em"}]},
+        {"type": "text", "text": ", "},
+        {"type": "text", "text": "code", "marks": [{"type": "code"}]},
+        {"type": "text", "text": " and a "},
+        {"type": "text", "text": "link", "marks": [{"type": "link", "attrs": {"href": "https://example.com"}}]},
+        {"type": "text", "text": "."}
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {"type": "text", "text": "Mention "},
+        {
+          "type": "mention",
+          "attrs": {
+            "id": "abc123",
+            "text": "@john.doe",
+            "accessLevel": "CONTAINER",
+            "userType": "DEFAULT"
+          }
+        },
+        {"type": "text", "text": " and an inlineCard "},
+        {
+          "type": "inlineCard",
+          "attrs": {"url": "https://example.com/page"}
+        },
+        {"type": "text", "text": " inside running text."}
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {"type": "text", "text": "Status pills: "},
+        {
+          "type": "status",
+          "attrs": {"text": "In Progress", "color": "blue"}
+        },
+        {"type": "text", "text": " "},
+        {
+          "type": "status",
+          "attrs": {"text": "Done", "color": "green"}
+        },
+        {"type": "text", "text": " "},
+        {
+          "type": "status",
+          "attrs": {"text": "Blocked", "color": "red"}
+        },
+        {"type": "text", "text": "."}
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {"type": "text", "text": "Formula H"},
+        {
+          "type": "text",
+          "text": "2",
+          "marks": [{"type": "subsup", "attrs": {"type": "sub"}}]
+        },
+        {"type": "text", "text": "O and x"},
+        {
+          "type": "text",
+          "text": "n",
+          "marks": [{"type": "subsup", "attrs": {"type": "sup"}}]
+        },
+        {"type": "text", "text": ". Coloured "},
+        {
+          "type": "text",
+          "text": "red",
+          "marks": [{"type": "textColor", "attrs": {"color": "#ff0000"}}]
+        },
+        {"type": "text", "text": " word."}
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": {"panelType": "info"},
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [{"type": "text", "text": "Info panel body."}]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": {"panelType": "warning"},
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [{"type": "text", "text": "Be careful"}]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": {"panelType": "error"},
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [{"type": "text", "text": "Something broke"}]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": {"panelType": "success"},
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [{"type": "text", "text": "All good"}]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "attrs": {"panelType": "note"},
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [{"type": "text", "text": "Remember this"}]
+        }
+      ]
+    }
+  ]
+}

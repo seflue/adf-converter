@@ -182,14 +182,42 @@ deletions or warn on accidental ones.
 
 ### 5.3 Display mode vs. roundtrip mode
 
-The mode is selected by the `placeholder.Manager` plugged into the
-converter. In **roundtrip mode**, `placeholder.NewManager()` stores
-nodes by ID and the forward pass writes the placeholder comments. The
-reverse pass can find the originals and restore them. In **display
-mode**, `placeholder.NewNoop()` returns an empty ID for every store
-call, which causes the forward pass to write only the preview text
-without a wrapping comment. The reverse pass then has nothing to
-restore from. Display mode is read-only by design.
+Two pieces switch together to turn the converter into a read-only
+display renderer: the `placeholder.Manager` and the registry.
+
+The manager selects the placeholder behaviour. In **roundtrip mode**,
+`placeholder.NewManager()` stores nodes by ID and the forward pass
+writes the placeholder comments. The reverse pass can find the
+originals and restore them. In **display mode**, `placeholder.NewNoop()`
+returns an empty ID for every store call, which causes the forward
+pass to write only the preview text without a wrapping comment. The
+reverse pass then has nothing to restore from. Display mode is
+read-only by design.
+
+The registry selects the renderer set. `defaults.NewDisplayRegistry()`
+copies the standard registry and overlays display-specific renderers
+for the five node types whose edit-mode Markdown renders badly when
+shown directly to a reader (panel, mention, inlineCard, status, text).
+The composition replaces a mode flag inside each renderer — the
+renderer that runs *is* the mode, no `if mode == display` branches in
+the hot path. Display behaviour per node:
+
+- `panel`: blockquote with icon header (`> ℹ️ **INFO**` etc.) instead
+  of the `:::info` fenced-div used in edit mode.
+- `mention`: plain `@Name` instead of `[@Name](accountid:...)`.
+- `inlineCard`: a single autolink (`<https://...>`) instead of the
+  edit-mode form that double-renders the URL.
+- `status`: bracketed label `[Text]` instead of `[status:Text|color]`.
+- `text` with `textColor` mark: mark dropped, text preserved.
+- `text` with `subsup` mark: Unicode super-/subscript where mappable
+  (`H₂O`, `xⁿ`), ASCII fallback otherwise (`_{foo}`, `^Z`).
+
+The output is plain Markdown. Terminal styling (ANSI, themed Glamour
+rendering) is not the library's concern; see the [`display/` Submodule](#display-submodule)
+note in Appendix A for where that lives.
+
+`defaults.NewDisplayConverter()` wires the display registry together
+with the noop manager.
 
 ## 6. Component View
 
@@ -273,6 +301,27 @@ is public because JSON I/O is cleanly separated from conversion, but
 plugging in a custom one is not actively supported either.
 Replacing it is *not* the way to swap Markdown for another target
 format; see [Non-Goals](#10-non-goals).
+
+### 7.4 Display registry: curated overrides for read-only rendering
+
+`defaults.NewDisplayRegistry()` is itself an extension point. It
+returns a registry pre-populated with the standard set plus the five
+display-mode overrides described in [§5.3](#53-display-mode-vs-roundtrip-mode).
+Consumers that need further changes register on top:
+
+```go
+r := defaults.NewDisplayRegistry()
+r.MustRegister("status", myCustomStatusRenderer)
+conv, _ := adf.NewConverter(
+    adf.WithRegistry(r),
+    adf.WithPlaceholderManager(placeholder.NewNoop()),
+)
+```
+
+The intended use case is project-specific styling. lazyjira, for
+example, can swap the status renderer for one that maps Jira workflow
+states to its own colour scheme without forking adf-converter or
+touching any of the other display renderers.
 
 ## 8. Design Principles
 
@@ -383,6 +432,15 @@ importing each other. `defaults` exists as a top-level aggregator
 because `elements` imports `adf` to implement the renderer
 interface, so `adf` itself can't import `elements` to wire up its
 registry.
+
+### `display/` Submodule
+
+The `display/` directory is a separate Go module
+(`github.com/seflue/adf-converter/display`) with its own `go.mod`.
+It composes adf-converter and Glamour into a single `display.Render`
+call for consumers that want a themed terminal view. Glamour and its
+transitive dependencies live there, not in the main module — consumers
+that only need ADF↔Markdown stay Glamour-free.
 
 ## 12. Further Reading
 
