@@ -13,13 +13,14 @@ func TestStatusDisplayRenderer_ToMarkdown(t *testing.T) {
 		text     string
 		expected string
 	}{
-		{"blue", "blue", "In Review", "[In Review]"},
-		{"green", "green", "Done", "[Done]"},
-		{"red", "red", "Blocked", "[Blocked]"},
-		{"yellow", "yellow", "Pending", "[Pending]"},
-		{"purple", "purple", "Custom", "[Custom]"},
-		{"neutral", "neutral", "Open", "[Open]"},
-		{"unknown color falls back to bracket form", "exotic", "Mystery", "[Mystery]"},
+		{"blue", "blue", "In Review", `<span style="color: #0052CC">[In Review]</span>`},
+		{"green", "green", "Done", `<span style="color: #00875A">[Done]</span>`},
+		{"red", "red", "Blocked", `<span style="color: #DE350B">[Blocked]</span>`},
+		{"yellow", "yellow", "Pending", `<span style="color: #FF991F">[Pending]</span>`},
+		{"purple", "purple", "Custom", `<span style="color: #5243AA">[Custom]</span>`},
+		{"neutral", "neutral", "Open", `<span style="color: #42526E">[Open]</span>`},
+		{"unknown color falls back to neutral", "exotic", "Mystery", `<span style="color: #42526E">[Mystery]</span>`},
+		{"missing color falls back to neutral", "", "NoColor", `<span style="color: #42526E">[NoColor]</span>`},
 	}
 
 	for _, tt := range tests {

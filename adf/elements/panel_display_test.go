@@ -24,37 +24,37 @@ func TestPanelDisplayRenderer_ToMarkdown(t *testing.T) {
 		{
 			name:      "info",
 			panelType: "info",
-			expected:  "> ℹ️ **INFO**\n>\n> Hello\n\n",
+			expected:  "> <span style=\"color: #0052CC\">ℹ️ **INFO**</span>\n>\n> Hello\n\n",
 		},
 		{
 			name:      "warning",
 			panelType: "warning",
-			expected:  "> ⚠️ **WARNING**\n>\n> Hello\n\n",
+			expected:  "> <span style=\"color: #FF991F\">⚠️ **WARNING**</span>\n>\n> Hello\n\n",
 		},
 		{
 			name:      "error",
 			panelType: "error",
-			expected:  "> ❌ **ERROR**\n>\n> Hello\n\n",
+			expected:  "> <span style=\"color: #DE350B\">❌ **ERROR**</span>\n>\n> Hello\n\n",
 		},
 		{
 			name:      "success",
 			panelType: "success",
-			expected:  "> ✅ **SUCCESS**\n>\n> Hello\n\n",
+			expected:  "> <span style=\"color: #00875A\">✅ **SUCCESS**</span>\n>\n> Hello\n\n",
 		},
 		{
 			name:      "note",
 			panelType: "note",
-			expected:  "> ✍️ **NOTE**\n>\n> Hello\n\n",
+			expected:  "> <span style=\"color: #6554C0\">✍️ **NOTE**</span>\n>\n> Hello\n\n",
 		},
 		{
 			name:      "tip",
 			panelType: "tip",
-			expected:  "> 💡 **TIP**\n>\n> Hello\n\n",
+			expected:  "> <span style=\"color: #FFAB00\">💡 **TIP**</span>\n>\n> Hello\n\n",
 		},
 		{
 			name:      "unknown panel type falls back to info",
 			panelType: "exotic",
-			expected:  "> ℹ️ **INFO**\n>\n> Hello\n\n",
+			expected:  "> <span style=\"color: #0052CC\">ℹ️ **INFO**</span>\n>\n> Hello\n\n",
 		},
 	}
 
@@ -94,7 +94,7 @@ func TestPanelDisplayRenderer_MultilineBody(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	expected := "> ℹ️ **INFO**\n>\n> Line A\n>\n> Line B\n\n"
+	expected := "> <span style=\"color: #0052CC\">ℹ️ **INFO**</span>\n>\n> Line A\n>\n> Line B\n\n"
 	if result.Content != expected {
 		t.Errorf("expected %q, got %q", expected, result.Content)
 	}

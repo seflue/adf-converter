@@ -7,9 +7,14 @@ import (
 	"github.com/seflue/adf-converter/adf/internal/convresult"
 )
 
-// mentionDisplayRenderer emits mentions as plain @Name text for read-only
-// display mode. Edit-mode link syntax is dropped because Glamour would
-// render the link target verbatim, producing visible accountid noise.
+// mentionAccentColor is the Atlassian-blue accent applied to mentions in
+// display mode. Single touchpoint for future theming.
+const mentionAccentColor = "#0052CC"
+
+// mentionDisplayRenderer emits mentions as plain @Name text wrapped in a
+// ColorSpan for read-only display mode. Edit-mode link syntax is dropped
+// because Glamour would render the link target verbatim, producing visible
+// accountid noise.
 type mentionDisplayRenderer struct{}
 
 // NewMentionDisplayRenderer returns a display-mode renderer for mention
@@ -34,8 +39,10 @@ func (r *mentionDisplayRenderer) ToMarkdown(node adf.Node, _ adf.ConversionConte
 		text = "@" + id
 	}
 
+	styled := fmt.Sprintf(`<span style="color: %s">%s</span>`, mentionAccentColor, text)
+
 	builder := convresult.NewRenderResultBuilder(adf.StandardMarkdown)
-	builder.AppendContent(text)
+	builder.AppendContent(styled)
 	builder.IncrementConverted()
 	return builder.Build(), nil
 }

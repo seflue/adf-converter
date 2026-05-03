@@ -9,22 +9,24 @@ import (
 )
 
 // panelDisplayMeta describes how each ADF panel type renders in display mode:
-// the icon prefix and the uppercase header label.
+// the icon prefix, the uppercase header label, and the hex color used by the
+// display/ Glamour bridge to tint the header.
 type panelDisplayMeta struct {
 	icon  string
 	label string
+	color string
 }
 
 // panelDisplayTable maps ADF panelType to its display-mode metadata.
 // "tip" is rendered verbatim even though edit-mode collapses it to "note":
 // the display path stays lossless for the read path.
 var panelDisplayTable = map[string]panelDisplayMeta{
-	"info":    {icon: "ℹ️", label: "INFO"},
-	"warning": {icon: "⚠️", label: "WARNING"},
-	"error":   {icon: "❌", label: "ERROR"},
-	"success": {icon: "✅", label: "SUCCESS"},
-	"note":    {icon: "✍️", label: "NOTE"},
-	"tip":     {icon: "💡", label: "TIP"},
+	"info":    {icon: "ℹ️", label: "INFO", color: "#0052CC"},
+	"warning": {icon: "⚠️", label: "WARNING", color: "#FF991F"},
+	"error":   {icon: "❌", label: "ERROR", color: "#DE350B"},
+	"success": {icon: "✅", label: "SUCCESS", color: "#00875A"},
+	"note":    {icon: "✍️", label: "NOTE", color: "#6554C0"},
+	"tip":     {icon: "💡", label: "TIP", color: "#FFAB00"},
 }
 
 // panelDisplayRenderer renders panels as Markdown blockquotes with an icon
@@ -48,7 +50,7 @@ func (r *panelDisplayRenderer) ToMarkdown(node adf.Node, context adf.ConversionC
 		return adf.RenderResult{}, err
 	}
 
-	header := meta.icon + " **" + meta.label + "**"
+	header := `<span style="color: ` + meta.color + `">` + meta.icon + " **" + meta.label + "**</span>"
 
 	var out strings.Builder
 	out.WriteString("> " + header + "\n")

@@ -21,7 +21,7 @@ func TestMentionDisplayRenderer_ToMarkdown(t *testing.T) {
 					"text": "@john.doe",
 				},
 			},
-			expected: "@john.doe",
+			expected: `<span style="color: #0052CC">@john.doe</span>`,
 		},
 		{
 			name: "mention without text falls back to id",
@@ -31,7 +31,7 @@ func TestMentionDisplayRenderer_ToMarkdown(t *testing.T) {
 					"id": "abc123",
 				},
 			},
-			expected: "@abc123",
+			expected: `<span style="color: #0052CC">@abc123</span>`,
 		},
 	}
 
