@@ -26,6 +26,7 @@ type textDisplayRenderer struct {
 func NewTextDisplayRenderer() adf.Renderer {
 	overrides := markPipeline{
 		adf.MarkTypeSubsup: renderSubsupDisplay,
+		adf.MarkTypeLink:   renderLinkMarkDisplay,
 	}
 	return &textDisplayRenderer{
 		pipeline: editMarkPipeline.withOverrides(overrides),
@@ -70,6 +71,21 @@ var subMap = map[rune]rune{
 	'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ', 'o': 'ₒ',
 	'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ',
 	'v': 'ᵥ', 'x': 'ₓ',
+}
+
+// renderLinkMarkDisplay collapses links whose visible text equals the
+// href into Markdown autolink form (<URL>). When a title is present the
+// inline form wins because autolinks cannot carry titles. All other
+// cases delegate to the edit-mode renderLinkMark.
+func renderLinkMarkDisplay(text string, mark adf.Mark) string {
+	href, ok := mark.Attrs["href"].(string)
+	if !ok || href != text {
+		return renderLinkMark(text, mark)
+	}
+	if title, ok := mark.Attrs["title"].(string); ok && title != "" {
+		return renderLinkMark(text, mark)
+	}
+	return "<" + href + ">"
 }
 
 func renderSubsupDisplay(text string, mark adf.Mark) string {

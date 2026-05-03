@@ -209,6 +209,59 @@ func TestTextDisplayRenderer_OtherMarksDelegate(t *testing.T) {
 	}
 }
 
+func TestTextDisplayRenderer_LinkAutolink(t *testing.T) {
+	tests := []struct {
+		name     string
+		text     string
+		attrs    map[string]any
+		expected string
+	}{
+		{
+			name:     "text equals href emits autolink",
+			text:     "https://example.com",
+			attrs:    map[string]any{"href": "https://example.com"},
+			expected: "<https://example.com>",
+		},
+		{
+			name:     "text differs from href keeps inline link",
+			text:     "click",
+			attrs:    map[string]any{"href": "https://example.com"},
+			expected: "[click](https://example.com)",
+		},
+		{
+			name:     "text equals href with title falls back to titled inline form",
+			text:     "https://example.com",
+			attrs:    map[string]any{"href": "https://example.com", "title": "Example"},
+			expected: `[https://example.com](https://example.com "Example")`,
+		},
+		{
+			name:     "missing href returns text passthrough",
+			text:     "plain",
+			attrs:    map[string]any{},
+			expected: "plain",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewTextDisplayRenderer()
+			ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
+			node := adf.Node{
+				Type:  adf.NodeTypeText,
+				Text:  tt.text,
+				Marks: []adf.Mark{{Type: adf.MarkTypeLink, Attrs: tt.attrs}},
+			}
+			result, err := r.ToMarkdown(node, ctx)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if result.Content != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result.Content)
+			}
+		})
+	}
+}
+
 func TestTextDisplayRenderer_PlainTextNoMarks(t *testing.T) {
 	r := NewTextDisplayRenderer()
 	ctx := adf.ConversionContext{Registry: newTestRegistry(), Strategy: adf.StandardMarkdown}
